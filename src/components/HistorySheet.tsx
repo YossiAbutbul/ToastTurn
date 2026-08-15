@@ -13,7 +13,7 @@ type HistorySheetProps = {
 
 export function HistorySheet({ open, family, onClose, onSkip }: HistorySheetProps) {
   return (
-    <Sheet open={open} title={en.history.title} onClose={onClose}>
+    <Sheet open={open} title={en.history.title} onClose={onClose} fixedHeight>
       {family.turns.length === 0 && <p className="empty">{en.history.empty}</p>}
 
       {family.turns.map((turn) => (

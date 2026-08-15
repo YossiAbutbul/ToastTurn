@@ -26,8 +26,25 @@
     transform 0.26s cubic-bezier(0.2, 0.9, 0.25, 1),
     visibility 0s 0.26s;
   max-height: 78%;
-  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   visibility: hidden;
+}
+/* One height, whatever is in it — the list scrolls, the sheet doesn't move. */
+.sheet.tall {
+  height: 78%;
+}
+
+.sheet-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+}
+.sheet-body::-webkit-scrollbar {
+  display: none;
 }
 .sheet.show {
   transform: translateY(0);
