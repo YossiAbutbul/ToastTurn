@@ -1,0 +1,460 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ToastTurn</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --sky:#DCE7EE; --sky-2:#CBDCE7; --counter:#EADFCB;
+  --coral:#E9553D; --ink:#2B2420; --ink-soft:#6E635C;
+  --butter:#F7C548; --crust:#C8862F; --paper:#FFFDF7; --mint:#5FB99E;
+  --display:'Baloo 2', system-ui, sans-serif;
+  --ui:'Nunito', system-ui, sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  font-family:var(--ui);color:var(--ink);overflow:hidden;
+  display:flex;align-items:center;justify-content:center;background:var(--sky-2);
+}
+.device{
+  position:relative;width:100%;height:100dvh;overflow:hidden;
+  display:flex;flex-direction:column;
+  background:linear-gradient(180deg,var(--sky) 0%,var(--sky) 63%,var(--counter) 63%,var(--counter) 100%);
+}
+@media (min-width:700px){
+  body{background:#B9CBD7;padding:24px}
+  .device{width:392px;height:min(844px,calc(100dvh - 48px));
+    border-radius:44px;border:4px solid var(--ink);box-shadow:0 26px 0 -6px rgba(43,36,32,.22)}
+}
+
+.bar{display:flex;align-items:center;gap:8px;padding:max(16px,env(safe-area-inset-top)) 18px 4px}
+.mark{font-family:var(--display);font-weight:800;font-size:19px}
+.mark span{color:var(--coral)}
+.bar .spacer{flex:1}
+.pill{
+  font-family:var(--ui);font-weight:800;font-size:11px;color:var(--ink);
+  background:var(--paper);border:2.5px solid var(--ink);border-radius:999px;
+  padding:4px 11px;box-shadow:0 2px 0 var(--ink);cursor:pointer;
+}
+.pill:active{transform:translateY(2px);box-shadow:none}
+
+.head{padding:8px 20px 0;text-align:center;flex:0 0 auto}
+.kicker{font-size:11px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-soft)}
+.big{font-family:var(--display);font-weight:800;line-height:.95;letter-spacing:-.02em;
+  font-size:clamp(40px,13.5vw,56px);color:var(--coral);margin-top:2px}
+.sub{font-size:12.5px;font-weight:700;color:var(--ink-soft);margin-top:4px}
+
+.scene{flex:1 1 auto;min-height:0;display:flex;align-items:center;justify-content:center;padding:0 10px}
+svg{width:100%;height:100%;max-height:370px;display:block}
+.grab{cursor:grab}.grab:active{cursor:grabbing}
+#leverGrp{transition:transform .26s cubic-bezier(.16,1.35,.4,1)}
+#leverGrp.dragging{transition:none}
+#leverGrp:focus{outline:none}
+#leverGrp:focus-visible .knob{stroke:var(--mint);stroke-width:6}
+#sliceGrp{transition:transform .3s cubic-bezier(.15,1.1,.3,1)}
+#sliceGrp.fast{transition:none}
+.bakes{transition:fill .95s linear}
+.glow{opacity:0;transition:opacity .2s}
+.on .glow{opacity:1}
+.on .glowline{animation:flick .5s infinite alternate}
+@keyframes flick{from{opacity:.5}to{opacity:1}}
+.steam{opacity:0}
+.steam.go{animation:steam 1.05s ease-out}
+@keyframes steam{0%{opacity:0;transform:translateY(6px)}22%{opacity:.9}100%{opacity:0;transform:translateY(-24px)}}
+
+.hint{text-align:center;font-size:11.5px;font-weight:800;color:var(--ink-soft);
+  letter-spacing:.04em;padding:0 20px 2px;flex:0 0 auto;min-height:16px}
+
+.queue{flex:0 0 auto;display:flex;gap:9px;justify-content:center;
+  padding:8px 16px max(16px,env(safe-area-inset-bottom));overflow-x:auto;scrollbar-width:none}
+.queue::-webkit-scrollbar{display:none}
+.qbtn{background:none;border:none;cursor:pointer;display:flex;flex-direction:column;
+  align-items:center;gap:5px;padding:0;flex:0 0 auto;color:var(--ink)}
+.qtoast{width:42px;height:38px;border:3px solid var(--ink);border-radius:16px 16px 7px 7px;
+  background:var(--butter);box-shadow:0 3px 0 var(--ink);display:flex;align-items:center;
+  justify-content:center;font-family:var(--display);font-weight:800;font-size:18px}
+.qbtn:active .qtoast{transform:translateY(3px);box-shadow:none}
+.qname{font-size:10px;font-weight:800;letter-spacing:.04em;color:var(--ink-soft);text-transform:uppercase}
+.qbtn.next .qtoast{background:var(--coral);color:var(--paper)}
+.qbtn.next .qname{color:var(--ink)}
+
+.scrim{position:absolute;inset:0;background:rgba(43,36,32,.42);opacity:0;pointer-events:none;
+  transition:opacity .2s;z-index:5}
+.scrim.show{opacity:1;pointer-events:auto}
+.sheet{position:absolute;left:0;right:0;bottom:0;z-index:6;background:var(--paper);
+  border-top:4px solid var(--ink);border-radius:26px 26px 0 0;
+  padding:18px 20px max(20px,env(safe-area-inset-bottom));
+  transform:translateY(102%);transition:transform .26s cubic-bezier(.2,.9,.25,1);
+  max-height:78%;overflow:auto}
+.sheet.show{transform:translateY(0)}
+.sheet h2{font-family:var(--display);font-weight:800;font-size:22px;margin-bottom:12px}
+.row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:2px dashed #E4DAC8}
+.row b{font-family:var(--display);font-weight:800;font-size:17px}
+.row .when{margin-left:auto;font-size:11.5px;font-weight:700;color:var(--ink-soft)}
+.row .stars{font-size:12px;color:var(--crust);letter-spacing:1px}
+.pickbtn{width:100%;background:none;border:none;cursor:pointer;text-align:left;color:var(--ink);
+  display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:2px dashed #E4DAC8}
+.pickbtn:hover b{color:var(--coral)}
+.mini{width:30px;height:27px;border:2.5px solid var(--ink);border-radius:12px 12px 5px 5px;
+  background:var(--butter);display:flex;align-items:center;justify-content:center;
+  font-family:var(--display);font-weight:800;font-size:14px;flex:0 0 auto}
+.close{width:100%;margin-top:14px;padding:13px;border-radius:14px;background:var(--ink);
+  color:var(--paper);border:none;font-family:var(--ui);font-weight:800;font-size:13px;
+  letter-spacing:.06em;cursor:pointer}
+
+/* schedule editor */
+.days{display:flex;gap:6px;margin-bottom:18px}
+.day{flex:1;aspect-ratio:1/1;border:2.5px solid var(--ink);border-radius:12px;background:var(--paper);
+  font-family:var(--ui);font-weight:800;font-size:13px;color:var(--ink);cursor:pointer;
+  display:flex;align-items:center;justify-content:center}
+.day.sel{background:var(--coral);color:var(--paper);box-shadow:0 3px 0 var(--ink)}
+.fieldlabel{font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--ink-soft);margin-bottom:7px}
+.timerow{display:flex;gap:8px;align-items:center;margin-bottom:6px}
+input[type=time]{
+  flex:1;font-family:var(--display);font-weight:800;font-size:24px;color:var(--ink);
+  border:2.5px solid var(--ink);border-radius:14px;padding:8px 12px;background:var(--paper);
+}
+.remind{display:flex;align-items:center;gap:10px;padding:14px 0 2px;font-weight:700;font-size:13px}
+.tog{width:48px;height:28px;border:2.5px solid var(--ink);border-radius:999px;background:#E4DAC8;
+  margin-left:auto;position:relative;cursor:pointer;flex:0 0 auto}
+.tog i{position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;
+  background:var(--ink);transition:transform .18s}
+.tog.on{background:var(--mint)}
+.tog.on i{transform:translateX(20px)}
+
+.note{position:absolute;left:50%;top:33%;transform:translate(-50%,-50%) rotate(-4deg);
+  background:var(--mint);color:var(--paper);border:3px solid var(--ink);border-radius:14px;
+  padding:9px 15px;font-family:var(--display);font-weight:800;font-size:16px;
+  box-shadow:0 4px 0 var(--ink);opacity:0;pointer-events:none;z-index:4;white-space:nowrap}
+.note.show{animation:note 1.1s ease-out}
+@keyframes note{
+  0%{opacity:0;transform:translate(-50%,-50%) scale(.6) rotate(-4deg)}
+  14%{opacity:1;transform:translate(-50%,-50%) scale(1.08) rotate(-4deg)}
+  22%{transform:translate(-50%,-50%) scale(1) rotate(-4deg)}
+  75%{opacity:1}
+  100%{opacity:0;transform:translate(-50%,-62%) rotate(-4deg)}
+}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms !important;transition-duration:.05ms !important}}
+</style>
+
+<div class="device">
+  <div class="bar">
+    <div class="mark">Toast<span>Turn</span></div>
+    <div class="spacer"></div>
+    <button class="pill" id="schedBtn">Sun · 8:00 PM</button>
+    <button class="pill" id="logBtn">History</button>
+  </div>
+
+  <div class="head">
+    <div class="kicker">This week it's</div>
+    <div class="big" id="big">Maya</div>
+    <div class="sub" id="sub">4 turns so far · last made Aug 9</div>
+  </div>
+
+  <div class="scene">
+    <svg id="toaster" viewBox="0 -50 340 350" role="img" aria-label="Illustrated toaster">
+      <defs>
+        <linearGradient id="gBody" x1="0" y1="0" x2=".5" y2="1">
+          <stop offset="0" stop-color="#F4785F"/><stop offset=".45" stop-color="#E9553D"/>
+          <stop offset="1" stop-color="#C93E2A"/>
+        </linearGradient>
+        <linearGradient id="gChrome" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#FBFDFE"/><stop offset=".35" stop-color="#DCE5EA"/>
+          <stop offset=".55" stop-color="#AFBCC4"/><stop offset="1" stop-color="#E2E9ED"/>
+        </linearGradient>
+        <linearGradient id="gSlot" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#191512"/><stop offset="1" stop-color="#413730"/>
+        </linearGradient>
+        <linearGradient id="gCrust" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#E9B455"/><stop offset="1" stop-color="#C8862F"/>
+        </linearGradient>
+        <linearGradient id="gCrumb" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#FDE29A"/><stop offset="1" stop-color="#F7C548"/>
+        </linearGradient>
+      </defs>
+
+      <ellipse cx="168" cy="272" rx="122" ry="12" fill="#2B2420" opacity=".13"/>
+
+      <!-- ===== slice (behind body) ===== -->
+      <g id="sliceGrp">
+        <path id="crust" class="bakes"
+          d="M102 120 V72 c0-19 11-31 28-33 4-13 21-17 31-8 10-9 27-5 29 8 19 2 28 14 28 33 v48 z"
+          fill="url(#gCrust)" stroke="#2B2420" stroke-width="5" stroke-linejoin="round"/>
+        <path id="crumb" class="bakes"
+          d="M111 120 V78 c0-15 9-25 23-27 3-10 17-14 26-6 8-7 21-3 26 6 14 2 23 12 23 27 v42 z"
+          fill="url(#gCrumb)"/>
+        <text id="initial" x="160" y="90" text-anchor="middle"
+          font-family="Baloo 2, sans-serif" font-weight="800" font-size="42" fill="#2B2420">M</text>
+      </g>
+
+      <g class="steam" id="steam" stroke="#96AEBC" stroke-width="4.5" stroke-linecap="round" fill="none">
+        <path d="M132 -6 c-8-8 8-14 0-24"/>
+        <path d="M160 -16 c-8-8 8-14 0-24"/>
+        <path d="M188 -6 c-8-8 8-14 0-24"/>
+      </g>
+
+      <!-- ===== body ===== -->
+      <g id="bodyGrp">
+        <!-- top chrome cap -->
+        <rect x="62" y="102" width="200" height="28" rx="14" fill="url(#gChrome)" stroke="#2B2420" stroke-width="5"/>
+        <rect x="72" y="108" width="180" height="4" rx="2" fill="#FFFFFF" opacity=".7"/>
+        <!-- slot -->
+        <rect x="96" y="108" width="132" height="15" rx="7.5" fill="url(#gSlot)"/>
+        <g class="glow">
+          <rect x="100" y="111" width="124" height="3" rx="1.5" fill="#FF5C22" class="glowline"/>
+          <rect x="100" y="117" width="124" height="3" rx="1.5" fill="#FF8438" class="glowline"/>
+        </g>
+
+        <!-- tapered body -->
+        <path d="M58 250 C46 250 42 240 44 226 L50 152 C52 134 64 126 80 126 L244 126 C260 126 272 134 274 152 L280 226 C282 240 278 250 266 250 Z"
+              fill="url(#gBody)" stroke="#2B2420" stroke-width="5" stroke-linejoin="round"/>
+        <!-- highlight -->
+        <path d="M68 236 C62 200 66 164 74 142" stroke="#FF9B85" stroke-width="9" stroke-linecap="round" fill="none" opacity=".8"/>
+        <!-- vents -->
+        <g fill="#B8331F" opacity=".55">
+          <rect x="232" y="160" width="26" height="5" rx="2.5"/>
+          <rect x="234" y="174" width="26" height="5" rx="2.5"/>
+          <rect x="236" y="188" width="26" height="5" rx="2.5"/>
+        </g>
+
+        <!-- dial -->
+        <circle cx="98" cy="196" r="27" fill="url(#gChrome)" stroke="#2B2420" stroke-width="5"/>
+        <circle cx="98" cy="196" r="18" fill="#F0F4F6" stroke="#2B2420" stroke-width="2.5" opacity=".9"/>
+        <g stroke="#2B2420" stroke-width="2.5" stroke-linecap="round" opacity=".65">
+          <line x1="98" y1="174" x2="98" y2="179"/><line x1="83" y1="181" x2="86" y2="184"/>
+          <line x1="113" y1="181" x2="110" y2="184"/><line x1="79" y1="196" x2="84" y2="196"/>
+          <line x1="117" y1="196" x2="112" y2="196"/>
+        </g>
+        <g id="needleGrp">
+          <line x1="98" y1="196" x2="98" y2="182" stroke="#E9553D" stroke-width="5" stroke-linecap="round"/>
+        </g>
+        <circle cx="98" cy="196" r="5.5" fill="#2B2420"/>
+
+        <!-- badge -->
+        <rect x="146" y="180" width="108" height="32" rx="16" fill="#FFFDF7" stroke="#2B2420" stroke-width="4.5"/>
+        <text x="200" y="202" text-anchor="middle" font-family="Baloo 2, sans-serif"
+              font-weight="800" font-size="15" fill="#2B2420" letter-spacing="1.2">TOASTTURN</text>
+
+        <!-- base plinth -->
+        <rect x="46" y="238" width="234" height="20" rx="10" fill="url(#gChrome)" stroke="#2B2420" stroke-width="5"/>
+        <rect x="72" y="258" width="28" height="10" rx="5" fill="#2B2420"/>
+        <rect x="226" y="258" width="28" height="10" rx="5" fill="#2B2420"/>
+      </g>
+
+      <!-- ===== lever ===== -->
+      <rect x="286" y="134" width="20" height="88" rx="10" fill="#C2CDD4" stroke="#2B2420" stroke-width="4.5"/>
+      <rect x="292" y="142" width="8" height="72" rx="4" fill="#8E9BA3" opacity=".6"/>
+      <g id="leverGrp" class="grab" tabindex="0" role="button"
+         aria-label="Pull the lever down to log this week's toast">
+        <rect x="278" y="138" width="36" height="34" rx="13" class="knob"
+              fill="url(#gChrome)" stroke="#2B2420" stroke-width="5"/>
+        <rect x="287" y="148" width="18" height="3.5" rx="1.75" fill="#8E9BA3"/>
+        <rect x="287" y="155" width="18" height="3.5" rx="1.75" fill="#8E9BA3"/>
+        <rect x="287" y="162" width="18" height="3.5" rx="1.75" fill="#8E9BA3"/>
+      </g>
+
+      <g fill="#C8862F" opacity=".65">
+        <circle cx="300" cy="270" r="3"/><circle cx="316" cy="276" r="2.2"/><circle cx="38" cy="274" r="2.6"/>
+      </g>
+    </svg>
+  </div>
+
+  <div class="hint" id="hint">Pull the lever down when the toast is made</div>
+  <div class="queue" id="queue"></div>
+
+  <div class="note" id="note">Nice one!</div>
+  <div class="scrim" id="scrim"></div>
+  <div class="sheet" id="sheet">
+    <h2 id="sheetTitle">History</h2>
+    <div id="sheetBody"></div>
+    <button class="close" id="closeSheet">Close</button>
+  </div>
+</div>
+
+<script>
+const people = [
+  {name:'Maya', turns:4, last:'Aug 9'},
+  {name:'Ari',  turns:3, last:'Aug 2'},
+  {name:'Noa',  turns:4, last:'Jul 26'},
+  {name:'Tal',  turns:3, last:'Jul 19'},
+  {name:'Abba', turns:5, last:'Jul 12'},
+];
+let cur = 0;
+let log = [
+  {name:'Abba', when:'Aug 9', stars:4},
+  {name:'Tal',  when:'Aug 2', stars:5},
+  {name:'Noa',  when:'Jul 26', stars:3},
+  {name:'Ari',  when:'Jul 19', stars:5},
+];
+const DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+let sched = { day:0, time:'20:00', remind:true };
+
+const $ = id => document.getElementById(id);
+const sliceGrp=$('sliceGrp'), crust=$('crust'), crumb=$('crumb'), initial=$('initial'),
+      leverGrp=$('leverGrp'), toaster=$('toaster'), steam=$('steam'),
+      note=$('note'), scrim=$('scrim'), sheet=$('sheet'), hint=$('hint');
+
+const REST = 0, DEEP = 78, POP = -56;
+let busy = false;
+
+function prettyTime(t){
+  const [H,M] = t.split(':').map(Number);
+  const ap = H >= 12 ? 'PM' : 'AM';
+  const h = H % 12 === 0 ? 12 : H % 12;
+  return `${h}:${String(M).padStart(2,'0')} ${ap}`;
+}
+function idleHint(){ return `Pull the lever down when the toast is made`; }
+
+function render(){
+  const p = people[cur];
+  $('big').textContent = p.name;
+  $('sub').textContent = `${p.turns} turns so far · last made ${p.last}`;
+  initial.textContent = p.name[0].toUpperCase();
+  $('schedBtn').textContent = `${DAYS[sched.day]} · ${prettyTime(sched.time)}`;
+
+  $('queue').innerHTML = '';
+  for(let i=1;i<people.length;i++){
+    const q = people[(cur+i)%people.length];
+    const b = document.createElement('button');
+    b.className = 'qbtn' + (i===1 ? ' next' : '');
+    b.innerHTML = `<span class="qtoast">${q.name[0]}</span><span class="qname">${q.name}</span>`;
+    b.onclick = openSwap;
+    $('queue').appendChild(b);
+  }
+}
+
+/* ---------- lever ---------- */
+const MAXP = 46;
+let dragging=false, y0=0, dy=0;
+function svgY(e){
+  const r = toaster.getBoundingClientRect();
+  return (e.clientY - r.top) * (350 / r.height);
+}
+leverGrp.addEventListener('pointerdown', e=>{
+  if(busy) return;
+  dragging=true; y0=svgY(e); leverGrp.classList.add('dragging');
+  leverGrp.setPointerCapture(e.pointerId);
+});
+leverGrp.addEventListener('pointermove', e=>{
+  if(!dragging) return;
+  dy = Math.max(0, Math.min(MAXP, svgY(e)-y0));
+  leverGrp.setAttribute('transform', `translate(0,${dy})`);
+  hint.textContent = dy > MAXP*.65 ? 'Let go!' : 'Keep pulling…';
+});
+function release(){
+  if(!dragging) return;
+  dragging=false; leverGrp.classList.remove('dragging');
+  if(dy >= MAXP*.65) engage();
+  else { leverGrp.setAttribute('transform','translate(0,0)'); hint.textContent = idleHint(); }
+}
+leverGrp.addEventListener('pointerup', release);
+leverGrp.addEventListener('pointercancel', release);
+leverGrp.addEventListener('keydown', e=>{
+  if(!busy && (e.key==='Enter'||e.key===' ')){ e.preventDefault(); engage(); }
+});
+
+/* ---------- cycle (fast) ---------- */
+function engage(){
+  busy = true;
+  leverGrp.setAttribute('transform',`translate(0,${MAXP})`);
+  toaster.classList.add('on');
+  hint.textContent = 'Toasting…';
+  sliceGrp.setAttribute('transform',`translate(0,${DEEP})`);
+  crust.setAttribute('fill','#8A5322');
+  crumb.setAttribute('fill','#B4762F');
+
+  let t=0;
+  const spin = setInterval(()=>{
+    t++; $('needleGrp').setAttribute('transform', `rotate(${t*22} 98 196)`);
+  }, 55);
+  setTimeout(()=>{ clearInterval(spin); pop(); }, 1050);
+}
+
+function pop(){
+  toaster.classList.remove('on');
+  leverGrp.setAttribute('transform','translate(0,0)');
+  $('needleGrp').setAttribute('transform','rotate(0 98 196)');
+
+  const done = people[cur];
+  done.turns += 1; done.last = 'Aug 16';
+  log.unshift({name:done.name, when:'Aug 16', stars:0});
+
+  sliceGrp.setAttribute('transform',`translate(0,${POP})`);
+  steam.classList.remove('go'); void steam.offsetWidth; steam.classList.add('go');
+  note.textContent = `${done.name} did it! 🎉`;
+  note.classList.remove('show'); void note.offsetWidth; note.classList.add('show');
+
+  const next = people[(cur+1)%people.length];
+  hint.textContent = `Logged. Next ${DAYS[sched.day]} is on ${next.name}.`;
+
+  setTimeout(()=>{
+    cur = (cur+1)%people.length;
+    sliceGrp.classList.add('fast');
+    sliceGrp.setAttribute('transform','translate(0,140)');
+    crust.setAttribute('fill','url(#gCrust)');
+    crumb.setAttribute('fill','url(#gCrumb)');
+    render();
+    requestAnimationFrame(()=>{
+      sliceGrp.classList.remove('fast');
+      sliceGrp.setAttribute('transform',`translate(0,${REST})`);
+      busy = false;
+      setTimeout(()=>{ if(!busy) hint.textContent = idleHint(); }, 1600);
+    });
+  }, 650);
+}
+
+/* ---------- sheets ---------- */
+function openSheet(title, html){
+  $('sheetTitle').textContent = title;
+  $('sheetBody').innerHTML = html;
+  sheet.classList.add('show'); scrim.classList.add('show');
+}
+function closeSheet(){ sheet.classList.remove('show'); scrim.classList.remove('show'); }
+scrim.onclick = closeSheet; $('closeSheet').onclick = closeSheet;
+
+$('logBtn').onclick = () => openSheet('History',
+  log.map(l=>`<div class="row"><b>${l.name}</b>
+    <span class="stars">${l.stars ? '★'.repeat(l.stars) : 'not rated yet'}</span>
+    <span class="when">${l.when}</span></div>`).join(''));
+
+function openSwap(){
+  openSheet(`Swap with ${people[cur].name}`,
+    people.map((p,i)=> i===cur ? '' :
+      `<button class="pickbtn" data-i="${i}"><span class="mini">${p.name[0]}</span>
+        <b>${p.name}</b><span class="when">${p.turns} turns</span></button>`).join(''));
+  sheet.querySelectorAll('.pickbtn').forEach(b=>{
+    b.onclick = ()=>{ const i=+b.dataset.i;
+      [people[cur],people[i]]=[people[i],people[cur]]; render(); closeSheet(); };
+  });
+}
+
+/* ---------- schedule editor ---------- */
+$('schedBtn').onclick = () => {
+  openSheet('Toast night', `
+    <div class="fieldlabel">Day</div>
+    <div class="days" id="days">
+      ${DAYS.map((d,i)=>`<button class="day ${i===sched.day?'sel':''}" data-d="${i}">${d[0]}</button>`).join('')}
+    </div>
+    <div class="fieldlabel">Time</div>
+    <div class="timerow"><input type="time" id="timeIn" value="${sched.time}"></div>
+    <div class="remind">Remind everyone that morning
+      <span class="tog ${sched.remind?'on':''}" id="tog" role="switch"><i></i></span>
+    </div>
+  `);
+  sheet.querySelectorAll('.day').forEach(b=>{
+    b.onclick = ()=>{
+      sched.day = +b.dataset.d;
+      sheet.querySelectorAll('.day').forEach(x=>x.classList.remove('sel'));
+      b.classList.add('sel'); render();
+    };
+  });
+  $('timeIn').oninput = e => { if(e.target.value){ sched.time = e.target.value; render(); } };
+  $('tog').onclick = () => { sched.remind = !sched.remind; $('tog').classList.toggle('on', sched.remind); };
+};
+
+render();
+sliceGrp.setAttribute('transform', `translate(0,${REST})`);
+</script>
