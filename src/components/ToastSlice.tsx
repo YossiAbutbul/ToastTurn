@@ -9,9 +9,13 @@ import './ToastSlice.css';
  * out looking like a crown.
  */
 export function ToastSlice() {
+  // The corners where the sides meet the dome are quarter-turns, so the side
+  // arrives vertical and leaves horizontal — a hump run straight off a straight
+  // side leaves a point.
   const outline =
-    'M46 274 V150 A40 40 0 0 1 98 150 A42 42 0 0 1 150 150 A40 40 0 0 1 202 150 ' +
-    'V274 C202 284 194 290 183 290 H65 C54 290 46 284 46 274 Z';
+    'M46 274 V166 A16 16 0 0 1 62 150 A32 32 0 0 1 103 150 A34 34 0 0 1 145 150 ' +
+    'A32 32 0 0 1 186 150 A16 16 0 0 1 202 166 V274 ' +
+    'C202 284 194 290 183 290 H65 C54 290 46 284 46 274 Z';
 
   return (
     <svg className="toast-slice" viewBox="28 96 194 216" role="img" aria-label="A slice of toast">
@@ -37,8 +41,9 @@ export function ToastSlice() {
       {/* crumb, following the same silhouette a crust's width in */}
       <path
         className="ts-crumb"
-        d="M64 272 V158 A31 31 0 0 1 104 158 A33 33 0 0 1 144 158 A31 31 0 0 1 184 158
-           V272 C184 278 180 281 174 281 H74 C68 281 64 278 64 272 Z"
+        d="M64 272 V172 A12 12 0 0 1 76 158 A25 25 0 0 1 109 158 A27 27 0 0 1 141 158
+           A25 25 0 0 1 172 158 A12 12 0 0 1 184 172 V272
+           C184 278 180 281 174 281 H74 C68 281 64 278 64 272 Z"
       />
       {/* a soft light in the middle of the crumb */}
       <ellipse className="ts-crumb-light" cx="124" cy="216" rx="46" ry="40" />
