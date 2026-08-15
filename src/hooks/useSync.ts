@@ -4,6 +4,7 @@ import { pushFamily, pushTurns, subscribeFamily } from '../lib/remote';
 import type { RemoteFamily } from '../lib/remote';
 import { metaChanged, unsentTurns } from '../lib/mergeFamily';
 import { familyIdFromPath, pathForFamily } from '../lib/url';
+import { ARRIVED_BY_LINK } from '../lib/entry';
 import { useAccount } from './useAccount';
 import { useFamily } from '../store/useFamily';
 import type { Family } from '../lib/types';
@@ -31,11 +32,14 @@ export function useSync() {
   // Opening /f/{id} for a family this phone doesn't have means joining it.
   const joining = linkId && linkId !== localId ? linkId : null;
 
-  // Keep the address bar on the family, so the link is always shareable.
+  // Keep the address bar on the family, so the link is always shareable — but
+  // only for someone who is allowed in, or the rewritten address would itself
+  // become a way back past the sign-in.
   useEffect(() => {
     if (!localId || linkId === localId) return;
+    if (syncConfigured && !account && !ARRIVED_BY_LINK) return;
     window.history.replaceState(null, '', pathForFamily(localId));
-  }, [linkId, localId]);
+  }, [account, linkId, localId]);
 
   useEffect(() => {
     if (!syncConfigured || !familyId || !state.ready) return;

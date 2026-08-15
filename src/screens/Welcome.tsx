@@ -33,12 +33,12 @@ export function Welcome({ onStart, onOpen, notFound }: WelcomeProps) {
   };
 
   /**
-   * Starting and joining both need an account: one to own the rotation, the
-   * other so the rotation knows which person just arrived. Opening one this
-   * phone already has stays free — a guest can still pull the lever.
+   * Everything here needs an account. Signing out has to mean something, so
+   * even the rotation this phone already holds asks first. A guest who was sent
+   * the link still opens it straight from the link, lever and all.
    */
   const need = (what: Exclude<Pending, null>) => () => {
-    if (what !== 'open' && syncConfigured && !account) {
+    if (syncConfigured && !account) {
       setPending(what);
       setSigningIn(true);
       return;
