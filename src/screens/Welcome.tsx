@@ -63,7 +63,7 @@ export function Welcome({ onStart, onOpen, notFound }: WelcomeProps) {
       {/* the counter's edge: one curve peaking in the middle, under the toast,
           with no outline — the two colours simply meet */}
       <svg className="welcome-wave" viewBox="0 0 390 200" preserveAspectRatio="none" aria-hidden="true">
-        <path className="welcome-wave-fill" d="M0 158 C54 156 104 26 195 26 C286 26 336 156 390 158 L390 200 L0 200 Z" />
+        <path className="welcome-wave-fill" d="M0 100 C70 96 120 36 195 36 C270 36 320 96 390 100 L390 200 L0 200 Z" />
       </svg>
 
       <div className="welcome-foot">
