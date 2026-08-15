@@ -4,7 +4,12 @@ import { usePrefersReducedMotion } from './usePrefersReducedMotion';
 /** Slice positions, in SVG units. */
 export const SLICE_REST = 0;
 export const SLICE_DEEP = 78;
-export const SLICE_POP = -56;
+/**
+ * The prototype pops to -56, which throws the slice clear of the toaster and
+ * leaves it floating with a gap under it. -16 keeps the bottom of the slice
+ * behind the chrome cap (y 102), so it still reads as seated in the slot.
+ */
+export const SLICE_POP = -16;
 /** Off the bottom of the slot — where the fresh slice jumps to before springing up. */
 const SLICE_BELOW = 140;
 
