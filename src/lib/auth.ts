@@ -9,7 +9,7 @@ export type Account = { uid: string; email: string | null };
  */
 export async function signIn(email: string, password: string): Promise<Account> {
   const ready = await firebaseAuth();
-  if (!ready) throw new Error('offline');
+  if (!ready) throw new Error('not-configured');
 
   const credential = await ready.fns.signInWithEmailAndPassword(ready.auth, email, password);
   return { uid: credential.user.uid, email: credential.user.email };
@@ -21,7 +21,7 @@ export async function signIn(email: string, password: string): Promise<Account> 
  */
 export async function signInWithGoogle(): Promise<Account | 'redirecting'> {
   const ready = await firebaseAuth();
-  if (!ready) throw new Error('offline');
+  if (!ready) throw new Error('not-configured');
 
   const provider = new ready.fns.GoogleAuthProvider();
   try {
@@ -65,10 +65,18 @@ export function watchAccount(onChange: (account: Account | null) => void): () =>
   };
 }
 
-/** Turns Firebase's error codes into something worth reading. */
-export function signInProblem(error: unknown): 'credentials' | 'offline' | 'other' {
+/**
+ * Turns Firebase's error codes into something worth reading. "Not configured"
+ * is its own case: without keys there is no sign-in to reach, and saying
+ * "you're offline" sends people to check their wifi for nothing.
+ */
+export function signInProblem(error: unknown): 'credentials' | 'offline' | 'setup' | 'other' {
   const code = (error as { code?: string })?.code ?? '';
+  const message = (error as Error)?.message ?? '';
+
+  if (message === 'not-configured') return 'setup';
   if (/invalid-credential|wrong-password|user-not-found|invalid-email/.test(code)) return 'credentials';
-  if (/network-request-failed/.test(code) || (error as Error)?.message === 'offline') return 'offline';
+  if (/operation-not-allowed|configuration-not-found|api-key-not-valid/.test(code)) return 'setup';
+  if (/network-request-failed/.test(code)) return 'offline';
   return 'other';
 }

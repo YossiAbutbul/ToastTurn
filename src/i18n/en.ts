@@ -130,6 +130,7 @@ export const en = {
     problem: {
       credentials: "That email and password don't match. Try again.",
       offline: "Can't reach the sign-in right now. Try when you're back online.",
+      setup: "This copy of the app has no sign-in set up. If you're running it yourself, restart it after adding the keys.",
       other: 'Something went wrong signing in. Try again.',
     },
   },

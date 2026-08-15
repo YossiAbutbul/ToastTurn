@@ -55,16 +55,18 @@
   text-transform: uppercase;
 }
 
-/* Whoever is up stands proud of the line, in coral. */
+/* Whoever is up stands proud of the line: taller, heavier outline, own colour. */
 .qbtn.now .qtoast {
-  background: var(--coral);
-  color: var(--paper);
-  transform: translateY(-7px);
-  box-shadow: 0 10px 0 -3px rgba(43, 36, 32, 0.18), 0 3px 0 var(--ink);
+  width: 48px;
+  height: 44px;
+  border-width: 4px;
+  font-size: 21px;
+  transform: translateY(-8px);
+  box-shadow: 0 11px 0 -3px rgba(43, 36, 32, 0.18), 0 4px 0 var(--ink);
 }
 .qbtn.now .qname {
   color: var(--ink);
-  transform: translateY(-5px);
+  transform: translateY(-4px);
 }
 .qbtn.now:active .qtoast {
   transform: translateY(-4px);
