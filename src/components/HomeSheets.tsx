@@ -2,6 +2,7 @@ import { HistorySheet } from './HistorySheet';
 import { SwapSheet } from './SwapSheet';
 import { SettingsSheet } from './SettingsSheet';
 import type { Account } from '../lib/auth';
+import type { MembershipState } from '../hooks/useMembership';
 import type { Family, Person, Schedule } from '../lib/types';
 
 export type SheetName = 'history' | 'swap' | 'settings' | null;
@@ -19,6 +20,7 @@ type HomeSheetsProps = {
   onEditPeople: () => void;
   onStartOver: () => void;
   me: Person | null;
+  membership: MembershipState;
   onClaim: () => void;
   onSignIn: () => void;
   onSignOut: () => void;
@@ -44,6 +46,7 @@ export function HomeSheets(props: HomeSheetsProps) {
         account={props.account}
         onClose={onClose}
         me={props.me}
+        membership={props.membership}
         onClaim={props.onClaim}
         onSignIn={props.onSignIn}
         onSignOut={props.onSignOut}

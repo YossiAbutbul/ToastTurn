@@ -13,13 +13,15 @@ type ToasterProps = {
   onPop: () => void;
   /** Reported on every change so the screen can update its hint line. */
   onStatus?: (status: ToasterStatus) => void;
+  /** True for someone who is not in the rotation: the lever will not budge. */
+  locked?: boolean;
   leverLabel: string;
 };
 
-export function Toaster({ initial, onPop, onStatus, leverLabel }: ToasterProps) {
+export function Toaster({ initial, locked, onPop, onStatus, leverLabel }: ToasterProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   const { phase, sliceY, snap, baked, needle, steamKey, start, busy } = useToastCycle({ onPop });
-  const lever = useLeverDrag({ svgRef, disabled: busy, onCommit: start });
+  const lever = useLeverDrag({ svgRef, disabled: busy || locked, onCommit: start });
 
   // The slice holds the current letter through the bake and the pop, then takes
   // the next person's while it is out of sight below the slot.
@@ -101,10 +103,10 @@ export function Toaster({ initial, onPop, onStatus, leverLabel }: ToasterProps) 
       <g
         className={lever.dragging ? 'tt-lever tt-lever-dragging' : 'tt-lever'}
         transform={`translate(0,${leverY})`}
-        tabIndex={0}
+        tabIndex={locked ? -1 : 0}
         role="button"
         aria-label={leverLabel}
-        aria-disabled={busy}
+        aria-disabled={busy || locked}
         {...lever.handlers}
       >
         {/* invisible grab area — the knob itself is smaller than a thumb */}

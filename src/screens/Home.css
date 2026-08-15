@@ -114,3 +114,56 @@
   flex: 0 0 auto;
   min-height: 16px;
 }
+
+/* Shown to someone who has the link but has not been let in yet. */
+.join-bar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 16px 6px;
+  padding: 10px 12px;
+  background: var(--paper);
+  border: 3px solid var(--ink);
+  border-radius: 16px;
+  box-shadow: 0 2px 0 var(--ink);
+}
+.join-bar p {
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--ink);
+}
+.join-action {
+  margin-inline-start: auto;
+  flex: 0 0 auto;
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: 12px;
+  border: 2.5px solid var(--ink);
+  background: var(--mint);
+  color: var(--paper);
+  font-family: var(--ui);
+  font-weight: 800;
+  font-size: 12px;
+  cursor: pointer;
+}
+.join-action:disabled {
+  background: var(--dash);
+  color: var(--ink-soft);
+}
+
+.waiting-email {
+  font-family: var(--ui) !important;
+  font-weight: 700 !important;
+  font-size: 12.5px !important;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ghost.let-in {
+  width: auto;
+  margin: 0 0 0 auto;
+  min-height: 38px;
+  padding: 0 14px;
+  flex: 0 0 auto;
+}

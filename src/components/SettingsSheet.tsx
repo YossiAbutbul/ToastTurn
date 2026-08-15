@@ -6,6 +6,7 @@ import { en } from '../i18n/en';
 import { initialOf } from '../lib/format';
 import { linkForFamily } from '../lib/url';
 import type { Account } from '../lib/auth';
+import type { MembershipState } from '../hooks/useMembership';
 import type { Family, Person, Schedule } from '../lib/types';
 
 type SettingsSheetProps = {
@@ -14,6 +15,7 @@ type SettingsSheetProps = {
   account: Account | null;
   onClose: () => void;
   me: Person | null;
+  membership: MembershipState;
   onClaim: () => void;
   onSignIn: () => void;
   onSignOut: () => void;
@@ -59,6 +61,21 @@ export function SettingsSheet(props: SettingsSheetProps) {
         <>
           <div className="fieldlabel spaced">{en.schedule.title}</div>
           <ScheduleFields schedule={family.schedule} onChange={props.onSchedule} />
+
+          <div className="fieldlabel spaced">{en.member.waiting}</div>
+          {props.membership.waiting.length === 0 && <p className="empty">{en.member.nobodyWaiting}</p>}
+          {props.membership.waiting.map((person) => (
+            <div className="row" key={person.uid}>
+              <b className="waiting-email">{person.email}</b>
+              <button
+                type="button"
+                className="ghost let-in"
+                onClick={() => props.membership.decide(person.uid, true)}
+              >
+                {en.member.approve}
+              </button>
+            </div>
+          ))}
 
           <div className="fieldlabel spaced">{en.settings.holiday}</div>
           {people.map((person) => (

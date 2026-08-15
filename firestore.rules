@@ -38,16 +38,41 @@ service cloud.firestore {
 
       allow delete: if isOwner();
 
-      // Which person each account says it is. You may write your own key and
-      // nobody else's, so nobody can claim to be someone they are not.
+      // Who is in the rotation, by account: { uid: { status, personId, email } }.
+      //
+      // Having the link lets you ask. It does not let you in: you may only ever
+      // write your own key, and only as "pending". Moving anyone to "approved"
+      // is the owner's alone, and so is choosing a person once approved.
       match /prefs/members {
+        function ownerUid() {
+          return get(/databases/$(database)/documents/families/$(familyId)).data.ownerUid;
+        }
+        function isOwner() {
+          return request.auth != null && ownerUid() == request.auth.uid;
+        }
+        function mine() {
+          return request.resource.data[request.auth.uid];
+        }
+        function myKeyOnly() {
+          return request.resource.data.diff(resource.data).affectedKeys().hasOnly([request.auth.uid]);
+        }
+        function alreadyApproved() {
+          return resource.data.keys().hasAny([request.auth.uid])
+            && resource.data[request.auth.uid].status == 'approved';
+        }
+
         allow get, list: if true;
+
         allow create: if request.auth != null
-          && request.resource.data.keys().hasOnly([request.auth.uid]);
-        allow update: if request.auth != null
-          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([request.auth.uid]);
-        allow delete: if request.auth != null
-          && get(/databases/$(database)/documents/families/$(familyId)).data.ownerUid == request.auth.uid;
+          && request.resource.data.keys().hasOnly([request.auth.uid])
+          && mine().status == 'pending';
+
+        allow update: if isOwner()
+          || (request.auth != null && myKeyOnly()
+              && ((mine().status == 'pending' && !alreadyApproved())
+                  || (mine().status == 'approved' && alreadyApproved())));
+
+        allow delete: if isOwner();
       }
 
       match /turns/{turnId} {
@@ -61,10 +86,17 @@ service cloud.firestore {
         allow get, list: if true;
 
         // Anyone in the family can log toast without signing in.
-        // Making toast needs no account. Whoever has the link can say it got
-        // made — signing in is what gives you a profile, a colour, and the
-        // right to run the rotation.
-        allow create, update: if saneTurn();
+        // Logging toast is for people who were let in.
+        function approvedMember() {
+          return request.auth != null
+            && exists(/databases/$(database)/documents/families/$(familyId)/prefs/members)
+            && get(/databases/$(database)/documents/families/$(familyId)/prefs/members)
+                 .data.keys().hasAny([request.auth.uid])
+            && get(/databases/$(database)/documents/families/$(familyId)/prefs/members)
+                 .data[request.auth.uid].status == 'approved';
+        }
+
+        allow create, update: if saneTurn() && (isOwner() || approvedMember());
 
         // Only as part of the owner clearing the whole family.
         allow delete: if request.auth != null

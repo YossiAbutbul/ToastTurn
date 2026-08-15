@@ -77,6 +77,20 @@ export const en = {
     signInFirst: 'Sign in to make a toast yours. You can pull the lever either way.',
   },
 
+  member: {
+    askTitle: 'Ask to join',
+    ask: 'Ask to be let in',
+    askBlurb: 'Whoever runs the rotation decides who joins it.',
+    pending: 'Waiting to be let in.',
+    pendingBlurb: 'You can watch until then. Ask them to check their settings.',
+    signedOut: 'Sign in to join this rotation.',
+    leverLocked: 'Only people in the rotation can log the toast',
+    waiting: 'Waiting to be let in',
+    approve: 'Let in',
+    approved: (who: string) => `${who} is in.`,
+    nobodyWaiting: 'Nobody is waiting.',
+  },
+
   claim: {
     title: 'Which one are you?',
     blurb: 'Asked once. It stays with your account, so any phone you sign in on knows.',

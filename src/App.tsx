@@ -5,7 +5,6 @@ import { Welcome } from './screens/Welcome';
 import { useSync } from './hooks/useSync';
 import { useFamily } from './store/useFamily';
 import { syncConfigured } from './lib/firebase';
-import { ARRIVED_BY_LINK } from './lib/entry';
 
 /**
  * Three screens, no router. A share link goes straight to the rotation; a phone
@@ -22,10 +21,9 @@ export function App() {
   // set up a new one — unless the server says there is no such rotation.
   if (sync.joining && !state.family && !sync.missing) return null;
 
-  // Having the link is what lets a guest in. Without one, the rotation stored
-  // on this phone is behind the sign-in — otherwise signing out would last
-  // exactly until the next reload.
-  const lockedOut = syncConfigured && !sync.account && !ARRIVED_BY_LINK;
+  // Nothing shows before a sign-in — a link is an invitation to ask, not a
+  // window into the rotation.
+  const lockedOut = syncConfigured && !sync.account;
 
   if (screen === 'setup') return <Setup onDone={() => setScreen('auto')} />;
 

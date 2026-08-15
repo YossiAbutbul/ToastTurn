@@ -9,7 +9,7 @@ import { HomeSheets } from '../components/HomeSheets';
 import type { SheetName } from '../components/HomeSheets';
 import { useIsOwner } from '../hooks/useIsOwner';
 import { useAccount } from '../hooks/useAccount';
-import { useMember } from '../hooks/useMember';
+import { useMembership } from '../hooks/useMembership';
 import { ClaimSheet } from '../components/ClaimSheet';
 import { SignInSheet } from '../components/SignInSheet';
 import { signOut } from '../lib/auth';
@@ -36,7 +36,8 @@ export function Home({ onEditPeople, onLeave }: HomeProps) {
   const family = state.family as Family;
   const isOwner = useIsOwner(family);
   const { account } = useAccount();
-  const { me, claim, unclaimed } = useMember(family, account?.uid);
+  const membership = useMembership(family, account, isOwner);
+  const { me, canLog } = membership;
 
   const [sheet, setSheet] = useState<SheetName>(null);
   const [status, setStatus] = useState<ToasterStatus>('idle');
@@ -92,6 +93,7 @@ export function Home({ onEditPeople, onLeave }: HomeProps) {
           window.history.replaceState(null, '', '/');
         }}
         me={me}
+        membership={membership}
         onClaim={() => {
           closeSheet();
           setClaiming(true);
@@ -108,10 +110,10 @@ export function Home({ onEditPeople, onLeave }: HomeProps) {
       />
       <SignInSheet open={signingIn} account={account} onClose={() => setSigningIn(false)} />
       <ClaimSheet
-        open={claiming || (unclaimed && !skippedClaim)}
+        open={claiming || (canLog && !me && !skippedClaim && family.people.length > 0)}
         family={family}
         onPick={(personId) => {
-          claim(personId);
+          membership.claim(personId);
           setClaiming(false);
         }}
         onClose={() => {
@@ -169,13 +171,37 @@ export function Home({ onEditPeople, onLeave }: HomeProps) {
       <div className="scene">
         <Toaster
           initial={initialOf(current.name)}
+          locked={!canLog}
           onPop={handlePop}
           onStatus={setStatus}
           leverLabel={en.lever.label}
         />
       </div>
 
-      <div className="hint">{hint}</div>
+      <div className="hint">{canLog ? hint : en.member.leverLocked}</div>
+
+      {membership.state !== 'owner' && membership.state !== 'member' && (
+        <div className="join-bar">
+          <p>
+            {membership.state === 'signed-out'
+              ? en.member.signedOut
+              : membership.state === 'pending'
+                ? en.member.pending
+                : en.member.askBlurb}
+          </p>
+          <button
+            type="button"
+            className="join-action"
+            disabled={membership.state === 'pending'}
+            onClick={() => {
+              if (membership.state === 'signed-out') setSigningIn(true);
+              else membership.askToJoin();
+            }}
+          >
+            {membership.state === 'signed-out' ? en.signIn.action : en.member.ask}
+          </button>
+        </div>
+      )}
 
       <InstallHint />
       <QueueBar

@@ -90,10 +90,10 @@ export async function pushFamily(family: Family, ownerUid?: string): Promise<voi
   );
 }
 
-/** Which person each signed-in account says it is, by account id. */
+/** Who is in the rotation, by account id. */
 export function subscribeMembers(
   familyId: string,
-  onChange: (members: Record<string, string>) => void,
+  onChange: (members: Record<string, unknown>) => void,
 ): () => void {
   let stop: (() => void) | null = null;
   let cancelled = false;
@@ -104,7 +104,7 @@ export function subscribeMembers(
     const { db, fs } = remote;
 
     stop = fs.onSnapshot(fs.doc(db, 'families', familyId, 'prefs', 'members'), (snap) => {
-      onChange(snap.exists() ? (snap.data() as Record<string, string>) : {});
+      onChange(snap.exists() ? (snap.data() as Record<string, unknown>) : {});
     });
     if (cancelled) stop();
   })();
@@ -115,12 +115,15 @@ export function subscribeMembers(
   };
 }
 
-/** Say which person you are. The rules only let you write your own account. */
-export async function pushMember(familyId: string, uid: string, personId: string): Promise<void> {
+/**
+ * Write one account's membership. The rules only let you write your own, and
+ * only the owner may move anyone to approved.
+ */
+export async function pushMember(familyId: string, uid: string, entry: unknown): Promise<void> {
   const remote = await firestore();
   if (!remote) return;
   const { db, fs } = remote;
-  await fs.setDoc(fs.doc(db, 'families', familyId, 'prefs', 'members'), { [uid]: personId }, { merge: true });
+  await fs.setDoc(fs.doc(db, 'families', familyId, 'prefs', 'members'), { [uid]: entry }, { merge: true });
 }
 
 /**
@@ -135,6 +138,7 @@ export async function deleteFamily(familyId: string): Promise<void> {
   const turns = await fs.getDocs(fs.collection(db, 'families', familyId, 'turns'));
   const batch = fs.writeBatch(db);
   turns.forEach((turn) => batch.delete(turn.ref));
+  batch.delete(fs.doc(db, 'families', familyId, 'prefs', 'members'));
   batch.delete(fs.doc(db, 'families', familyId));
   await batch.commit();
 }

@@ -4,7 +4,6 @@ import { pushFamily, pushTurns, subscribeFamily } from '../lib/remote';
 import type { RemoteFamily } from '../lib/remote';
 import { metaChanged, unsentTurns } from '../lib/mergeFamily';
 import { familyIdFromPath, pathForFamily } from '../lib/url';
-import { ARRIVED_BY_LINK } from '../lib/entry';
 import { useAccount } from './useAccount';
 import { useFamily } from '../store/useFamily';
 import type { Family } from '../lib/types';
@@ -33,11 +32,11 @@ export function useSync() {
   const joining = linkId && linkId !== localId ? linkId : null;
 
   // Keep the address bar on the family, so the link is always shareable — but
-  // only for someone who is allowed in, or the rewritten address would itself
-  // become a way back past the sign-in.
+  // only once someone is signed in, or the rewritten address would outlive the
+  // sign-out that was meant to close it.
   useEffect(() => {
     if (!localId || linkId === localId) return;
-    if (syncConfigured && !account && !ARRIVED_BY_LINK) return;
+    if (syncConfigured && !account) return;
     window.history.replaceState(null, '', pathForFamily(localId));
   }, [account, linkId, localId]);
 
