@@ -194,3 +194,11 @@ input[type='password'] {
   outline: 3px solid var(--mint);
   outline-offset: 2px;
 }
+
+/* Typing fields lose the ring: the caret already says where you are, and the
+   ring fought with the field's own outline. Buttons and the lever keep theirs,
+   which is what keyboard use actually depends on. */
+input:focus,
+input:focus-visible {
+  outline: none;
+}

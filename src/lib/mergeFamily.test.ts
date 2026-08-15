@@ -76,7 +76,34 @@ describe('mergeFamily', () => {
 describe('unsentTurns', () => {
   it('is what this phone still owes the others', () => {
     const local = family({ turns: [turn('a1', 'a', '2026-08-16'), turn('b1', 'b', '2026-08-09')] });
-    expect(unsentTurns(local, new Set(['b1'])).map((t) => t.id)).toEqual(['a1']);
+    const remote = family({ turns: [turn('b1', 'b', '2026-08-09')] });
+    expect(unsentTurns(local, remote).map((t) => t.id)).toEqual(['a1']);
+  });
+
+  it('includes a turn that has been rated since it went up', () => {
+    const rated = { ...turn('t1', 'a', '2026-08-09'), rating: 4 };
+    const local = family({ turns: [rated] });
+    const remote = family({ turns: [turn('t1', 'a', '2026-08-09')] });
+    expect(unsentTurns(local, remote).map((t) => t.id)).toEqual(['t1']);
+  });
+
+  it('leaves alone a turn the others already have, rating and all', () => {
+    const rated = { ...turn('t1', 'a', '2026-08-09'), rating: 4 };
+    expect(unsentTurns(family({ turns: [rated] }), family({ turns: [rated] }))).toEqual([]);
+  });
+});
+
+describe('rating a turn', () => {
+  it('survives a snapshot that has not caught up yet', () => {
+    const local = family({ turns: [{ ...turn('t1', 'a', '2026-08-09'), rating: 5 }] });
+    const remote = family({ turns: [turn('t1', 'a', '2026-08-09')] });
+    expect(mergeFamily(local, remote).turns[0].rating).toBe(5);
+  });
+
+  it("takes someone else's rating when this phone has none", () => {
+    const local = family({ turns: [turn('t1', 'a', '2026-08-09')] });
+    const remote = family({ turns: [{ ...turn('t1', 'a', '2026-08-09'), rating: 3 }] });
+    expect(mergeFamily(local, remote).turns[0].rating).toBe(3);
   });
 });
 

@@ -28,6 +28,10 @@ export const en = {
 
   history: {
     title: 'History',
+    thisMonth: 'This month',
+    everyTurn: 'Every turn',
+    noneThisMonth: 'No toast this month yet.',
+    rate: (name: string) => `Rate the toast ${name} made`,
     empty: 'No toast yet. Pull the lever when someone makes it.',
     notRated: 'not rated yet',
     skipped: 'nobody made it',
@@ -51,7 +55,7 @@ export const en = {
   setup: {
     title: 'Set up the rotation',
     familyLabel: 'Family name',
-    familyPlaceholder: 'The Cohens',
+    familyPlaceholder: 'The Abutbuls',
     peopleLabel: 'Who makes toast',
     namePlaceholder: 'Name',
     add: 'Add',

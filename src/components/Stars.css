@@ -1,0 +1,23 @@
+.stars-row {
+  display: inline-flex;
+  gap: 1px;
+  margin-inline-start: 2px;
+}
+
+.star {
+  border: none;
+  background: none;
+  padding: 2px;
+  min-width: 26px;
+  min-height: 30px;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--dash);
+}
+.star.on {
+  color: var(--crust);
+}
+.star:active {
+  transform: translateY(1px);
+}

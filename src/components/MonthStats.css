@@ -1,0 +1,41 @@
+.stats {
+  padding-block-end: 4px;
+}
+
+.stat {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 0;
+}
+
+.stat b {
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 15px;
+  min-width: 4.5ch;
+}
+
+.stat-track {
+  flex: 1;
+  height: 14px;
+  border: 2.5px solid var(--ink);
+  border-radius: 999px;
+  background: var(--dash);
+  overflow: hidden;
+}
+.stat-track i {
+  display: block;
+  height: 100%;
+  border-start-end-radius: 999px;
+  border-end-end-radius: 999px;
+  transition: width 0.3s ease;
+}
+
+.stat-count {
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 15px;
+  min-width: 2ch;
+  text-align: end;
+}

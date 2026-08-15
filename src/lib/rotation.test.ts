@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  monthRange,
   getCurrentPerson,
   getUpcoming,
   logTurn,
@@ -196,5 +197,21 @@ describe('nextToastDate', () => {
   it('jumps a full week once the time has passed', () => {
     const next = nextToastDate(sunday8pm, new Date(2026, 7, 16, 20, 30));
     expect(next.getTime()).toBe(new Date(2026, 7, 23, 20, 0).getTime());
+  });
+});
+
+describe('monthRange', () => {
+  it('covers the month a date falls in', () => {
+    expect(monthRange(new Date(2026, 7, 16))).toEqual({ from: '2026-08-01', to: '2026-09-01' });
+  });
+
+  it('rolls over the year end', () => {
+    expect(monthRange(new Date(2026, 11, 3))).toEqual({ from: '2026-12-01', to: '2027-01-01' });
+  });
+
+  it('counts a turn logged late on the last day of the month', () => {
+    const { from, to } = monthRange(new Date(2026, 7, 16));
+    const lastMoment = '2026-08-31T23:59:00.000Z';
+    expect(lastMoment >= from && lastMoment < to).toBe(true);
   });
 });

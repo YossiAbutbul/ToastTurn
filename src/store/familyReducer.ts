@@ -15,6 +15,7 @@ export type Action =
   | { type: 'renameFamily'; name: string }
   | { type: 'logTurn'; id: string; madeAt: string }
   | { type: 'skipWeek'; id: string; madeAt: string }
+  | { type: 'rateTurn'; turnId: string; rating: number }
   | { type: 'swap'; aId: string; bId: string }
   | { type: 'setSchedule'; schedule: Partial<Schedule> }
   | { type: 'addPerson'; person: Person }
@@ -52,6 +53,17 @@ export function familyReducer(state: State, action: Action): State {
 
     case 'skipWeek':
       return { ...state, family: skipWeek(family, { id: action.id, madeAt: action.madeAt }) };
+
+    case 'rateTurn':
+      return {
+        ...state,
+        family: {
+          ...family,
+          turns: family.turns.map((turn) =>
+            turn.id === action.turnId ? { ...turn, rating: action.rating } : turn,
+          ),
+        },
+      };
 
     case 'swap':
       return { ...state, family: swapPeople(family, action.aId, action.bId) };

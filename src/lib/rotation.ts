@@ -86,17 +86,30 @@ export function swapPeople(family: Family, aId: string, bId: string): Family {
   };
 }
 
-/** Credited turns per person, optionally inside an ISO date range. */
+/** Credited turns per person, optionally inside an ISO range — end exclusive. */
 export function turnCounts(family: Family, range?: { from?: string; to?: string }): Record<string, number> {
   const counts: Record<string, number> = {};
   for (const person of family.people) counts[person.id] = 0;
 
   for (const turn of credited(family)) {
     if (range?.from && turn.madeAt < range.from) continue;
-    if (range?.to && turn.madeAt > range.to) continue;
+    if (range?.to && turn.madeAt >= range.to) continue;
     if (turn.personId in counts) counts[turn.personId] += 1;
   }
   return counts;
+}
+
+/**
+ * The ISO range covering the month a date falls in, for counting turns. The
+ * end is the first moment of the next month, so a turn logged at 23:59 on the
+ * last day still counts — comparisons on ISO strings are exclusive of it.
+ */
+export function monthRange(date: Date): { from: string; to: string } {
+  const pad = (n: number) => String(n).padStart(2, '0');
+  const from = `${date.getFullYear()}-${pad(date.getMonth() + 1)}-01`;
+  const next = new Date(date.getFullYear(), date.getMonth() + 1, 1);
+  const to = `${next.getFullYear()}-${pad(next.getMonth() + 1)}-01`;
+  return { from, to };
 }
 
 /** The most recent credited turn for a person, if there is one. */

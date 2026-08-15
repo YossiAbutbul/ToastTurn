@@ -68,8 +68,7 @@ export function useSync() {
     const family = state.family;
     if (!syncConfigured || !family || !state.ready) return;
 
-    const seen = new Set((remote?.turns ?? []).map((t) => t.id));
-    const pending = unsentTurns(family, seen);
+    const pending = unsentTurns(family, remote);
     if (pending.length > 0) void pushTurns(family.id, pending);
 
     // Only the signed-in owner publishes the family itself. A family with no

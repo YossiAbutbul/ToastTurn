@@ -14,6 +14,7 @@ type HomeSheetsProps = {
   account: Account | null;
   onClose: () => void;
   onSkip: () => void;
+  onRate: (turnId: string, rating: number) => void;
   onSwap: (personId: string) => void;
   onSchedule: (patch: Partial<Schedule>) => void;
   onToggleHoliday: (personId: string, active: boolean) => void;
@@ -38,6 +39,7 @@ export function HomeSheets(props: HomeSheetsProps) {
         family={family}
         onClose={onClose}
         onSkip={props.onSkip}
+        onRate={props.onRate}
       />
 
       <SettingsSheet

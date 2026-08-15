@@ -79,6 +79,7 @@ export function Home({ onEditPeople, onLeave }: HomeProps) {
           dispatch({ type: 'skipWeek', id: newId(), madeAt: nowISO() });
           closeSheet();
         }}
+        onRate={(turnId, rating) => dispatch({ type: 'rateTurn', turnId, rating })}
         onSwap={(personId) => {
           if (current) dispatch({ type: 'swap', aId: current.id, bId: personId });
           closeSheet();

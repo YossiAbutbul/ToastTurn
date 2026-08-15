@@ -15,7 +15,11 @@ export function mergeFamily(local: Family | null, remote: Family): Family {
 
   const byId = new Map<string, Turn>();
   for (const turn of local.turns) byId.set(turn.id, turn);
-  for (const turn of remote.turns) byId.set(turn.id, turn);
+  for (const turn of remote.turns) {
+    // A rating given on this phone survives a snapshot that predates it.
+    const mine = byId.get(turn.id);
+    byId.set(turn.id, { ...turn, rating: turn.rating ?? mine?.rating });
+  }
 
   return {
     ...local,
@@ -33,9 +37,16 @@ function sortTurns(turns: Turn[]): Turn[] {
     .slice(0, TURN_CAP);
 }
 
-/** Turns this phone has that the others have not seen yet. */
-export function unsentTurns(local: Family, remoteTurnIds: Set<string>): Turn[] {
-  return local.turns.filter((turn) => !remoteTurnIds.has(turn.id));
+/**
+ * Turns the others have not seen yet — new ones, and ones rated since. Ratings
+ * are the only part of a turn that changes after it is logged.
+ */
+export function unsentTurns(local: Family, remote: Family | null): Turn[] {
+  const published = new Map((remote?.turns ?? []).map((turn) => [turn.id, turn]));
+  return local.turns.filter((turn) => {
+    const theirs = published.get(turn.id);
+    return !theirs || theirs.rating !== turn.rating;
+  });
 }
 
 /** True when name, people or schedule differ from what is published. */
