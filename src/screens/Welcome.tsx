@@ -60,12 +60,6 @@ export function Welcome({ onStart, onOpen, notFound }: WelcomeProps) {
         </div>
       </div>
 
-      {/* the counter's edge: one curve peaking in the middle, under the toast,
-          with no outline — the two colours simply meet */}
-      <svg className="welcome-wave" viewBox="0 0 390 200" preserveAspectRatio="none" aria-hidden="true">
-        <path className="welcome-wave-fill" d="M0 100 C70 96 120 36 195 36 C270 36 320 96 390 100 L390 200 L0 200 Z" />
-      </svg>
-
       <div className="welcome-foot">
         {notFound && <p className="problem">{en.join.notFound}</p>}
         {account && <p className="empty">{en.signIn.signedInAs(account.email ?? '')}</p>}
