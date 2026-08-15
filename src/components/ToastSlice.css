@@ -5,29 +5,35 @@
   overflow: visible;
 }
 
+/* Heavy outline: about a twentieth of the slice's width, which is what makes
+   the shape read as chunky rather than drawn. */
 .ts-crust {
   fill: var(--crust);
   stroke: var(--ink);
-  stroke-width: 6;
+  stroke-width: 8;
   stroke-linejoin: round;
+}
+
+.ts-crust-shade {
+  fill: var(--toasted);
+  opacity: 0.16;
 }
 
 .ts-crumb {
   fill: var(--butter);
 }
 
-/* The top of a slice is always paler than the bottom. */
 .ts-crumb-light {
   fill: var(--paper);
-  opacity: 0.34;
+  opacity: 0.2;
 }
 
 .ts-speckle {
   fill: var(--crust);
-  opacity: 0.45;
+  opacity: 0.4;
 }
 
 .ts-shadow {
   fill: var(--ink);
-  opacity: 0.12;
+  opacity: 0.1;
 }
