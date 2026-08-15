@@ -15,6 +15,8 @@ const SLICE_BELOW = 140;
 
 const TOASTING_MS = 1050;
 const RESET_MS = 650;
+/** Long enough for one paint at the reload position, short enough to be unseen. */
+const SNAP_MS = 20;
 const NEEDLE_MS = 55;
 const NEEDLE_STEP = 22;
 
@@ -88,7 +90,10 @@ export function useToastCycle({ onPop }: Options) {
         setSnap(true);
         setSliceY(SLICE_BELOW);
         setBaked(false);
-        requestAnimationFrame(() => {
+        // A timer, not requestAnimationFrame: rAF is suspended while the tab is
+        // hidden, and locking the phone mid-cycle used to strand the slice below
+        // the slot with the lever disabled for good.
+        after(SNAP_MS, () => {
           setSnap(false);
           setSliceY(SLICE_REST);
           setPhase('idle');

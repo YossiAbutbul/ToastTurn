@@ -11,7 +11,10 @@ export type Person = {
 export type Turn = {
   id: string;
   personId: string;
-  /** ISO date. */
+  /**
+   * ISO timestamp. It carries the time, not just the day, so two turns logged
+   * on the same date still order correctly on every phone.
+   */
   madeAt: string;
   /** 1-5, added later by anyone. */
   rating?: number;

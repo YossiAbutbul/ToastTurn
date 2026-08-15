@@ -117,3 +117,13 @@ describe('the family link', () => {
     expect(linkForFamily('https://toastturn.app', 'abc12345')).toBe('https://toastturn.app/f/abc12345');
   });
 });
+
+describe('turns logged on the same day', () => {
+  it('order by time, so two phones agree on who is up', () => {
+    const morning = { id: 'x', personId: 'a', madeAt: '2026-08-15T07:10:00.000Z', skipped: false };
+    const evening = { id: 'b', personId: 'b', madeAt: '2026-08-15T19:40:00.000Z', skipped: false };
+
+    const merged = mergeFamily(family({ turns: [morning] }), family({ turns: [evening] }));
+    expect(merged.turns.map((t) => t.id)).toEqual(['b', 'x']);
+  });
+});

@@ -13,7 +13,7 @@ import { useFamily } from '../store/useFamily';
 import { en } from '../i18n/en';
 import { formatShortDate, initialOf } from '../lib/format';
 import { getCurrentPerson, getUpcoming, lastTurnFor, turnCounts } from '../lib/rotation';
-import { todayISO } from '../lib/clock';
+import { nowISO } from '../lib/clock';
 import { newId } from '../lib/id';
 import type { Family } from '../lib/types';
 import './Home.css';
@@ -44,7 +44,7 @@ export function Home({ onEditPeople }: { onEditPeople: () => void }) {
     if (!done) return;
     const next = getUpcoming(family, 1)[0];
 
-    dispatch({ type: 'logTurn', id: newId(), madeAt: todayISO() });
+    dispatch({ type: 'logTurn', id: newId(), madeAt: nowISO() });
     setNote((n) => ({ key: n.key + 1, text: en.lever.done(done.name) }));
     setFlash(next ? en.lever.logged(next.name, en.days[family.schedule.weekday]) : en.lever.loggedAlone);
 
@@ -60,7 +60,7 @@ export function Home({ onEditPeople }: { onEditPeople: () => void }) {
         current={current}
         onClose={closeSheet}
         onSkip={() => {
-          dispatch({ type: 'skipWeek', id: newId(), madeAt: todayISO() });
+          dispatch({ type: 'skipWeek', id: newId(), madeAt: nowISO() });
           closeSheet();
         }}
         onSwap={(personId) => {

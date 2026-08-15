@@ -10,7 +10,7 @@ export function nowISO(): string {
   return source().toISOString();
 }
 
-/** Just the date part — a turn belongs to a day, not a moment. */
+/** Just the date part, in local time. Used for day-level comparisons. */
 export function todayISO(): string {
   const d = source();
   const pad = (n: number) => String(n).padStart(2, '0');
