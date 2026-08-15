@@ -1,32 +1,43 @@
 import './ToastSlice.css';
 
 /**
- * The welcome screen's slice — the same bread the toaster pops, drawn flat and
- * a little larger. Nothing on it: this app is about whose turn it is, not
- * what goes on top.
+ * The welcome screen's slice: a full sandwich-loaf shape — domed top, square
+ * shoulders, crust ring around a pale crumb. Bigger and simpler than the one
+ * the toaster pops, because here it is the only thing on the screen.
+ *
+ * The dome is three arcs rather than hand-drawn curves, so the bumps are even.
  */
 export function ToastSlice() {
   return (
-    <svg className="toast-slice" viewBox="88 -6 144 146" role="img" aria-label="A slice of toast">
-      <g className="ts-steam">
-        <path d="M126 18 c-8-8 8-13 0-22" />
-        <path d="M160 8 c-8-8 8-13 0-22" />
-        <path d="M194 18 c-8-8 8-13 0-22" />
-      </g>
+    <svg className="toast-slice" viewBox="40 62 160 168" role="img" aria-label="A slice of toast">
+      <ellipse className="ts-shadow" cx="120" cy="212" rx="64" ry="9" />
 
-      <ellipse className="ts-shadow" cx="160" cy="126" rx="66" ry="9" />
-
-      {/* crust, then crumb — the toaster's own outline */}
       <path
         className="ts-crust"
-        d="M102 120 V72 c0-19 11-31 28-33 4-13 21-17 31-8 10-9 27-5 29 8 19 2 28 14 28 33 v48 z"
+        d="M56 190 V100 A21 21 0 0 1 98 100 A23 23 0 0 1 144 100 A20 20 0 0 1 184 100
+           V190 C184 200 176 206 166 206 H74 C64 206 56 200 56 190 Z"
       />
+
       <path
         className="ts-crumb"
-        d="M111 120 V78 c0-15 9-25 23-27 3-10 17-14 26-6 8-7 21-3 26 6 14 2 23 12 23 27 v42 z"
+        d="M70 186 V104 A16 16 0 0 1 102 104 A18 18 0 0 1 138 104 A16 16 0 0 1 170 104
+           V186 C170 192 166 194 160 194 H80 C74 194 70 192 70 186 Z"
       />
-      {/* one soft catch of light along the top left, so it isn't a flat cutout */}
-      <path className="ts-sheen" d="M124 76 c2-13 10-20 21-23" />
+
+      {/* the top of the crumb, where the heat reached it less */}
+      <path
+        className="ts-crumb-light"
+        d="M70 140 V104 A16 16 0 0 1 102 104 A18 18 0 0 1 138 104 A16 16 0 0 1 170 104
+           V140 C150 152 90 152 70 140 Z"
+      />
+
+      {/* a few crumbs baked into it */}
+      <g className="ts-speckle">
+        <circle cx="150" cy="112" r="2.4" />
+        <circle cx="158" cy="124" r="1.7" />
+        <circle cx="86" cy="160" r="2.1" />
+        <circle cx="95" cy="170" r="1.5" />
+      </g>
     </svg>
   );
 }
