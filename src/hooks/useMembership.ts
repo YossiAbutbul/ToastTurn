@@ -28,7 +28,11 @@ export function useMembership(family: Family, account: Account | null, isOwner: 
 
   const mine = account ? members[account.uid] : undefined;
 
-  const state: MemberState = !account
+  // With no keys there is no sync and no accounts: the app is one phone's, and
+  // whoever holds it runs the rotation.
+  const state: MemberState = !syncConfigured
+    ? 'owner'
+    : !account
     ? 'signed-out'
     : isOwner
       ? 'owner'

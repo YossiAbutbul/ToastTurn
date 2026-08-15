@@ -13,8 +13,9 @@ type HomeSheetsProps = {
   current: Person | null;
   account: Account | null;
   onClose: () => void;
-  onSkip: () => void;
   onRate: (turnId: string, rating: number) => void;
+  /** The account doing the rating, if anyone is signed in. */
+  uid?: string;
   onSwap: (personId: string) => void;
   onSchedule: (patch: Partial<Schedule>) => void;
   onToggleHoliday: (personId: string, active: boolean) => void;
@@ -38,8 +39,8 @@ export function HomeSheets(props: HomeSheetsProps) {
         open={sheet === 'history'}
         family={family}
         onClose={onClose}
-        onSkip={props.onSkip}
         onRate={props.onRate}
+        uid={props.uid}
       />
 
       <SettingsSheet

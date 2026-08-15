@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { mergeFamily, metaChanged, unsentTurns } from './mergeFamily';
+import { mergeFamily, metaChanged, unsentRatings, unsentTurns } from './mergeFamily';
+import { verdict } from './ratings';
 import { familyIdFromInput, familyIdFromPath, linkForFamily } from './url';
 import type { Family, Person, Turn } from './types';
 
@@ -80,30 +81,45 @@ describe('unsentTurns', () => {
     expect(unsentTurns(local, remote).map((t) => t.id)).toEqual(['a1']);
   });
 
-  it('includes a turn that has been rated since it went up', () => {
-    const rated = { ...turn('t1', 'a', '2026-08-09'), rating: 4 };
-    const local = family({ turns: [rated] });
+});
+
+describe('unsentRatings', () => {
+  it('is the rating this account gave that is not up yet', () => {
+    const local = family({ turns: [{ ...turn('t1', 'a', '2026-08-09'), ratings: { me: 5 } }] });
     const remote = family({ turns: [turn('t1', 'a', '2026-08-09')] });
-    expect(unsentTurns(local, remote).map((t) => t.id)).toEqual(['t1']);
+    expect(unsentRatings(local, remote, 'me')).toEqual([{ turnId: 't1', rating: 5 }]);
   });
 
-  it('leaves alone a turn the others already have, rating and all', () => {
-    const rated = { ...turn('t1', 'a', '2026-08-09'), rating: 4 };
-    expect(unsentTurns(family({ turns: [rated] }), family({ turns: [rated] }))).toEqual([]);
+  it('ignores what other people gave', () => {
+    const local = family({ turns: [{ ...turn('t1', 'a', '2026-08-09'), ratings: { you: 2 } }] });
+    const remote = family({ turns: [turn('t1', 'a', '2026-08-09')] });
+    expect(unsentRatings(local, remote, 'me')).toEqual([]);
+  });
+
+  it('says nothing when the rating is already published', () => {
+    const rated = { ...turn('t1', 'a', '2026-08-09'), ratings: { me: 4 } };
+    expect(unsentRatings(family({ turns: [rated] }), family({ turns: [rated] }), 'me')).toEqual([]);
   });
 });
 
 describe('rating a turn', () => {
-  it('survives a snapshot that has not caught up yet', () => {
-    const local = family({ turns: [{ ...turn('t1', 'a', '2026-08-09'), rating: 5 }] });
-    const remote = family({ turns: [turn('t1', 'a', '2026-08-09')] });
-    expect(mergeFamily(local, remote).turns[0].rating).toBe(5);
+  it('keeps both sides when two people rate at once', () => {
+    const local = family({ turns: [{ ...turn('t1', 'a', '2026-08-09'), ratings: { me: 5 } }] });
+    const remote = family({ turns: [{ ...turn('t1', 'a', '2026-08-09'), ratings: { you: 3 } }] });
+    expect(mergeFamily(local, remote).turns[0].ratings).toEqual({ me: 5, you: 3 });
   });
 
-  it("takes someone else's rating when this phone has none", () => {
-    const local = family({ turns: [turn('t1', 'a', '2026-08-09')] });
-    const remote = family({ turns: [{ ...turn('t1', 'a', '2026-08-09'), rating: 3 }] });
-    expect(mergeFamily(local, remote).turns[0].rating).toBe(3);
+  it('averages what everyone gave', () => {
+    const rated = { ...turn('t1', 'a', '2026-08-09'), ratings: { a: 5, b: 4, c: 3 } };
+    expect(verdict(rated)).toEqual({ average: 4, votes: 3 });
+  });
+
+  it('counts a turn rated before ratings were per person as one vote', () => {
+    expect(verdict({ ...turn('t1', 'a', '2026-08-09'), rating: 4 })).toEqual({ average: 4, votes: 1 });
+  });
+
+  it('has no verdict until somebody says something', () => {
+    expect(verdict(turn('t1', 'a', '2026-08-09'))).toBeNull();
   });
 });
 

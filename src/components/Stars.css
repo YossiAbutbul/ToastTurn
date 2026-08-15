@@ -1,23 +1,44 @@
 .stars-row {
   display: inline-flex;
-  gap: 1px;
+  align-items: center;
+  gap: 6px;
   margin-inline-start: 2px;
+}
+
+.stars-buttons {
+  display: inline-flex;
+  gap: 1px;
 }
 
 .star {
   border: none;
   background: none;
   padding: 2px;
-  min-width: 26px;
+  min-width: 24px;
   min-height: 30px;
-  font-size: 16px;
+  font-size: 15px;
   line-height: 1;
   cursor: pointer;
   color: var(--dash);
 }
+/* Filled by the family's average, or by your own rating once you give one. */
 .star.on {
   color: var(--crust);
 }
+.star.on.mine {
+  color: var(--coral);
+}
 .star:active {
   transform: translateY(1px);
+}
+
+.stars-score {
+  font-size: 11.5px;
+  font-weight: 800;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+.stars-score.quiet {
+  font-weight: 700;
+  opacity: 0.75;
 }

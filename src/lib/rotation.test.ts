@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   monthRange,
+  rotationOrder,
   getCurrentPerson,
   getUpcoming,
   logTurn,
@@ -213,5 +214,25 @@ describe('monthRange', () => {
     const { from, to } = monthRange(new Date(2026, 7, 16));
     const lastMoment = '2026-08-31T23:59:00.000Z';
     expect(lastMoment >= from && lastMoment < to).toBe(true);
+  });
+});
+
+describe('rotationOrder', () => {
+  it('starts with whoever is up and runs to the end of the queue', () => {
+    expect(rotationOrder(family(four())).map((p) => p.id)).toEqual(['a', 'b', 'c', 'd']);
+  });
+
+  it('moves the person who just made toast to the back', () => {
+    const after = logTurn(family(four()), { id: 't1', madeAt: '2026-08-16' });
+    expect(rotationOrder(after).map((p) => p.id)).toEqual(['b', 'c', 'd', 'a']);
+  });
+
+  it('leaves out anyone on holiday', () => {
+    const holiday = family([person('a', 0), person('b', 1, false), person('c', 2)]);
+    expect(rotationOrder(holiday).map((p) => p.id)).toEqual(['a', 'c']);
+  });
+
+  it('is empty when nobody is in the rotation', () => {
+    expect(rotationOrder(family([]))).toEqual([]);
   });
 });

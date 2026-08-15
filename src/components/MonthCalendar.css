@@ -1,0 +1,73 @@
+.calendar-month {
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 15px;
+  padding-block-end: 8px;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 3px;
+}
+
+.calendar-head {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  text-align: center;
+  padding-block-end: 2px;
+}
+
+/* Date on top, what happened that day underneath — the chip used to sit over
+   the number, which cost you the date you came to read. */
+.calendar-day {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 2px;
+  padding-block-start: 3px;
+}
+
+/* Today gets the outline, so the month has somewhere to start reading from. */
+.calendar-day.today {
+  outline: 2.5px solid var(--ink);
+  outline-offset: -2px;
+}
+
+.calendar-date {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+
+/* A day someone made toast shows their initial in their colour. */
+.calendar-toast {
+  width: 22px;
+  height: 18px;
+  border: 2.5px solid var(--ink);
+  border-radius: 8px 8px 3px 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 11px;
+  color: var(--ink);
+}
+
+/* A week nobody made it. */
+.calendar-skip {
+  margin-block-start: 6px;
+  width: 14px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--ink-soft);
+  opacity: 0.55;
+}

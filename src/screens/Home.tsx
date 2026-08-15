@@ -16,7 +16,7 @@ import { signOut } from '../lib/auth';
 import { useFamily } from '../store/useFamily';
 import { en } from '../i18n/en';
 import { formatShortDate, initialOf } from '../lib/format';
-import { getCurrentPerson, getUpcoming, lastTurnFor, turnCounts } from '../lib/rotation';
+import { getCurrentPerson, getUpcoming, lastTurnFor, rotationOrder, turnCounts } from '../lib/rotation';
 import { nowISO } from '../lib/clock';
 import { newId } from '../lib/id';
 import { deleteFamily } from '../lib/remote';
@@ -51,7 +51,7 @@ export function Home({ onEditPeople, onLeave }: HomeProps) {
   useEffect(() => () => window.clearTimeout(flashTimer.current), []);
 
   const current = getCurrentPerson(family);
-  const upcoming = getUpcoming(family, 4);
+  const queue = rotationOrder(family);
   const closeSheet = () => setSheet(null);
 
   const handlePop = useCallback(() => {
@@ -75,11 +75,10 @@ export function Home({ onEditPeople, onLeave }: HomeProps) {
         current={current}
         account={account}
         onClose={closeSheet}
-        onSkip={() => {
-          dispatch({ type: 'skipWeek', id: newId(), madeAt: nowISO() });
-          closeSheet();
-        }}
-        onRate={(turnId, rating) => dispatch({ type: 'rateTurn', turnId, rating })}
+        uid={account?.uid}
+        onRate={(turnId, rating) =>
+          account && dispatch({ type: 'rateTurn', turnId, uid: account.uid, rating })
+        }
         onSwap={(personId) => {
           if (current) dispatch({ type: 'swap', aId: current.id, bId: personId });
           closeSheet();
@@ -181,6 +180,22 @@ export function Home({ onEditPeople, onLeave }: HomeProps) {
 
       <div className="hint">{canLog ? hint : en.member.leverLocked}</div>
 
+      {canLog && (
+        <button
+          className="skip-week"
+          type="button"
+          onClick={() => {
+            dispatch({ type: 'skipWeek', id: newId(), madeAt: nowISO() });
+            setNote((n) => ({ key: n.key + 1, text: en.history.skipped }));
+            setFlash(en.history.skippedHint);
+            window.clearTimeout(flashTimer.current);
+            flashTimer.current = window.setTimeout(() => setFlash(null), FLASH_MS);
+          }}
+        >
+          {en.history.logSkip}
+        </button>
+      )}
+
       {membership.state !== 'owner' && membership.state !== 'member' && (
         <div className="join-bar">
           <p>
@@ -206,9 +221,10 @@ export function Home({ onEditPeople, onLeave }: HomeProps) {
 
       <InstallHint />
       <QueueBar
-        people={upcoming}
+        people={queue}
         onPick={isOwner ? () => setSheet('swap') : undefined}
         swapLabel={en.swap.title}
+        nowLabel={en.home.upNow}
       />
       <Note playKey={note.key} text={note.text} />
 

@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { syncConfigured } from '../lib/firebase';
-import { pushFamily, pushTurns, subscribeFamily } from '../lib/remote';
+import { pushFamily, pushRating, pushTurns, subscribeFamily } from '../lib/remote';
 import type { RemoteFamily } from '../lib/remote';
-import { metaChanged, unsentTurns } from '../lib/mergeFamily';
+import { metaChanged, unsentRatings, unsentTurns } from '../lib/mergeFamily';
 import { familyIdFromPath, pathForFamily } from '../lib/url';
 import { useAccount } from './useAccount';
 import { useFamily } from '../store/useFamily';
@@ -70,6 +70,10 @@ export function useSync() {
 
     const pending = unsentTurns(family, remote);
     if (pending.length > 0) void pushTurns(family.id, pending);
+
+    for (const { turnId, rating } of unsentRatings(family, remote, account?.uid)) {
+      void pushRating(family.id, turnId, account!.uid, rating);
+    }
 
     // Only the signed-in owner publishes the family itself. A family with no
     // owner yet is claimed by the first account that signs in on it.

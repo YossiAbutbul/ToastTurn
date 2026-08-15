@@ -96,7 +96,18 @@ service cloud.firestore {
                  .data[request.auth.uid].status == 'approved';
         }
 
-        allow create, update: if saneTurn() && (isOwner() || approvedMember());
+        // A rating is written under your own account id and nobody else's, so
+        // nobody can rewrite what the rest of the family thought of a piece of
+        // toast.
+        function ratingsUntouchedOrMine() {
+          return !request.resource.data.diff(resource.data).affectedKeys().hasAny(['ratings'])
+            || (request.auth != null
+                && request.resource.data.ratings.diff(resource.data.get('ratings', {}))
+                     .affectedKeys().hasOnly([request.auth.uid]));
+        }
+
+        allow create: if saneTurn() && (isOwner() || approvedMember());
+        allow update: if saneTurn() && (isOwner() || approvedMember()) && ratingsUntouchedOrMine();
 
         // Only as part of the owner clearing the whole family.
         allow delete: if request.auth != null

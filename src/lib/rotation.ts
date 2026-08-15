@@ -42,6 +42,20 @@ export function getUpcoming(family: Family, n: number): Person[] {
   return Array.from({ length: count }, (_, i) => roster[(start + 1 + i) % roster.length]);
 }
 
+/**
+ * Everyone active, in order, starting with whoever is up. Logging a turn moves
+ * the rotation on, so the person who just made toast falls to the end by
+ * itself — no reordering anywhere.
+ */
+export function rotationOrder(family: Family): Person[] {
+  const roster = activePeople(family);
+  const current = getCurrentPerson(family);
+  if (!current) return [];
+
+  const start = roster.findIndex((p) => p.id === current.id);
+  return roster.map((_, i) => roster[(start + i) % roster.length]);
+}
+
 /** The next time the toast is due, strictly after `from`. */
 export function nextToastDate(schedule: Schedule, from: Date): Date {
   const [hours, minutes] = schedule.time.split(':').map(Number);

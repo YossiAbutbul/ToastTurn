@@ -12,6 +12,7 @@ export const en = {
     firstTurn: 'First turn on the board',
     nobodyYet: "No one's in the rotation yet. Add the first person.",
     addPeople: 'Add people',
+    upNow: (name: string) => `${name} is up`,
   },
 
   lever: {
@@ -34,8 +35,10 @@ export const en = {
     rate: (name: string) => `Rate the toast ${name} made`,
     empty: 'No toast yet. Pull the lever when someone makes it.',
     notRated: 'not rated yet',
-    skipped: 'nobody made it',
-    logSkip: 'Nobody made toast this week',
+    skipped: 'Okay — next time 👍',
+    skippedRow: 'nobody made it',
+    skippedHint: "Noted. Nobody's turn moved.",
+    logSkip: 'Nobody made it this week',
   },
 
   swap: {

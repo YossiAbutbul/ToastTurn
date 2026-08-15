@@ -15,7 +15,7 @@ export type Action =
   | { type: 'renameFamily'; name: string }
   | { type: 'logTurn'; id: string; madeAt: string }
   | { type: 'skipWeek'; id: string; madeAt: string }
-  | { type: 'rateTurn'; turnId: string; rating: number }
+  | { type: 'rateTurn'; turnId: string; uid: string; rating: number }
   | { type: 'swap'; aId: string; bId: string }
   | { type: 'setSchedule'; schedule: Partial<Schedule> }
   | { type: 'addPerson'; person: Person }
@@ -60,7 +60,9 @@ export function familyReducer(state: State, action: Action): State {
         family: {
           ...family,
           turns: family.turns.map((turn) =>
-            turn.id === action.turnId ? { ...turn, rating: action.rating } : turn,
+            turn.id === action.turnId
+              ? { ...turn, ratings: { ...turn.ratings, [action.uid]: action.rating } }
+              : turn,
           ),
         },
       };

@@ -126,6 +126,23 @@ export async function pushMember(familyId: string, uid: string, entry: unknown):
   await fs.setDoc(fs.doc(db, 'families', familyId, 'prefs', 'members'), { [uid]: entry }, { merge: true });
 }
 
+/** Say what you thought of a turn. The rules only let you write your own key. */
+export async function pushRating(
+  familyId: string,
+  turnId: string,
+  uid: string,
+  rating: number,
+): Promise<void> {
+  const remote = await firestore();
+  if (!remote) return;
+  const { db, fs } = remote;
+  await fs.setDoc(
+    fs.doc(db, 'families', familyId, 'turns', turnId),
+    { ratings: { [uid]: rating } },
+    { merge: true },
+  );
+}
+
 /**
  * Wipe a family everywhere. Without this a phone that still holds the family
  * locally simply republishes it, and nothing can ever be deleted.

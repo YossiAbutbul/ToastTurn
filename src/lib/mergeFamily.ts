@@ -16,9 +16,16 @@ export function mergeFamily(local: Family | null, remote: Family): Family {
   const byId = new Map<string, Turn>();
   for (const turn of local.turns) byId.set(turn.id, turn);
   for (const turn of remote.turns) {
-    // A rating given on this phone survives a snapshot that predates it.
+    // Ratings are per account, so the two sides are unioned rather than one
+    // winning: a rating given here survives a snapshot that predates it, and
+    // one given elsewhere arrives.
     const mine = byId.get(turn.id);
-    byId.set(turn.id, { ...turn, rating: turn.rating ?? mine?.rating });
+    const ratings = { ...mine?.ratings, ...turn.ratings };
+    byId.set(turn.id, {
+      ...turn,
+      rating: turn.rating ?? mine?.rating,
+      ...(Object.keys(ratings).length > 0 ? { ratings } : {}),
+    });
   }
 
   return {
@@ -37,16 +44,31 @@ function sortTurns(turns: Turn[]): Turn[] {
     .slice(0, TURN_CAP);
 }
 
-/**
- * Turns the others have not seen yet — new ones, and ones rated since. Ratings
- * are the only part of a turn that changes after it is logged.
- */
+/** Turns the others have not seen at all yet. */
 export function unsentTurns(local: Family, remote: Family | null): Turn[] {
+  const published = new Set((remote?.turns ?? []).map((turn) => turn.id));
+  return local.turns.filter((turn) => !published.has(turn.id));
+}
+
+/**
+ * Ratings this account has given that are not up yet. They go separately from
+ * the turn itself: a turn is written once, a rating lands whenever someone has
+ * an opinion, and only ever under their own key.
+ */
+export function unsentRatings(
+  local: Family,
+  remote: Family | null,
+  uid: string | undefined,
+): { turnId: string; rating: number }[] {
+  if (!uid) return [];
   const published = new Map((remote?.turns ?? []).map((turn) => [turn.id, turn]));
-  return local.turns.filter((turn) => {
-    const theirs = published.get(turn.id);
-    return !theirs || theirs.rating !== turn.rating;
-  });
+
+  return local.turns
+    .filter((turn) => {
+      const mine = turn.ratings?.[uid];
+      return mine !== undefined && published.get(turn.id)?.ratings?.[uid] !== mine;
+    })
+    .map((turn) => ({ turnId: turn.id, rating: turn.ratings![uid] }));
 }
 
 /** True when name, people or schedule differ from what is published. */

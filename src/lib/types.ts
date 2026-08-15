@@ -16,7 +16,12 @@ export type Turn = {
    * on the same date still order correctly on every phone.
    */
   madeAt: string;
-  /** 1-5, added later by anyone. */
+  /**
+   * What each account thought of it, 1-5, keyed by account id. Everyone gets a
+   * say; the row shows the average.
+   */
+  ratings?: Record<string, number>;
+  /** A single rating from before ratings were per person. Counts as one vote. */
   rating?: number;
   /** Logged without credit — does not move the rotation on. */
   skipped: boolean;

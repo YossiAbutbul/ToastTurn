@@ -1,28 +1,47 @@
+import { en } from '../i18n/en';
+import { formatAverage } from '../lib/ratings';
+import type { Verdict } from '../lib/ratings';
 import './Stars.css';
 
 type StarsProps = {
-  /** 0 when nobody has said yet. */
-  rating: number;
+  /** What the family made of it, or null when nobody has said. */
+  verdict: Verdict;
+  /** What this account said, if anything. */
+  mine?: number;
   label: string;
   onRate: (rating: number) => void;
 };
 
-/** Five taps' worth of opinion about a piece of toast. Anyone can set it. */
-export function Stars({ rating, label, onRate }: StarsProps) {
+/**
+ * Five stars per turn. They show your own rating once you have given one, and
+ * the family's average until then; the number beside them is always everyone.
+ */
+export function Stars({ verdict, mine, label, onRate }: StarsProps) {
+  const shown = mine ?? (verdict ? Math.round(verdict.average) : 0);
+
   return (
-    <span className="stars-row" role="group" aria-label={label}>
-      {[1, 2, 3, 4, 5].map((value) => (
-        <button
-          key={value}
-          type="button"
-          className={value <= rating ? 'star on' : 'star'}
-          aria-label={`${value}`}
-          aria-pressed={value === rating}
-          onClick={() => onRate(value)}
-        >
-          ★
-        </button>
-      ))}
+    <span className="stars-row">
+      <span className="stars-buttons" role="group" aria-label={label}>
+        {[1, 2, 3, 4, 5].map((value) => (
+          <button
+            key={value}
+            type="button"
+            className={value <= shown ? (mine ? 'star on mine' : 'star on') : 'star'}
+            aria-label={`${value}`}
+            aria-pressed={value === mine}
+            onClick={() => onRate(value)}
+          >
+            ★
+          </button>
+        ))}
+      </span>
+      {verdict ? (
+        <span className="stars-score">
+          {formatAverage(verdict.average)} · {verdict.votes}
+        </span>
+      ) : (
+        <span className="stars-score quiet">{en.history.notRated}</span>
+      )}
     </span>
   );
 }

@@ -2,8 +2,9 @@
   flex: 0 0 auto;
   display: flex;
   gap: 9px;
-  justify-content: center;
-  padding: 8px 16px max(16px, env(safe-area-inset-bottom));
+  /* Centred while everyone fits, scrolled from the start once they don't. */
+  justify-content: safe center;
+  padding: 14px 16px max(16px, env(safe-area-inset-bottom));
   overflow-x: auto;
   scrollbar-width: none;
 }
@@ -54,10 +55,22 @@
   text-transform: uppercase;
 }
 
-.qbtn.next .qtoast {
+/* Whoever is up stands proud of the line, in coral. */
+.qbtn.now .qtoast {
   background: var(--coral);
   color: var(--paper);
+  transform: translateY(-7px);
+  box-shadow: 0 10px 0 -3px rgba(43, 36, 32, 0.18), 0 3px 0 var(--ink);
 }
-.qbtn.next .qname {
+.qbtn.now .qname {
   color: var(--ink);
+  transform: translateY(-5px);
+}
+.qbtn.now:active .qtoast {
+  transform: translateY(-4px);
+}
+
+.qtoast,
+.qname {
+  transition: transform 0.25s cubic-bezier(0.2, 0.9, 0.25, 1);
 }
