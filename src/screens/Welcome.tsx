@@ -60,18 +60,10 @@ export function Welcome({ onStart, onOpen, notFound }: WelcomeProps) {
         </div>
       </div>
 
-      {/* the counter's edge, drawn as a wave so the wall does not meet it in a
-          straight line */}
+      {/* the counter's edge: one long curve, no outline, so the two colours
+          simply meet */}
       <svg className="welcome-wave" viewBox="0 0 390 200" preserveAspectRatio="none" aria-hidden="true">
-        <path
-          className="welcome-wave-fill"
-          d="M0 44 C54 18 96 60 156 46 C216 32 252 64 306 50 C342 40 368 44 390 34 L390 200 L0 200 Z"
-        />
-        <path
-          className="welcome-wave-line"
-          d="M0 44 C54 18 96 60 156 46 C216 32 252 64 306 50 C342 40 368 44 390 34"
-          vectorEffect="non-scaling-stroke"
-        />
+        <path className="welcome-wave-fill" d="M0 80 C120 16 270 16 390 80 L390 200 L0 200 Z" />
       </svg>
 
       <div className="welcome-foot">

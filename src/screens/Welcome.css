@@ -17,13 +17,6 @@
 .welcome-wave-fill {
   fill: var(--counter);
 }
-.welcome-wave-line {
-  fill: none;
-  stroke: var(--ink);
-  stroke-width: 3.5;
-  stroke-linecap: round;
-}
-
 .welcome-body {
   position: relative;
   z-index: 1;
