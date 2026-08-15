@@ -61,8 +61,9 @@
   z-index: 1;
   flex: 0 0 auto;
   padding: 16px 20px max(18px, env(safe-area-inset-bottom));
+  /* no rule above it: the counter runs on from the wall split straight into
+     the foot, so the buttons sit on the same surface */
   background: var(--counter);
-  border-top: 3px solid var(--ink);
 }
 
 /* The first thing to do is coral, the way the next-up toast is. */
