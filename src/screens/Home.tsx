@@ -10,7 +10,6 @@ import type { SheetName } from '../components/HomeSheets';
 import { useIsOwner } from '../hooks/useIsOwner';
 import { useAccount } from '../hooks/useAccount';
 import { useMembership } from '../hooks/useMembership';
-import { ClaimSheet } from '../components/ClaimSheet';
 import { SignInSheet } from '../components/SignInSheet';
 import { JoinRequestSheet } from '../components/JoinRequestSheet';
 import { signOut } from '../lib/auth';
@@ -51,8 +50,6 @@ export function Home({ onEditPeople, onLeave }: HomeProps) {
   const [signingIn, setSigningIn] = useState(false);
   const [day, setDay] = useState<Date | null>(null);
   const [asking, setAsking] = useState(false);
-  const [claiming, setClaiming] = useState(false);
-  const [skippedClaim, setSkippedClaim] = useState(false);
   const flashTimer = useRef<number | undefined>(undefined);
 
   useEffect(() => () => window.clearTimeout(flashTimer.current), []);
@@ -145,10 +142,6 @@ export function Home({ onEditPeople, onLeave }: HomeProps) {
         }}
         me={me}
         membership={membership}
-        onClaim={() => {
-          closeSheet();
-          setClaiming(true);
-        }}
         onSignIn={() => {
           closeSheet();
           setSigningIn(true);
@@ -166,18 +159,6 @@ export function Home({ onEditPeople, onLeave }: HomeProps) {
         onAsk={(name) => {
           membership.askToJoin(name);
           setAsking(false);
-        }}
-      />
-      <ClaimSheet
-        open={claiming || (canLog && !me && !skippedClaim && family.people.length > 0)}
-        family={family}
-        onPick={(personId) => {
-          membership.claim(personId);
-          setClaiming(false);
-        }}
-        onClose={() => {
-          setClaiming(false);
-          setSkippedClaim(true);
         }}
       />
     </>

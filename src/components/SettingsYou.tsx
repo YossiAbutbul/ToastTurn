@@ -9,13 +9,12 @@ type SettingsYouProps = {
   /** Which person in the rotation this account said it is. */
   me: Person | null;
   isOwner: boolean;
-  onClaim: () => void;
   onSignIn: () => void;
   onSignOut: () => void;
 };
 
 /** Who you are here, and the account behind it. */
-export function SettingsYou({ account, me, isOwner, onClaim, onSignIn, onSignOut }: SettingsYouProps) {
+export function SettingsYou({ account, me, isOwner, onSignIn, onSignOut }: SettingsYouProps) {
   if (!account) {
     return (
       <>
@@ -44,9 +43,6 @@ export function SettingsYou({ account, me, isOwner, onClaim, onSignIn, onSignOut
       {!me && <p className="empty">{en.signIn.signedInAs(account.email ?? '')}</p>}
       {!isOwner && <p className="empty">{en.profile.notOwner}</p>}
 
-      <button className="ghost" type="button" onClick={onClaim}>
-        {me ? en.claim.change : en.claim.title}
-      </button>
       <button className="ghost" type="button" onClick={onSignOut}>
         {en.signIn.signOut}
       </button>

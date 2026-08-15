@@ -108,12 +108,6 @@ export const en = {
     nobodyWaiting: 'Nobody is waiting.',
   },
 
-  claim: {
-    title: 'Which one are you?',
-    blurb: 'Asked once. It stays with your account, so any phone you sign in on knows.',
-    change: 'Change which one you are',
-  },
-
   day: {
     nothing: 'Nothing logged on this day.',
     nobody: 'Nobody made it',

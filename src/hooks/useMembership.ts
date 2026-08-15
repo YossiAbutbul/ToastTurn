@@ -60,12 +60,6 @@ export function useMembership(family: Family, account: Account | null, isOwner: 
     [account, write],
   );
 
-  /** Say which person you are — the owner's own tool, from settings. */
-  const claim = useCallback(
-    (personId: string) => write({ ...(mine ?? { status: 'approved' }), status: 'approved', personId }),
-    [mine, write],
-  );
-
   /** Owner only: let someone in as the person they will be in the rotation. */
   const approve = useCallback(
     (uid: string, personId: string) => {
@@ -85,5 +79,5 @@ export function useMembership(family: Family, account: Account | null, isOwner: 
     .filter(([, entry]) => entry.status === 'pending')
     .map(([uid, entry]) => ({ uid, name: entry.name ?? '', email: entry.email ?? uid }));
 
-  return { state, me, waiting, askToJoin, claim, approve, canLog: state === 'owner' || state === 'member' };
+  return { state, me, waiting, askToJoin, approve, canLog: state === 'owner' || state === 'member' };
 }

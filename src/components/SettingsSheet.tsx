@@ -15,7 +15,6 @@ type SettingsSheetProps = {
   onClose: () => void;
   me: Person | null;
   membership: MembershipState;
-  onClaim: () => void;
   onSignIn: () => void;
   onSignOut: () => void;
   onToggleHoliday: (personId: string, active: boolean) => void;
@@ -45,7 +44,6 @@ export function SettingsSheet(props: SettingsSheetProps) {
         account={props.account}
         isOwner={isOwner}
         me={props.me}
-        onClaim={props.onClaim}
         onSignIn={props.onSignIn}
         onSignOut={props.onSignOut}
       />

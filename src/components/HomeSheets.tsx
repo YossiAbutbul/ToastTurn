@@ -29,7 +29,6 @@ type HomeSheetsProps = {
   onApprove: (uid: string, name: string) => void;
   me: Person | null;
   membership: MembershipState;
-  onClaim: () => void;
   onSignIn: () => void;
   onSignOut: () => void;
   isOwner: boolean;
@@ -77,7 +76,6 @@ export function HomeSheets(props: HomeSheetsProps) {
         onClose={onClose}
         me={props.me}
         membership={props.membership}
-        onClaim={props.onClaim}
         onSignIn={props.onSignIn}
         onSignOut={props.onSignOut}
         onToggleHoliday={props.onToggleHoliday}
