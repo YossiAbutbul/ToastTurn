@@ -66,6 +66,13 @@ export const en = {
     dragLabel: (name: string) => `Reorder ${name}`,
   },
 
+  install: {
+    prompt: 'Keep ToastTurn on your home screen.',
+    ios: 'Keep ToastTurn on your home screen: tap Share, then Add to Home Screen.',
+    add: 'Add it',
+    dismiss: 'Not now',
+  },
+
   settings: {
     title: 'Settings',
     open: 'Settings',

@@ -4,6 +4,7 @@ import type { ToasterStatus } from '../components/Toaster';
 import { TopBar } from '../components/TopBar';
 import { QueueBar } from '../components/QueueBar';
 import { Note } from '../components/Note';
+import { InstallHint } from '../components/InstallHint';
 import { HistorySheet } from '../components/HistorySheet';
 import { SwapSheet } from '../components/SwapSheet';
 import { ScheduleSheet } from '../components/ScheduleSheet';
@@ -133,6 +134,7 @@ export function Home({ onEditPeople }: { onEditPeople: () => void }) {
 
       <div className="hint">{hint}</div>
 
+      <InstallHint />
       <QueueBar people={upcoming} onPick={() => setSheet('swap')} swapLabel={en.swap.title} />
       <Note playKey={note.key} text={note.text} />
 

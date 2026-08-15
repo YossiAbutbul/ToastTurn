@@ -1,6 +1,7 @@
 import type { Family } from './types';
 
 const FAMILY_KEY = 'toastturn.family.v1';
+const INSTALL_HINT_KEY = 'toastturn.installHint.v1';
 
 /**
  * The only module that touches localStorage. Every read is defensive: a phone
@@ -36,6 +37,15 @@ export function loadFamily(): Family | null {
 
 export function saveFamily(family: Family): void {
   write(FAMILY_KEY, JSON.stringify(family));
+}
+
+/** The add-to-home-screen hint is offered once and then never again. */
+export function installHintDismissed(): boolean {
+  return read(INSTALL_HINT_KEY) === 'dismissed';
+}
+
+export function dismissInstallHint(): void {
+  write(INSTALL_HINT_KEY, 'dismissed');
 }
 
 export function clearFamily(): void {

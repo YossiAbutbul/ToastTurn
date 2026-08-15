@@ -1,8 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
-  <!-- A slice on coral. Art fills ~72% of the canvas: this is the plain icon,
-       the launcher does not crop it. -->
+  <!-- Maskable: everything that matters sits inside the middle 80% circle, so a
+       round, squircle or teardrop mask still shows the whole slice. -->
   <rect width="512" height="512" fill="#E9553D"/>
-  <g transform="translate(-201.6, 27.85) scale(3.15)">
+  <g transform="translate(-144, 57.25) scale(2.5)">
     <path d="M102 120 V72 c0-19 11-31 28-33 4-13 21-17 31-8 10-9 27-5 29 8 19 2 28 14 28 33 v48 z"
           fill="#C8862F" stroke="#2B2420" stroke-width="5" stroke-linejoin="round"/>
     <path d="M111 120 V78 c0-15 9-25 23-27 3-10 17-14 26-6 8-7 21-3 26 6 14 2 23 12 23 27 v42 z"

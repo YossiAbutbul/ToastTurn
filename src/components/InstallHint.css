@@ -1,0 +1,55 @@
+.install-hint {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 16px 6px;
+  padding: 10px 12px;
+  background: var(--paper);
+  border: 3px solid var(--ink);
+  border-radius: 16px;
+  box-shadow: 0 2px 0 var(--ink);
+}
+
+.install-hint p {
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--ink);
+}
+
+.install-add {
+  margin-inline-start: auto;
+  flex: 0 0 auto;
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: 12px;
+  border: 2.5px solid var(--ink);
+  background: var(--mint);
+  color: var(--paper);
+  font-family: var(--ui);
+  font-weight: 800;
+  font-size: 12px;
+  cursor: pointer;
+}
+.install-add:active {
+  transform: translateY(2px);
+}
+
+.install-dismiss {
+  flex: 0 0 auto;
+  margin-inline-start: auto;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: none;
+  color: var(--ink-soft);
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+.install-add ~ .install-dismiss {
+  margin-inline-start: 0;
+}
