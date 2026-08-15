@@ -1,6 +1,32 @@
-/* Wall above, counter below — the foot is the counter, so the slice sits on it
-   rather than floating on a panel of its own. */
+/* Wall above, counter below. The counter's edge is a wave rather than the flat
+   line the rest of the app uses, and the slice stands on it. */
+/* .device paints the wall/counter split as a hard line; here the wave draws
+   the counter instead, so the wall goes all the way down behind it. */
+.device.welcome {
+  background: var(--sky);
+}
+
+.welcome-wave {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: 42%;
+  z-index: 0;
+  display: block;
+}
+.welcome-wave-fill {
+  fill: var(--counter);
+}
+.welcome-wave-line {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 3.5;
+  stroke-linecap: round;
+}
+
 .welcome-body {
+  position: relative;
+  z-index: 1;
   flex: 1 1 auto;
   min-height: 0;
   display: flex;
@@ -53,10 +79,11 @@
 }
 
 .welcome-foot {
+  position: relative;
+  z-index: 1;
   flex: 0 0 auto;
   padding: 16px 20px max(18px, env(safe-area-inset-bottom));
   background: var(--counter);
-  border-top: 3px solid var(--ink);
 }
 
 /* The first thing to do is coral, the way the next-up toast is. */
