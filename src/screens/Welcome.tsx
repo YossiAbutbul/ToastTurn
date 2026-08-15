@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { SignInSheet } from '../components/SignInSheet';
 import { JoinSheet } from '../components/JoinSheet';
-import { CheeseToast } from '../components/CheeseToast';
+import { ToastSlice } from '../components/ToastSlice';
 import { useAccount } from '../hooks/useAccount';
 import { syncConfigured } from '../lib/firebase';
 import { en } from '../i18n/en';
@@ -56,7 +56,7 @@ export function Welcome({ onStart, onOpen, notFound }: WelcomeProps) {
         <p className="welcome-line">{en.welcome.tagline}</p>
 
         <div className="welcome-slice">
-          <CheeseToast />
+          <ToastSlice />
         </div>
       </div>
 

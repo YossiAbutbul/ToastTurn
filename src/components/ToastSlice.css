@@ -1,0 +1,38 @@
+.toast-slice {
+  width: 100%;
+  height: auto;
+  display: block;
+  overflow: visible;
+}
+
+.ts-crust {
+  fill: var(--crust);
+  stroke: var(--ink);
+  stroke-width: 5;
+  stroke-linejoin: round;
+}
+
+.ts-crumb {
+  fill: var(--butter);
+}
+
+.ts-sheen {
+  fill: none;
+  stroke: var(--paper);
+  stroke-width: 5;
+  stroke-linecap: round;
+  opacity: 0.45;
+}
+
+.ts-shadow {
+  fill: var(--ink);
+  opacity: 0.12;
+}
+
+.ts-steam {
+  fill: none;
+  stroke: var(--steam);
+  stroke-width: 4.5;
+  stroke-linecap: round;
+  opacity: 0.7;
+}
