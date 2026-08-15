@@ -18,6 +18,7 @@ type HomeSheetsProps = {
   onEditPeople: () => void;
   onStartOver: () => void;
   onWhoAmI: () => void;
+  isOwner: boolean;
 };
 
 /** Everything that isn't the answer, gathered in one place. */
@@ -33,16 +34,19 @@ export function HomeSheets({
   onEditPeople,
   onStartOver,
   onWhoAmI,
+  isOwner,
 }: HomeSheetsProps) {
   return (
     <>
       <HistorySheet open={sheet === 'history'} family={family} onClose={onClose} onSkip={onSkip} />
-      <ScheduleSheet
-        open={sheet === 'schedule'}
-        schedule={family.schedule}
-        onClose={onClose}
-        onChange={onSchedule}
-      />
+      {isOwner && (
+        <ScheduleSheet
+          open={sheet === 'schedule'}
+          schedule={family.schedule}
+          onClose={onClose}
+          onChange={onSchedule}
+        />
+      )}
       <SettingsSheet
         open={sheet === 'settings'}
         family={family}
@@ -51,8 +55,9 @@ export function HomeSheets({
         onToggleHoliday={onToggleHoliday}
         onStartOver={onStartOver}
         onWhoAmI={onWhoAmI}
+        isOwner={isOwner}
       />
-      {current && (
+      {current && isOwner && (
         <SwapSheet
           open={sheet === 'swap'}
           family={family}

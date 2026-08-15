@@ -4,7 +4,8 @@ import type { Schedule } from '../lib/types';
 
 type TopBarProps = {
   schedule: Schedule;
-  onSchedule: () => void;
+  /** Left out on a phone that joined by link: the night is the owner's to set. */
+  onSchedule?: () => void;
   onHistory: () => void;
   onSettings: () => void;
 };
@@ -17,9 +18,15 @@ export function TopBar({ schedule, onSchedule, onHistory, onSettings }: TopBarPr
         <span>{en.brand.second}</span>
       </div>
       <div className="spacer" />
-      <button className="pill" type="button" onClick={onSchedule}>
-        {en.days[schedule.weekday]} · {prettyTime(schedule.time)}
-      </button>
+      {onSchedule ? (
+        <button className="pill" type="button" onClick={onSchedule}>
+          {en.days[schedule.weekday]} · {prettyTime(schedule.time)}
+        </button>
+      ) : (
+        <span className="pill flat">
+          {en.days[schedule.weekday]} · {prettyTime(schedule.time)}
+        </span>
+      )}
       <button className="pill" type="button" onClick={onHistory}>
         {en.home.history}
       </button>

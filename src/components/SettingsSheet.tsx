@@ -13,6 +13,8 @@ type SettingsSheetProps = {
   onToggleHoliday: (personId: string, active: boolean) => void;
   onStartOver: () => void;
   onWhoAmI: () => void;
+  /** False on a phone that joined by link: it can log toast, not run the family. */
+  isOwner: boolean;
 };
 
 export function SettingsSheet({
@@ -23,6 +25,7 @@ export function SettingsSheet({
   onToggleHoliday,
   onStartOver,
   onWhoAmI,
+  isOwner,
 }: SettingsSheetProps) {
   const [copied, setCopied] = useState(false);
   const people = [...family.people].sort((a, b) => a.order - b.order);
@@ -34,25 +37,29 @@ export function SettingsSheet({
 
   return (
     <Sheet open={open} title={en.settings.title} onClose={onClose}>
-      <div className="fieldlabel">{en.settings.holiday}</div>
-      {people.map((person) => (
-        <div className="row" key={person.id}>
-          <span className="mini" style={{ background: person.color }}>
-            {initialOf(person.name)}
-          </span>
-          <b>{person.name}</b>
-          <button
-            type="button"
-            className={person.active ? 'tog' : 'tog on'}
-            role="switch"
-            aria-checked={!person.active}
-            aria-label={`${en.settings.holiday} — ${person.name}`}
-            onClick={() => onToggleHoliday(person.id, !person.active)}
-          >
-            <i />
-          </button>
-        </div>
-      ))}
+      {isOwner && (
+        <>
+          <div className="fieldlabel">{en.settings.holiday}</div>
+          {people.map((person) => (
+            <div className="row" key={person.id}>
+              <span className="mini" style={{ background: person.color }}>
+                {initialOf(person.name)}
+              </span>
+              <b>{person.name}</b>
+              <button
+                type="button"
+                className={person.active ? 'tog' : 'tog on'}
+                role="switch"
+                aria-checked={!person.active}
+                aria-label={`${en.settings.holiday} — ${person.name}`}
+                onClick={() => onToggleHoliday(person.id, !person.active)}
+              >
+                <i />
+              </button>
+            </div>
+          ))}
+        </>
+      )}
 
       <button className="ghost" type="button" onClick={() => void copyLink()}>
         {copied ? en.settings.shared : en.settings.share}
@@ -60,12 +67,19 @@ export function SettingsSheet({
       <button className="ghost" type="button" onClick={onWhoAmI}>
         {en.settings.whoAmI}
       </button>
-      <button className="ghost" type="button" onClick={onEditPeople}>
-        {en.settings.editPeople}
-      </button>
-      <button className="ghost" type="button" onClick={onStartOver}>
-        {en.settings.startOver}
-      </button>
+
+      {isOwner ? (
+        <>
+          <button className="ghost" type="button" onClick={onEditPeople}>
+            {en.settings.editPeople}
+          </button>
+          <button className="ghost" type="button" onClick={onStartOver}>
+            {en.settings.startOver}
+          </button>
+        </>
+      ) : (
+        <p className="empty">{en.settings.guest}</p>
+      )}
     </Sheet>
   );
 }

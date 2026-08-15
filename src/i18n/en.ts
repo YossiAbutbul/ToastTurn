@@ -85,10 +85,12 @@ export const en = {
     share: 'Copy the link for the family',
     shared: 'Link copied',
     whoAmI: 'Change who this phone is',
+    guest: 'The phone that started the family looks after the people and the schedule.',
     holiday: 'On holiday',
     editPeople: 'Add or remove people',
     startOver: 'Start over',
-    startOverConfirm: 'This clears the family and every logged turn. Start over?',
+    startOverConfirm:
+      'This clears the family and every logged turn, on every phone that has the link. Start over?',
   },
 
   close: 'Close',

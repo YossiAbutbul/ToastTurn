@@ -33,6 +33,12 @@
   transform: translateY(2px);
   box-shadow: none;
 }
+/* The schedule as a fact rather than a control, on phones that joined. */
+.pill.flat {
+  box-shadow: none;
+  display: inline-flex;
+  align-items: center;
+}
 .pill.dots {
   padding: 0 9px;
   line-height: 1;

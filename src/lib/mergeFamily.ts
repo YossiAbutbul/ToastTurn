@@ -19,6 +19,7 @@ export function mergeFamily(local: Family | null, remote: Family): Family {
 
   return {
     ...local,
+    ownerUid: remote.ownerUid ?? local.ownerUid,
     name: remote.name,
     people: remote.people,
     schedule: remote.schedule,

@@ -9,12 +9,14 @@ import { HomeSheets } from '../components/HomeSheets';
 import type { SheetName } from '../components/HomeSheets';
 import { WhoAmI } from '../components/WhoAmI';
 import { useMe } from '../hooks/useMe';
+import { useIsOwner } from '../hooks/useIsOwner';
 import { useFamily } from '../store/useFamily';
 import { en } from '../i18n/en';
 import { formatShortDate, initialOf } from '../lib/format';
 import { getCurrentPerson, getUpcoming, lastTurnFor, turnCounts } from '../lib/rotation';
 import { nowISO } from '../lib/clock';
 import { newId } from '../lib/id';
+import { deleteFamily } from '../lib/remote';
 import type { Family } from '../lib/types';
 import './Home.css';
 
@@ -24,6 +26,7 @@ export function Home({ onEditPeople }: { onEditPeople: () => void }) {
   const { state, dispatch } = useFamily();
   const family = state.family as Family;
   const { me, setMe } = useMe(family.id);
+  const isOwner = useIsOwner(family);
 
   const [sheet, setSheet] = useState<SheetName>(null);
   const [status, setStatus] = useState<ToasterStatus>('idle');
@@ -71,12 +74,16 @@ export function Home({ onEditPeople }: { onEditPeople: () => void }) {
         onToggleHoliday={(id, active) => dispatch({ type: 'setActive', id, active })}
         onEditPeople={onEditPeople}
         onStartOver={() => {
-          if (window.confirm(en.settings.startOverConfirm)) dispatch({ type: 'reset' });
+          if (!window.confirm(en.settings.startOverConfirm)) return;
+          void deleteFamily(family.id);
+          dispatch({ type: 'reset' });
+          window.history.replaceState(null, '', '/');
         }}
         onWhoAmI={() => {
           closeSheet();
           setAsking(true);
         }}
+        isOwner={isOwner}
       />
       <WhoAmI
         open={(asking || (!me && !skippedAsk)) && family.people.length > 0}
@@ -96,7 +103,7 @@ export function Home({ onEditPeople }: { onEditPeople: () => void }) {
   const bar = (
     <TopBar
       schedule={family.schedule}
-      onSchedule={() => setSheet('schedule')}
+      onSchedule={isOwner ? () => setSheet('schedule') : undefined}
       onHistory={() => setSheet('history')}
       onSettings={() => setSheet('settings')}
     />
@@ -148,7 +155,11 @@ export function Home({ onEditPeople }: { onEditPeople: () => void }) {
       <div className="hint">{hint}</div>
 
       <InstallHint />
-      <QueueBar people={upcoming} onPick={() => setSheet('swap')} swapLabel={en.swap.title} />
+      <QueueBar
+        people={upcoming}
+        onPick={isOwner ? () => setSheet('swap') : undefined}
+        swapLabel={en.swap.title}
+      />
       <Note playKey={note.key} text={note.text} />
 
       {sheets}

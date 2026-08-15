@@ -33,6 +33,12 @@ export type Schedule = {
 export type Family = {
   /** The code that goes in the share link. */
   id: string;
+  /**
+   * The device that started the family. It is the only one the server lets
+   * change people, the schedule or the rotation — everyone else can log toast.
+   * Absent on families made before sync, and on local-only phones.
+   */
+  ownerUid?: string;
   name: string;
   people: Person[];
   schedule: Schedule;

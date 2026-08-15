@@ -3,6 +3,7 @@ import { useFamily } from '../store/useFamily';
 import { useDragReorder } from '../hooks/useDragReorder';
 import { PersonRow } from '../components/PersonRow';
 import { en } from '../i18n/en';
+import { currentUid } from '../lib/firebase';
 import { newFamilyCode, newId } from '../lib/id';
 import { PALETTE, colorForIndex } from '../lib/palette';
 import type { Family, Person } from '../lib/types';
@@ -55,12 +56,16 @@ export function Setup({ onDone }: { onDone: () => void }) {
   const removePerson = (id: string) =>
     setPeople((list) => list.filter((p) => p.id !== id).map((p, i) => ({ ...p, order: i })));
 
-  const save = () => {
+  const save = async () => {
     const base = existing ?? blankFamily();
+    // Whoever starts the family owns it from here on.
+    const ownerUid = base.ownerUid ?? (await currentUid()) ?? undefined;
+
     dispatch({
       type: 'createFamily',
       family: {
         ...base,
+        ownerUid,
         name: name.trim() || base.name,
         people: people.map((p, i) => ({ ...p, order: i })),
       },
@@ -139,7 +144,7 @@ export function Setup({ onDone }: { onDone: () => void }) {
       </div>
 
       <div className="setup-foot">
-        <button className="close" type="button" onClick={save} disabled={people.length === 0}>
+        <button className="close" type="button" onClick={() => void save()} disabled={people.length === 0}>
           {existing ? en.setup.save : en.setup.start}
         </button>
       </div>

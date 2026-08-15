@@ -4,13 +4,14 @@ import type { Family, Person, Schedule, Turn } from './types';
 /** What the other phones publish. Null means no such family up there yet. */
 export type RemoteFamily = {
   id: string;
+  ownerUid?: string;
   name: string;
   people: Person[];
   schedule: Schedule;
   turns: Turn[];
 } | null;
 
-type FamilyDoc = { name?: string; people?: Person[]; schedule?: Schedule };
+type FamilyDoc = { name?: string; people?: Person[]; schedule?: Schedule; ownerUid?: string };
 
 /**
  * Watches one family and its turns. Fires on every change from any phone, and
@@ -34,6 +35,7 @@ export function subscribeFamily(id: string, onChange: (family: RemoteFamily) => 
       if (!meta) return onChange(null);
       onChange({
         id,
+        ownerUid: meta.ownerUid,
         name: meta.name ?? '',
         people: meta.people ?? [],
         schedule: meta.schedule ?? { weekday: 0, time: '20:00', remind: true },
@@ -74,6 +76,8 @@ export async function pushFamily(family: Family): Promise<void> {
   await fs.setDoc(
     fs.doc(db, 'families', family.id),
     {
+      // The owner never changes hands; the server refuses writes that move it.
+      ownerUid: family.ownerUid ?? remote.uid,
       name: family.name,
       people: family.people,
       schedule: family.schedule,
@@ -81,6 +85,22 @@ export async function pushFamily(family: Family): Promise<void> {
     },
     { merge: true },
   );
+}
+
+/**
+ * Wipe a family everywhere. Without this a phone that still holds the family
+ * locally simply republishes it, and nothing can ever be deleted.
+ */
+export async function deleteFamily(familyId: string): Promise<void> {
+  const remote = await firestore();
+  if (!remote) return;
+  const { db, fs } = remote;
+
+  const turns = await fs.getDocs(fs.collection(db, 'families', familyId, 'turns'));
+  const batch = fs.writeBatch(db);
+  turns.forEach((turn) => batch.delete(turn.ref));
+  batch.delete(fs.doc(db, 'families', familyId));
+  await batch.commit();
 }
 
 /** Turns are append-only, so each one is written under its own id. */

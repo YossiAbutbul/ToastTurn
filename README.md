@@ -28,20 +28,30 @@ Sync is optional. With no Firebase keys the app runs exactly as it always has:
 one phone, local storage, fully offline. Add the keys and the same family shows
 up on every phone that has the link.
 
-1. Create a Firebase project and a **Web app** in it (no auth, no hosting
-   needed). Enable **Cloud Firestore** in production mode.
-2. Copy `.env.example` to `.env.local` and paste in the four values from
+1. Create a Firebase project and a **Web app** in it (no hosting needed). Enable
+   **Cloud Firestore** in production mode.
+2. Authentication → Get started → Sign-in method → enable **Anonymous**. Nobody
+   ever signs in or sees this; it exists so the server can tell the phone that
+   started the family from the phones that joined it. Without it, sync is off
+   and the app stays local to each phone.
+3. Copy `.env.example` to `.env.local` and paste in the four values from
    Project settings → General → Your apps → SDK setup and configuration.
-3. Publish the rules — they scope everything to the family id and refuse to list
-   families, so a code that is never shared is never found:
+4. Publish the rules. They scope everything to the family id and refuse to list
+   families, so a code that is never shared is never found — and only the phone
+   that created a family can change its people, schedule or rotation:
 
    ```bash
    npx firebase deploy --only firestore:rules --project <your-project-id>
    ```
 
-4. Restart `npm run dev`. Open the app, then **Settings → Copy the link for the
+5. Restart `npm run dev`. Open the app, then **Settings → Copy the link for the
    family** and open that link on the second phone. It joins, asks which person
    is holding it, and from then on a pull on one phone lands on the other.
+
+**Who can change what.** The phone that created the family runs it: people,
+schedule, swapping the rotation, clearing the family. Every phone with the link
+can see whose turn it is, pull the lever and read the history. That split is
+enforced by the rules, not just hidden in the interface.
 
 Writes go through Firestore's persistent cache, so a turn logged with no signal
 is stored locally, shown immediately and replayed when the phone is back.

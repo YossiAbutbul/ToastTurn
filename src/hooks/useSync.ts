@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { syncConfigured } from '../lib/firebase';
+import { useEffect, useRef, useState } from 'react';
+import { currentUid, syncConfigured } from '../lib/firebase';
 import { pushFamily, pushTurns, subscribeFamily } from '../lib/remote';
 import type { RemoteFamily } from '../lib/remote';
 import { metaChanged, unsentTurns } from '../lib/mergeFamily';
@@ -17,6 +17,19 @@ import type { Family } from '../lib/types';
 export function useSync() {
   const { state, dispatch } = useFamily();
   const [remote, setRemote] = useState<Family | null>(null);
+  /** Whether this family has ever been seen on the server. */
+  const sawRemote = useRef(false);
+  const [uid, setUid] = useState<string | null>(null);
+
+  useEffect(() => {
+    let live = true;
+    void currentUid().then((id) => {
+      if (live) setUid(id);
+    });
+    return () => {
+      live = false;
+    };
+  }, []);
 
   const localId = state.family?.id ?? null;
   const linkId = typeof window === 'undefined' ? null : familyIdFromPath(window.location.pathname);
@@ -37,8 +50,16 @@ export function useSync() {
     return subscribeFamily(familyId, (incoming: RemoteFamily) => {
       if (!incoming) {
         setRemote(null);
+        // It was there and now it isn't: someone cleared the family. Let it go
+        // rather than republishing it from this phone's copy.
+        if (sawRemote.current) {
+          sawRemote.current = false;
+          dispatch({ type: 'reset' });
+          window.history.replaceState(null, '', '/');
+        }
         return;
       }
+      sawRemote.current = true;
       setRemote(incoming);
       dispatch({ type: 'applyRemote', family: incoming });
     });
@@ -49,12 +70,16 @@ export function useSync() {
   useEffect(() => {
     const family = state.family;
     if (!syncConfigured || !family || !state.ready) return;
+    const owned = !family.ownerUid || family.ownerUid === uid;
 
     const seen = new Set((remote?.turns ?? []).map((t) => t.id));
     const pending = unsentTurns(family, seen);
     if (pending.length > 0) void pushTurns(family.id, pending);
-    if (metaChanged(family, remote)) void pushFamily(family);
-  }, [remote, state.family, state.ready]);
+
+    // Only the owner's phone publishes the family itself. Everyone else would
+    // just be refused by the server.
+    if (owned && metaChanged(family, remote)) void pushFamily(family);
+  }, [remote, state.family, state.ready, uid]);
 
   return {
     configured: syncConfigured,
