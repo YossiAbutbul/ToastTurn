@@ -10,10 +10,7 @@ type HomeSheetsProps = {
   sheet: SheetName;
   family: Family;
   current: Person | null;
-  me: Person | null;
-  myColor: string;
   account: Account | null;
-  colorOf: (person: Person) => string;
   onClose: () => void;
   onSkip: () => void;
   onSwap: (personId: string) => void;
@@ -21,9 +18,10 @@ type HomeSheetsProps = {
   onToggleHoliday: (personId: string, active: boolean) => void;
   onEditPeople: () => void;
   onStartOver: () => void;
+  me: Person | null;
+  onClaim: () => void;
   onSignIn: () => void;
   onSignOut: () => void;
-  onPickColor: (color: string) => void;
   isOwner: boolean;
 };
 
@@ -43,12 +41,10 @@ export function HomeSheets(props: HomeSheetsProps) {
       <SettingsSheet
         open={sheet === 'settings'}
         family={family}
-        me={props.me}
-        myColor={props.myColor}
         account={props.account}
-        colorOf={props.colorOf}
         onClose={onClose}
-        onPickColor={props.onPickColor}
+        me={props.me}
+        onClaim={props.onClaim}
         onSignIn={props.onSignIn}
         onSignOut={props.onSignOut}
         onSchedule={props.onSchedule}
@@ -63,8 +59,7 @@ export function HomeSheets(props: HomeSheetsProps) {
           open={sheet === 'swap'}
           family={family}
           current={current}
-          colorOf={props.colorOf}
-          onClose={onClose}
+            onClose={onClose}
           onSwap={props.onSwap}
         />
       )}

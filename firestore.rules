@@ -38,21 +38,14 @@ service cloud.firestore {
 
       allow delete: if isOwner();
 
-      // Each person's chosen toast colour, keyed by the address they sign in
-      // with. You may write your own key and nobody else's, which is why this
-      // sits outside the owner-only family document.
-      match /prefs/colors {
-        function onlyMine() {
-          return request.auth != null
-            && request.auth.token.email != null
-            && request.resource.data.diff(resource.data).affectedKeys()
-                 .hasOnly([request.auth.token.email.lower()]);
-        }
-
+      // Which person each account says it is. You may write your own key and
+      // nobody else's, so nobody can claim to be someone they are not.
+      match /prefs/members {
         allow get, list: if true;
         allow create: if request.auth != null
-          && request.resource.data.keys().hasOnly([request.auth.token.email.lower()]);
-        allow update: if onlyMine();
+          && request.resource.data.keys().hasOnly([request.auth.uid]);
+        allow update: if request.auth != null
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([request.auth.uid]);
         allow delete: if request.auth != null
           && get(/databases/$(database)/documents/families/$(familyId)).data.ownerUid == request.auth.uid;
       }

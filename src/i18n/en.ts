@@ -54,9 +54,6 @@ export const en = {
     familyPlaceholder: 'The Cohens',
     peopleLabel: 'Who makes toast',
     namePlaceholder: 'Name',
-    emailPlaceholder: 'their email',
-    emailFor: (name: string) => `Email for ${name}`,
-    emailHint: 'The address each person signs in with — that is how their phone knows them.',
     add: 'Add',
     remove: (name: string) => `Remove ${name}`,
     moveUp: (name: string) => `Move ${name} earlier`,
@@ -65,9 +62,10 @@ export const en = {
     start: 'Start the rotation',
     save: 'Done',
     editTitle: 'Who makes toast',
-    dragHint: 'Drag a name to change the order',
+    dragHint: 'Drag to change the order · tap a toast to recolour it',
     colourLabel: 'Colour',
     dragLabel: (name: string) => `Reorder ${name}`,
+    recolour: (name: string) => `Change the colour for ${name}`,
   },
 
   welcome: {
@@ -77,6 +75,12 @@ export const en = {
     join: 'Join a rotation',
     signIn: 'Sign in',
     signInFirst: 'Sign in to make a toast yours. You can pull the lever either way.',
+  },
+
+  claim: {
+    title: 'Which one are you?',
+    blurb: 'Asked once. It stays with your account, so any phone you sign in on knows.',
+    change: 'Change which one you are',
   },
 
   join: {
@@ -98,8 +102,8 @@ export const en = {
     google: 'Continue with Google',
     or: 'or with an email and password',
     working: 'Signing in…',
-    open: 'Sign in to run the family',
-    signedInTitle: 'Running the family',
+    open: 'Sign in to run a rotation',
+    signedInTitle: 'Your account',
     signedInAs: (email: string) => `Signed in as ${email}.`,
     signOut: 'Sign out',
     problem: {
@@ -118,20 +122,19 @@ export const en = {
   },
 
   profile: {
-    nobody: 'Not in this rotation',
-    thisPhone: 'This phone',
-    notInRotation: 'Ask whoever runs the rotation to add your email to it.',
-    colour: 'Your toast colour',
+    signedOut: 'Not signed in. You can still pull the lever.',
+    notOwner: 'The account that started this rotation looks after the people and the schedule.',
+    youAre: (name: string) => `You are ${name} in this rotation.`,
   },
 
   settings: {
     title: 'Settings',
     open: 'Settings',
-    youSection: 'You',
+    youSection: 'Account',
     rotationSection: 'The rotation',
-    share: 'Copy the link for the family',
+    share: 'Copy the link to share',
     shared: 'Link copied',
-    guest: 'The phone that started the family looks after the people and the schedule.',
+    guest: 'The phone that started the rotation looks after the people and the schedule.',
     holiday: 'On holiday',
     editPeople: 'Add or remove people',
     startOver: 'Start over',

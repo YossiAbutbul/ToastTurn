@@ -1,71 +1,55 @@
 import { en } from '../i18n/en';
 import { initialOf } from '../lib/format';
-import { PALETTE } from '../lib/palette';
 import type { Account } from '../lib/auth';
 import type { Person } from '../lib/types';
 import './SettingsYou.css';
 
 type SettingsYouProps = {
-  /** Who this phone says it is, if anyone has said yet. */
-  me: Person | null;
-  color: string;
   account: Account | null;
-  onPickColor: (color: string) => void;
+  /** Which person in the rotation this account said it is. */
+  me: Person | null;
+  isOwner: boolean;
+  onClaim: () => void;
   onSignIn: () => void;
   onSignOut: () => void;
 };
 
-/** The "you" half of settings: your toast, your colour, your account. */
-export function SettingsYou({
-  me,
-  color,
-  account,
-  onPickColor,
-  onSignIn,
-  onSignOut,
-}: SettingsYouProps) {
-  return (
-    <>
-      <div className="profile-card">
-        <span className="profile-toast" style={{ background: color }}>
-          {me ? initialOf(me.name) : '?'}
-        </span>
-        <div className="profile-who">
-          <b>{me ? me.name : en.profile.nobody}</b>
-          <p className="empty">
-            {me ? (account?.email ?? en.profile.thisPhone) : en.profile.notInRotation}
-          </p>
-        </div>
-      </div>
-
-      {me && (
-        <div className="swatches" role="group" aria-label={en.profile.colour}>
-          {PALETTE.map((swatch) => (
-            <button
-              key={swatch}
-              type="button"
-              className={swatch === color ? 'swatch on' : 'swatch'}
-              style={{ background: swatch }}
-              aria-label={swatch}
-              aria-pressed={swatch === color}
-              onClick={() => onPickColor(swatch)}
-            />
-          ))}
-        </div>
-      )}
-
-      {account ? (
-        <>
-          <p className="empty">{en.signIn.signedInAs(account.email ?? '')}</p>
-          <button className="ghost" type="button" onClick={onSignOut}>
-            {en.signIn.signOut}
-          </button>
-        </>
-      ) : (
+/** Who you are here, and the account behind it. */
+export function SettingsYou({ account, me, isOwner, onClaim, onSignIn, onSignOut }: SettingsYouProps) {
+  if (!account) {
+    return (
+      <>
+        <p className="empty">{en.profile.signedOut}</p>
         <button className="ghost" type="button" onClick={onSignIn}>
           {en.signIn.open}
         </button>
+      </>
+    );
+  }
+
+  return (
+    <>
+      {me && (
+        <div className="profile-card">
+          <span className="profile-toast" style={{ background: me.color }}>
+            {initialOf(me.name)}
+          </span>
+          <div className="profile-who">
+            <b>{me.name}</b>
+            <p className="empty">{account.email}</p>
+          </div>
+        </div>
       )}
+
+      {!me && <p className="empty">{en.signIn.signedInAs(account.email ?? '')}</p>}
+      {!isOwner && <p className="empty">{en.profile.notOwner}</p>}
+
+      <button className="ghost" type="button" onClick={onClaim}>
+        {me ? en.claim.change : en.claim.title}
+      </button>
+      <button className="ghost" type="button" onClick={onSignOut}>
+        {en.signIn.signOut}
+      </button>
     </>
   );
 }

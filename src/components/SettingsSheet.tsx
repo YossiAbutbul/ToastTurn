@@ -11,12 +11,10 @@ import type { Family, Person, Schedule } from '../lib/types';
 type SettingsSheetProps = {
   open: boolean;
   family: Family;
-  me: Person | null;
-  myColor: string;
   account: Account | null;
-  colorOf: (person: Person) => string;
   onClose: () => void;
-  onPickColor: (color: string) => void;
+  me: Person | null;
+  onClaim: () => void;
   onSignIn: () => void;
   onSignOut: () => void;
   onSchedule: (patch: Partial<Schedule>) => void;
@@ -29,7 +27,7 @@ type SettingsSheetProps = {
 
 /** Everything adjustable, in one place: you first, then the rotation. */
 export function SettingsSheet(props: SettingsSheetProps) {
-  const { family, isOwner, colorOf, onClose, open } = props;
+  const { family, isOwner, onClose, open } = props;
   const [copied, setCopied] = useState(false);
   const people = [...family.people].sort((a, b) => a.order - b.order);
 
@@ -42,10 +40,10 @@ export function SettingsSheet(props: SettingsSheetProps) {
     <Sheet open={open} title={en.settings.title} onClose={onClose}>
       <div className="fieldlabel">{en.settings.youSection}</div>
       <SettingsYou
-        me={props.me}
-        color={props.myColor}
         account={props.account}
-        onPickColor={props.onPickColor}
+        isOwner={isOwner}
+        me={props.me}
+        onClaim={props.onClaim}
         onSignIn={props.onSignIn}
         onSignOut={props.onSignOut}
       />
@@ -65,7 +63,7 @@ export function SettingsSheet(props: SettingsSheetProps) {
           <div className="fieldlabel spaced">{en.settings.holiday}</div>
           {people.map((person) => (
             <div className="row" key={person.id}>
-              <span className="mini" style={{ background: colorOf(person) }}>
+              <span className="mini" style={{ background: person.color }}>
                 {initialOf(person.name)}
               </span>
               <b>{person.name}</b>

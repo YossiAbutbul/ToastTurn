@@ -9,14 +9,14 @@ import { HomeSheets } from '../components/HomeSheets';
 import type { SheetName } from '../components/HomeSheets';
 import { useIsOwner } from '../hooks/useIsOwner';
 import { useAccount } from '../hooks/useAccount';
-import { useColors } from '../hooks/useColors';
+import { useMember } from '../hooks/useMember';
+import { ClaimSheet } from '../components/ClaimSheet';
 import { SignInSheet } from '../components/SignInSheet';
 import { signOut } from '../lib/auth';
 import { useFamily } from '../store/useFamily';
 import { en } from '../i18n/en';
 import { formatShortDate, initialOf } from '../lib/format';
 import { getCurrentPerson, getUpcoming, lastTurnFor, turnCounts } from '../lib/rotation';
-import { personForEmail } from '../lib/people';
 import { nowISO } from '../lib/clock';
 import { newId } from '../lib/id';
 import { deleteFamily } from '../lib/remote';
@@ -36,14 +36,15 @@ export function Home({ onEditPeople, onLeave }: HomeProps) {
   const family = state.family as Family;
   const isOwner = useIsOwner(family);
   const { account } = useAccount();
-  const mePerson = personForEmail(family, account?.email);
-  const { colorOf, setMyColor } = useColors(family.id, account?.email);
+  const { me, claim, unclaimed } = useMember(family, account?.uid);
 
   const [sheet, setSheet] = useState<SheetName>(null);
   const [status, setStatus] = useState<ToasterStatus>('idle');
   const [flash, setFlash] = useState<string | null>(null);
   const [note, setNote] = useState({ key: 0, text: '' });
   const [signingIn, setSigningIn] = useState(false);
+  const [claiming, setClaiming] = useState(false);
+  const [skippedClaim, setSkippedClaim] = useState(false);
   const flashTimer = useRef<number | undefined>(undefined);
 
   useEffect(() => () => window.clearTimeout(flashTimer.current), []);
@@ -71,10 +72,7 @@ export function Home({ onEditPeople, onLeave }: HomeProps) {
         sheet={sheet}
         family={family}
         current={current}
-        me={mePerson}
-        myColor={mePerson ? colorOf(mePerson) : 'var(--butter)'}
         account={account}
-        colorOf={colorOf}
         onClose={closeSheet}
         onSkip={() => {
           dispatch({ type: 'skipWeek', id: newId(), madeAt: nowISO() });
@@ -93,6 +91,11 @@ export function Home({ onEditPeople, onLeave }: HomeProps) {
           dispatch({ type: 'reset' });
           window.history.replaceState(null, '', '/');
         }}
+        me={me}
+        onClaim={() => {
+          closeSheet();
+          setClaiming(true);
+        }}
         onSignIn={() => {
           closeSheet();
           setSigningIn(true);
@@ -101,10 +104,21 @@ export function Home({ onEditPeople, onLeave }: HomeProps) {
           closeSheet();
           void signOut().then(onLeave);
         }}
-        onPickColor={setMyColor}
         isOwner={isOwner}
       />
       <SignInSheet open={signingIn} account={account} onClose={() => setSigningIn(false)} />
+      <ClaimSheet
+        open={claiming || (unclaimed && !skippedClaim)}
+        family={family}
+        onPick={(personId) => {
+          claim(personId);
+          setClaiming(false);
+        }}
+        onClose={() => {
+          setClaiming(false);
+          setSkippedClaim(true);
+        }}
+      />
     </>
   );
 
@@ -115,8 +129,6 @@ export function Home({ onEditPeople, onLeave }: HomeProps) {
       onSchedule={isOwner ? () => setSheet('settings') : undefined}
       onHistory={() => setSheet('history')}
       onSettings={() => setSheet('settings')}
-      me={mePerson}
-      myColor={mePerson ? colorOf(mePerson) : undefined}
     />
   );
 
@@ -137,7 +149,7 @@ export function Home({ onEditPeople, onLeave }: HomeProps) {
   }
 
   const last = lastTurnFor(family, current.id);
-  const idle = current.id === mePerson?.id ? en.lever.idleYou : en.lever.idle;
+  const idle = current.id === me?.id ? en.lever.idleYou : en.lever.idle;
   const hint = flash ?? (status === 'idle' || status === 'popped' ? idle : en.lever[status]);
 
   return (

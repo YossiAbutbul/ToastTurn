@@ -8,7 +8,7 @@ import { PALETTE, colorForIndex } from '../lib/palette';
 import type { Family, Person } from '../lib/types';
 import './Setup.css';
 
-const ROW_HEIGHT = 70;
+const ROW_HEIGHT = 62;
 
 const blankFamily = (): Family => ({
   id: newFamilyCode(),
@@ -52,8 +52,12 @@ export function Setup({ onDone }: { onDone: () => void }) {
     setColor(colorForIndex(people.length + 1));
   };
 
-  const setEmail = (id: string, email: string) =>
-    setPeople((list) => list.map((p) => (p.id === id ? { ...p, email } : p)));
+  const recolour = (id: string) =>
+    setPeople((list) =>
+      list.map((p) =>
+        p.id === id ? { ...p, color: PALETTE[(PALETTE.indexOf(p.color as never) + 1) % PALETTE.length] } : p,
+      ),
+    );
 
   const removePerson = (id: string) =>
     setPeople((list) => list.filter((p) => p.id !== id).map((p, i) => ({ ...p, order: i })));
@@ -110,12 +114,11 @@ export function Setup({ onDone }: { onDone: () => void }) {
               lifted={reorder.dragging === i}
               drag={reorder.handlers(i)}
               onRemove={() => removePerson(person.id)}
-              onEmail={(email) => setEmail(person.id, email)}
+              onRecolour={() => recolour(person.id)}
             />
           ))}
         </ul>
 
-        {people.length > 0 && <p className="empty">{en.setup.emailHint}</p>}
         {people.length > 1 && <p className="empty">{en.setup.dragHint}</p>}
 
         <div className="swatches" role="group" aria-label={en.setup.colourLabel}>
