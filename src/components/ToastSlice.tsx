@@ -1,26 +1,32 @@
 import './ToastSlice.css';
 
 /**
- * The welcome screen's slice, front on and symmetrical.
+ * The welcome screen's slice, front on and symmetrical: straight sides, and a
+ * domed top of three humps sitting on the same width.
  *
- * Two things decide whether it reads as bread: the top is a little wider than
- * the body and eases into it — straight sides look like a brick, a hard step
- * looks like a crown — and the humps are shallow. They are drawn as arcs with
- * a radius well over half their chord, which keeps them even and gentle.
+ * The humps are arcs whose radius is well over half their chord, so they stay
+ * shallow and even — hand-drawn curves came out lopsided, and semicircles came
+ * out looking like a crown.
  */
 export function ToastSlice() {
   const outline =
-    'M47 274 C47 230 44 190 42 150 A42 42 0 0 1 97 150 A44 44 0 0 1 152 150 ' +
-    'A42 42 0 0 1 207 150 C205 190 202 230 202 274 C202 284 194 290 183 290 ' +
-    'H66 C55 290 47 284 47 274 Z';
+    'M46 274 V150 A40 40 0 0 1 98 150 A42 42 0 0 1 150 150 A40 40 0 0 1 202 150 ' +
+    'V274 C202 284 194 290 183 290 H65 C54 290 46 284 46 274 Z';
 
   return (
-    <svg className="toast-slice" viewBox="28 122 194 190" role="img" aria-label="A slice of toast">
+    <svg className="toast-slice" viewBox="28 96 194 216" role="img" aria-label="A slice of toast">
       <defs>
         <clipPath id="tsCrust">
           <path d={outline} />
         </clipPath>
       </defs>
+
+      {/* steam, because the toast is fresh out */}
+      <g className="ts-steam">
+        <path d="M96 134 c-8-8 8-14 0-22" />
+        <path d="M124 126 c-8-8 8-14 0-22" />
+        <path d="M152 134 c-8-8 8-14 0-22" />
+      </g>
 
       <ellipse className="ts-shadow" cx="124" cy="298" rx="68" ry="8" />
 
@@ -31,9 +37,8 @@ export function ToastSlice() {
       {/* crumb, following the same silhouette a crust's width in */}
       <path
         className="ts-crumb"
-        d="M65 272 C65 232 62 196 60 158 A34 34 0 0 1 102 158 A36 36 0 0 1 146 158
-           A34 34 0 0 1 188 158 C186 196 184 232 184 272 C184 278 180 281 174 281
-           H75 C69 281 65 278 65 272 Z"
+        d="M64 272 V158 A31 31 0 0 1 104 158 A33 33 0 0 1 144 158 A31 31 0 0 1 184 158
+           V272 C184 278 180 281 174 281 H74 C68 281 64 278 64 272 Z"
       />
       {/* a soft light in the middle of the crumb */}
       <ellipse className="ts-crumb-light" cx="124" cy="216" rx="46" ry="40" />

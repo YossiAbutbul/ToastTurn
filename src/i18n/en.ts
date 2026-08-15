@@ -74,7 +74,7 @@ export const en = {
     open: 'Open your rotation',
     join: 'Join a rotation',
     signIn: 'Sign in',
-    signInFirst: 'Sign in to make a toast yours. You can pull the lever either way.',
+    signInFirst: 'Sign in to make a toast yours.',
   },
 
   member: {

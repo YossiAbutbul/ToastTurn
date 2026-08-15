@@ -79,7 +79,7 @@ export function Welcome({ onStart, onOpen, notFound }: WelcomeProps) {
           </button>
         )}
 
-        <button className="ghost" type="button" onClick={need('join')}>
+        <button className="welcome-plain" type="button" onClick={need('join')}>
           {en.welcome.join}
         </button>
 

@@ -37,3 +37,28 @@
   fill: var(--ink);
   opacity: 0.1;
 }
+
+/* Steam: three squiggles, each drifting on its own clock. */
+.ts-steam {
+  fill: none;
+  stroke: var(--steam);
+  stroke-width: 5;
+  stroke-linecap: round;
+  opacity: 0.65;
+}
+.ts-steam path {
+  animation: ts-drift 3.4s ease-in-out infinite;
+}
+.ts-steam path:nth-child(2) {
+  animation-duration: 3.9s;
+  animation-delay: -1.2s;
+}
+.ts-steam path:nth-child(3) {
+  animation-delay: -2.1s;
+}
+
+@keyframes ts-drift {
+  0% { opacity: 0.15; transform: translateY(6px); }
+  45% { opacity: 0.7; }
+  100% { opacity: 0.1; transform: translateY(-12px); }
+}
