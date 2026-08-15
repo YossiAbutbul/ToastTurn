@@ -107,6 +107,8 @@ export function Toaster({ initial, onPop, onStatus, leverLabel }: ToasterProps) 
         aria-disabled={busy}
         {...lever.handlers}
       >
+        {/* invisible grab area — the knob itself is smaller than a thumb */}
+        <rect x="266" y="126" width="60" height="58" fill="transparent" />
         <rect x="278" y="138" width="36" height="34" rx="13" className="tt-knob tt-chrome tt-ink" strokeWidth="5" />
         <rect x="287" y="148" width="18" height="3.5" rx="1.75" className="tt-grip" />
         <rect x="287" y="155" width="18" height="3.5" rx="1.75" className="tt-grip" />

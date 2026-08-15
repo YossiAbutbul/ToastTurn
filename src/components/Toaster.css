@@ -109,6 +109,11 @@
 .tt-lever {
   cursor: grab;
   transition: transform 0.26s cubic-bezier(0.16, 1.35, 0.4, 1);
+  /* Without this the browser claims the vertical drag as a pan and cancels
+     the pointer stream, so the lever never moves on a phone. */
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 .tt-lever:active { cursor: grabbing; }
 .tt-lever-dragging { transition: none; }

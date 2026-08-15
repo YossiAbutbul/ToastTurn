@@ -39,7 +39,11 @@ export function useLeverDrag({ svgRef, disabled, onCommit }: Options) {
       startY.current = toSvgUnits(e.clientY);
       current.current = 0;
       setDragging(true);
-      e.currentTarget.setPointerCapture(e.pointerId);
+      try {
+        e.currentTarget.setPointerCapture(e.pointerId);
+      } catch {
+        // Capture is a nicety: the drag still tracks without it.
+      }
     },
     [disabled, toSvgUnits],
   );
