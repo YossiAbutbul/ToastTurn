@@ -1,0 +1,96 @@
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { usePrefersReducedMotion } from './usePrefersReducedMotion';
+
+/** Slice positions, in SVG units. */
+export const SLICE_REST = 0;
+export const SLICE_DEEP = 78;
+export const SLICE_POP = -56;
+/** Off the bottom of the slot — where the fresh slice jumps to before springing up. */
+const SLICE_BELOW = 140;
+
+const TOASTING_MS = 1050;
+const RESET_MS = 650;
+const NEEDLE_MS = 55;
+const NEEDLE_STEP = 22;
+
+export type CyclePhase = 'idle' | 'toasting' | 'popped';
+
+type Options = {
+  /** Runs once per cycle, the moment the slice pops. */
+  onPop: () => void;
+};
+
+/**
+ * The toast cycle: drop, bake, pop, reload. Owns every timer and every
+ * position the slice takes, so the SVG stays declarative.
+ */
+export function useToastCycle({ onPop }: Options) {
+  const reduced = usePrefersReducedMotion();
+  const [phase, setPhase] = useState<CyclePhase>('idle');
+  const [sliceY, setSliceY] = useState(SLICE_REST);
+  const [snap, setSnap] = useState(false); // slice moves with no transition
+  const [baked, setBaked] = useState(false);
+  const [needle, setNeedle] = useState(0);
+  const [steamKey, setSteamKey] = useState(0);
+
+  const timers = useRef<number[]>([]);
+  const spin = useRef<number | undefined>(undefined);
+  const onPopRef = useRef(onPop);
+  useEffect(() => {
+    onPopRef.current = onPop;
+  });
+
+  const clearAll = useCallback(() => {
+    timers.current.forEach(clearTimeout);
+    timers.current = [];
+    if (spin.current !== undefined) clearInterval(spin.current);
+    spin.current = undefined;
+  }, []);
+
+  useEffect(() => clearAll, [clearAll]);
+
+  const after = useCallback((ms: number, fn: () => void) => {
+    timers.current.push(window.setTimeout(fn, ms));
+  }, []);
+
+  const start = useCallback(() => {
+    if (phase !== 'idle') return;
+    const toastMs = reduced ? 60 : TOASTING_MS;
+    const resetMs = reduced ? 40 : RESET_MS;
+
+    setPhase('toasting');
+    setSliceY(SLICE_DEEP);
+    setBaked(true);
+
+    if (!reduced) {
+      let tick = 0;
+      spin.current = window.setInterval(() => {
+        tick += 1;
+        setNeedle(tick * NEEDLE_STEP);
+      }, NEEDLE_MS);
+    }
+
+    after(toastMs, () => {
+      if (spin.current !== undefined) clearInterval(spin.current);
+      spin.current = undefined;
+      setNeedle(0);
+      setPhase('popped');
+      setSliceY(SLICE_POP);
+      setSteamKey((k) => k + 1);
+      onPopRef.current();
+
+      after(resetMs, () => {
+        setSnap(true);
+        setSliceY(SLICE_BELOW);
+        setBaked(false);
+        requestAnimationFrame(() => {
+          setSnap(false);
+          setSliceY(SLICE_REST);
+          setPhase('idle');
+        });
+      });
+    });
+  }, [after, phase, reduced]);
+
+  return { phase, sliceY, snap, baked, needle, steamKey, start, busy: phase !== 'idle' };
+}

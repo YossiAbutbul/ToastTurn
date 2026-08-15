@@ -1,0 +1,63 @@
+.queue {
+  flex: 0 0 auto;
+  display: flex;
+  gap: 9px;
+  justify-content: center;
+  padding: 8px 16px max(16px, env(safe-area-inset-bottom));
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.queue::-webkit-scrollbar {
+  display: none;
+}
+
+.qbtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 0;
+  flex: 0 0 auto;
+  color: var(--ink);
+  min-width: 44px;
+  min-height: 44px;
+  font-family: var(--ui);
+}
+
+.qtoast {
+  width: 42px;
+  height: 38px;
+  border: 3px solid var(--ink);
+  border-radius: 16px 16px 7px 7px;
+  background: var(--butter);
+  box-shadow: 0 3px 0 var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 18px;
+}
+.qbtn:active .qtoast {
+  transform: translateY(3px);
+  box-shadow: none;
+}
+
+.qname {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--ink-soft);
+  text-transform: uppercase;
+}
+
+.qbtn.next .qtoast {
+  background: var(--coral);
+  color: var(--paper);
+}
+.qbtn.next .qname {
+  color: var(--ink);
+}

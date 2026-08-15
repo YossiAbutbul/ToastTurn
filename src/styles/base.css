@@ -1,0 +1,70 @@
+/* Latin only — Hebrew arrives with its own face in phase 4. */
+@import '@fontsource/baloo-2/latin-600.css';
+@import '@fontsource/baloo-2/latin-700.css';
+@import '@fontsource/baloo-2/latin-800.css';
+@import '@fontsource/nunito/latin-600.css';
+@import '@fontsource/nunito/latin-700.css';
+@import '@fontsource/nunito/latin-800.css';
+@import './tokens.css';
+@import './ui.css';
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  font-family: var(--ui);
+  color: var(--ink);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--sky-2);
+}
+
+.device {
+  position: relative;
+  width: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(
+    180deg,
+    var(--sky) 0%,
+    var(--sky) 63%,
+    var(--counter) 63%,
+    var(--counter) 100%
+  );
+}
+
+@media (min-width: 700px) {
+  body {
+    background: #b9cbd7;
+    padding: 24px;
+  }
+
+  .device {
+    width: 392px;
+    height: min(844px, calc(100dvh - 48px));
+    border-radius: 44px;
+    border: 4px solid var(--ink);
+    box-shadow: 0 26px 0 -6px rgba(43, 36, 32, 0.22);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.05ms !important;
+  }
+}

@@ -1,0 +1,43 @@
+.note {
+  position: absolute;
+  inset-inline-start: 50%;
+  top: 33%;
+  transform: translate(-50%, -50%) rotate(-4deg);
+  background: var(--mint);
+  color: var(--paper);
+  border: 3px solid var(--ink);
+  border-radius: 14px;
+  padding: 9px 15px;
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 16px;
+  box-shadow: 0 4px 0 var(--ink);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 4;
+  white-space: nowrap;
+}
+.note.show {
+  animation: note 1.1s ease-out;
+}
+
+@keyframes note {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.6) rotate(-4deg);
+  }
+  14% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.08) rotate(-4deg);
+  }
+  22% {
+    transform: translate(-50%, -50%) scale(1) rotate(-4deg);
+  }
+  75% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -62%) rotate(-4deg);
+  }
+}

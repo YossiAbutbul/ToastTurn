@@ -1,0 +1,176 @@
+/* Shared primitives: rows, pills, buttons, inputs, toggles. */
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 2px dashed var(--dash);
+}
+.row b {
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 17px;
+}
+.row .when {
+  margin-inline-start: auto;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+.row .stars {
+  font-size: 12px;
+  color: var(--crust);
+  letter-spacing: 1px;
+}
+
+.pickbtn {
+  width: 100%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: start;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 0;
+  border-bottom: 2px dashed var(--dash);
+  font-family: var(--ui);
+  min-height: 48px;
+}
+.pickbtn:hover b {
+  color: var(--coral);
+}
+.pickbtn b {
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 17px;
+}
+.pickbtn .when {
+  margin-inline-start: auto;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+
+.mini {
+  width: 30px;
+  height: 27px;
+  border: 2.5px solid var(--ink);
+  border-radius: 12px 12px 5px 5px;
+  background: var(--butter);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 14px;
+  flex: 0 0 auto;
+}
+
+.empty {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink-soft);
+  padding: 6px 0 2px;
+}
+
+.fieldlabel {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin-block-end: 7px;
+}
+.fieldlabel.spaced {
+  margin-block-start: 18px;
+}
+
+.close {
+  width: 100%;
+  margin-block-start: 14px;
+  padding: 13px;
+  border-radius: 14px;
+  background: var(--ink);
+  color: var(--paper);
+  border: none;
+  font-family: var(--ui);
+  font-weight: 800;
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  min-height: 48px;
+}
+.close:disabled {
+  opacity: 0.45;
+}
+
+.ghost {
+  width: 100%;
+  margin-block-start: 12px;
+  padding: 12px;
+  border-radius: 14px;
+  background: var(--paper);
+  color: var(--ink);
+  border: 2.5px solid var(--ink);
+  box-shadow: 0 2px 0 var(--ink);
+  font-family: var(--ui);
+  font-weight: 800;
+  font-size: 13px;
+  cursor: pointer;
+  min-height: 48px;
+}
+.ghost:active {
+  transform: translateY(2px);
+  box-shadow: none;
+}
+
+input[type='time'],
+input[type='text'] {
+  width: 100%;
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 24px;
+  color: var(--ink);
+  border: 2.5px solid var(--ink);
+  border-radius: 14px;
+  padding: 8px 12px;
+  background: var(--paper);
+  min-height: 48px;
+}
+
+.tog {
+  width: 48px;
+  height: 28px;
+  border: 2.5px solid var(--ink);
+  border-radius: 999px;
+  background: var(--dash);
+  margin-inline-start: auto;
+  position: relative;
+  cursor: pointer;
+  flex: 0 0 auto;
+  padding: 0;
+}
+.tog i {
+  position: absolute;
+  top: 2px;
+  inset-inline-start: 2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--ink);
+  transition: inset-inline-start 0.18s;
+}
+.tog.on {
+  background: var(--mint);
+}
+.tog.on i {
+  inset-inline-start: 21px;
+}
+
+:focus-visible {
+  outline: 3px solid var(--mint);
+  outline-offset: 2px;
+}

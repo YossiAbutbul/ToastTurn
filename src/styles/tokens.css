@@ -1,0 +1,34 @@
+:root {
+  /* surfaces */
+  --sky:      #DCE7EE;  /* wall / upper background */
+  --sky-2:    #CBDCE7;  /* outside the phone frame */
+  --counter:  #EADFCB;  /* countertop, lower 37% of the screen */
+  --paper:    #FFFDF7;  /* sheets, badges, pills */
+
+  /* toaster */
+  --coral:    #E9553D;  /* toaster body, the "next up" accent */
+  --coral-lt: #F4785F;
+  --coral-dk: #C93E2A;
+  --chrome:   #DCE5EA;
+  --chrome-dk:#AFBCC4;
+
+  /* bread */
+  --butter:   #F7C548;  /* crumb */
+  --crust:    #C8862F;
+  --toasted:  #8A5322;  /* crust, after toasting */
+  --toasted-lt:#B4762F; /* crumb, after toasting */
+
+  /* ink + status */
+  --ink:      #2B2420;  /* every outline and all body text */
+  --ink-soft: #6E635C;  /* secondary text only */
+  --mint:     #5FB99E;  /* success, toggles, focus rings */
+  --coil:     #FF5C22;  /* the heating element glow — nothing else */
+
+  /* type */
+  --display: 'Baloo 2', system-ui, sans-serif;
+  --ui: 'Nunito', system-ui, sans-serif;
+
+  /* incidental shades taken from the prototype */
+  --dash: #E4DAC8;      /* dashed row rules, toggle track */
+  --steam: #96AEBC;
+}
