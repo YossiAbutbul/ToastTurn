@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
-import { currentUid, syncConfigured } from '../lib/firebase';
+import { syncConfigured } from '../lib/firebase';
 import { pushFamily, pushTurns, subscribeFamily } from '../lib/remote';
 import type { RemoteFamily } from '../lib/remote';
 import { metaChanged, unsentTurns } from '../lib/mergeFamily';
 import { familyIdFromPath, pathForFamily } from '../lib/url';
+import { useAccount } from './useAccount';
 import { useFamily } from '../store/useFamily';
 import type { Family } from '../lib/types';
 
@@ -16,20 +17,10 @@ import type { Family } from '../lib/types';
  */
 export function useSync() {
   const { state, dispatch } = useFamily();
+  const { account } = useAccount();
   const [remote, setRemote] = useState<Family | null>(null);
   /** Whether this family has ever been seen on the server. */
   const sawRemote = useRef(false);
-  const [uid, setUid] = useState<string | null>(null);
-
-  useEffect(() => {
-    let live = true;
-    void currentUid().then((id) => {
-      if (live) setUid(id);
-    });
-    return () => {
-      live = false;
-    };
-  }, []);
 
   const localId = state.family?.id ?? null;
   const linkId = typeof window === 'undefined' ? null : familyIdFromPath(window.location.pathname);
@@ -70,20 +61,21 @@ export function useSync() {
   useEffect(() => {
     const family = state.family;
     if (!syncConfigured || !family || !state.ready) return;
-    const owned = !family.ownerUid || family.ownerUid === uid;
 
     const seen = new Set((remote?.turns ?? []).map((t) => t.id));
     const pending = unsentTurns(family, seen);
     if (pending.length > 0) void pushTurns(family.id, pending);
 
-    // Only the owner's phone publishes the family itself. Everyone else would
-    // just be refused by the server.
-    if (owned && metaChanged(family, remote)) void pushFamily(family);
-  }, [remote, state.family, state.ready, uid]);
+    // Only the signed-in owner publishes the family itself. A family with no
+    // owner yet is claimed by the first account that signs in on it.
+    const owned = family.ownerUid ? family.ownerUid === account?.uid : Boolean(account);
+    if (owned && metaChanged(family, remote)) void pushFamily(family, account?.uid);
+  }, [account, remote, state.family, state.ready]);
 
   return {
     configured: syncConfigured,
     joining,
+    account,
     /** True once the family has been seen from the other side. */
     synced: remote !== null,
   };

@@ -170,6 +170,26 @@ input[type='text'] {
   inset-inline-start: 21px;
 }
 
+.problem {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--coral-dk);
+  padding: 10px 0 0;
+}
+
+input[type='password'] {
+  width: 100%;
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 24px;
+  color: var(--ink);
+  border: 2.5px solid var(--ink);
+  border-radius: 14px;
+  padding: 8px 12px;
+  background: var(--paper);
+  min-height: 48px;
+}
+
 :focus-visible {
   outline: 3px solid var(--mint);
   outline-offset: 2px;

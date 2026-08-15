@@ -67,6 +67,24 @@ export const en = {
     dragLabel: (name: string) => `Reorder ${name}`,
   },
 
+  signIn: {
+    title: 'Sign in to run the family',
+    blurb: 'Only needed by whoever looks after the people and the schedule.',
+    email: 'Email',
+    password: 'Password',
+    action: 'Sign in',
+    working: 'Signing in…',
+    open: 'Sign in to run the family',
+    signedInTitle: 'Running the family',
+    signedInAs: (email: string) => `Signed in as ${email}.`,
+    signOut: 'Sign out',
+    problem: {
+      credentials: "That email and password don't match. Try again.",
+      offline: "Can't reach the sign-in right now. Try when you're back online.",
+      other: 'Something went wrong signing in. Try again.',
+    },
+  },
+
   whoAmI: {
     title: 'Which one are you?',
     blurb: 'Just on this phone. It stays here.',

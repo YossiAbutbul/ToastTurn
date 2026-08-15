@@ -13,8 +13,10 @@ type SettingsSheetProps = {
   onToggleHoliday: (personId: string, active: boolean) => void;
   onStartOver: () => void;
   onWhoAmI: () => void;
+  onSignIn: () => void;
   /** False on a phone that joined by link: it can log toast, not run the family. */
   isOwner: boolean;
+  signedIn: boolean;
 };
 
 export function SettingsSheet({
@@ -25,7 +27,9 @@ export function SettingsSheet({
   onToggleHoliday,
   onStartOver,
   onWhoAmI,
+  onSignIn,
   isOwner,
+  signedIn,
 }: SettingsSheetProps) {
   const [copied, setCopied] = useState(false);
   const people = [...family.people].sort((a, b) => a.order - b.order);
@@ -66,6 +70,9 @@ export function SettingsSheet({
       </button>
       <button className="ghost" type="button" onClick={onWhoAmI}>
         {en.settings.whoAmI}
+      </button>
+      <button className="ghost" type="button" onClick={onSignIn}>
+        {isOwner && signedIn ? en.signIn.signedInTitle : en.signIn.open}
       </button>
 
       {isOwner ? (

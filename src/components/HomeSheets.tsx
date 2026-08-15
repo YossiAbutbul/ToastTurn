@@ -18,7 +18,9 @@ type HomeSheetsProps = {
   onEditPeople: () => void;
   onStartOver: () => void;
   onWhoAmI: () => void;
+  onSignIn: () => void;
   isOwner: boolean;
+  signedIn: boolean;
 };
 
 /** Everything that isn't the answer, gathered in one place. */
@@ -34,7 +36,9 @@ export function HomeSheets({
   onEditPeople,
   onStartOver,
   onWhoAmI,
+  onSignIn,
   isOwner,
+  signedIn,
 }: HomeSheetsProps) {
   return (
     <>
@@ -55,7 +59,9 @@ export function HomeSheets({
         onToggleHoliday={onToggleHoliday}
         onStartOver={onStartOver}
         onWhoAmI={onWhoAmI}
+        onSignIn={onSignIn}
         isOwner={isOwner}
+        signedIn={signedIn}
       />
       {current && isOwner && (
         <SwapSheet

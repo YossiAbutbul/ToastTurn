@@ -4,12 +4,10 @@ rules_version = '2';
 //
 // 1. The family code is the key. You have to know a family id to read it, and
 //    nothing can list families, so a code that is never shared is never found.
-// 2. The phone that started the family owns it. Only that phone can change the
-//    people, the schedule or the rotation, or clear the family. Everyone with
-//    the link can read it and log toast — that is the whole point of the app.
-//
-// The sign-in behind request.auth is anonymous: no account, no password, no
-// email, nothing typed. It only exists to tell the owner's phone apart.
+//    Anyone with the link can read the family and say the toast got made — no
+//    sign-in, nothing typed. That is the whole point of the app.
+// 2. One account runs the family. Only the signed-in owner can change the
+//    people, the schedule or the rotation, or clear the family.
 service cloud.firestore {
   match /databases/{database}/documents {
 
@@ -28,6 +26,7 @@ service cloud.firestore {
       allow get: if true;
       allow list: if false;
 
+      // Publishing a family claims it for the account doing the publishing.
       allow create: if request.auth != null
         && request.resource.data.ownerUid == request.auth.uid
         && sane();
@@ -49,8 +48,8 @@ service cloud.firestore {
         // Listing turns needs the family id in the path, so it stays scoped.
         allow get, list: if true;
 
-        // Anyone in the family can say the toast got made.
-        allow create, update: if request.auth != null && saneTurn();
+        // Anyone in the family can log toast without signing in.
+        allow create, update: if saneTurn();
 
         // Only as part of the owner clearing the whole family.
         allow delete: if request.auth != null

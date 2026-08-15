@@ -10,6 +10,8 @@ import type { SheetName } from '../components/HomeSheets';
 import { WhoAmI } from '../components/WhoAmI';
 import { useMe } from '../hooks/useMe';
 import { useIsOwner } from '../hooks/useIsOwner';
+import { useAccount } from '../hooks/useAccount';
+import { SignInSheet } from '../components/SignInSheet';
 import { useFamily } from '../store/useFamily';
 import { en } from '../i18n/en';
 import { formatShortDate, initialOf } from '../lib/format';
@@ -27,6 +29,7 @@ export function Home({ onEditPeople }: { onEditPeople: () => void }) {
   const family = state.family as Family;
   const { me, setMe } = useMe(family.id);
   const isOwner = useIsOwner(family);
+  const { account } = useAccount();
 
   const [sheet, setSheet] = useState<SheetName>(null);
   const [status, setStatus] = useState<ToasterStatus>('idle');
@@ -34,6 +37,7 @@ export function Home({ onEditPeople }: { onEditPeople: () => void }) {
   const [note, setNote] = useState({ key: 0, text: '' });
   const [asking, setAsking] = useState(false);
   const [skippedAsk, setSkippedAsk] = useState(false);
+  const [signingIn, setSigningIn] = useState(false);
   const flashTimer = useRef<number | undefined>(undefined);
 
   useEffect(() => () => window.clearTimeout(flashTimer.current), []);
@@ -83,8 +87,14 @@ export function Home({ onEditPeople }: { onEditPeople: () => void }) {
           closeSheet();
           setAsking(true);
         }}
+        onSignIn={() => {
+          closeSheet();
+          setSigningIn(true);
+        }}
         isOwner={isOwner}
+        signedIn={Boolean(account)}
       />
+      <SignInSheet open={signingIn} account={account} onClose={() => setSigningIn(false)} />
       <WhoAmI
         open={(asking || (!me && !skippedAsk)) && family.people.length > 0}
         family={family}

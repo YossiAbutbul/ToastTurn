@@ -67,8 +67,11 @@ export function subscribeFamily(id: string, onChange: (family: RemoteFamily) => 
   };
 }
 
-/** Publish the family itself — name, people, schedule. Turns go separately. */
-export async function pushFamily(family: Family): Promise<void> {
+/**
+ * Publish the family itself — name, people, schedule. Turns go separately.
+ * Only the owner's account may do this; the server refuses anyone else.
+ */
+export async function pushFamily(family: Family, ownerUid?: string): Promise<void> {
   const remote = await firestore();
   if (!remote) return;
   const { db, fs } = remote;
@@ -77,7 +80,7 @@ export async function pushFamily(family: Family): Promise<void> {
     fs.doc(db, 'families', family.id),
     {
       // The owner never changes hands; the server refuses writes that move it.
-      ownerUid: family.ownerUid ?? remote.uid,
+      ownerUid: family.ownerUid ?? ownerUid,
       name: family.name,
       people: family.people,
       schedule: family.schedule,

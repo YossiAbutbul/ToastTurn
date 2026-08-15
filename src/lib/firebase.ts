@@ -1,6 +1,8 @@
+import type { FirebaseApp } from 'firebase/app';
 import type { Firestore } from 'firebase/firestore';
 
 type FirestoreModule = typeof import('firebase/firestore');
+type AuthModule = typeof import('firebase/auth');
 
 const config = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -12,30 +14,31 @@ const config = {
 /** No keys, no sync. The app stays exactly as it was: local and offline. */
 export const syncConfigured = Boolean(config.apiKey && config.projectId && config.appId);
 
-export type Remote = { db: Firestore; fs: FirestoreModule; uid: string };
+export type Remote = { db: Firestore; fs: FirestoreModule };
 
-let pending: Promise<Remote | null> | null = null;
+let appPromise: Promise<FirebaseApp> | null = null;
+let remotePromise: Promise<Remote | null> | null = null;
+let authPromise: Promise<{ auth: ReturnType<AuthModule['getAuth']>; fns: AuthModule } | null> | null =
+  null;
+
+function getApp(): Promise<FirebaseApp> {
+  if (!appPromise) {
+    appPromise = import('firebase/app').then(({ initializeApp }) => initializeApp(config));
+  }
+  return appPromise;
+}
 
 /**
  * Firestore is ~500KB, so it is fetched only when a family is actually being
  * synced. Everything else in the app works without it.
- *
- * The anonymous sign-in is not an account — nobody types anything, and nothing
- * is asked for. It exists so the phone that created a family is the only one
- * the server will accept edits from.
  */
 export function firestore(): Promise<Remote | null> {
   if (!syncConfigured) return Promise.resolve(null);
-  if (pending) return pending;
+  if (remotePromise) return remotePromise;
 
-  pending = (async () => {
-    const [{ initializeApp }, fs, auth] = await Promise.all([
-      import('firebase/app'),
-      import('firebase/firestore'),
-      import('firebase/auth'),
-    ]);
+  remotePromise = (async () => {
+    const [app, fs] = await Promise.all([getApp(), import('firebase/firestore')]);
 
-    const app = initializeApp(config);
     // The persistent cache is what makes writes work in the kitchen dead-spot:
     // they land locally, show immediately, and replay themselves on reconnect.
     const db = fs.initializeFirestore(app, {
@@ -47,25 +50,21 @@ export function firestore(): Promise<Remote | null> {
       const [host, port] = String(emulator).split(':');
       fs.connectFirestoreEmulator(db, host, Number(port));
     }
-
-    try {
-      const credential = await auth.signInAnonymously(auth.getAuth(app));
-      return { db, fs, uid: credential.user.uid };
-    } catch {
-      // Anonymous sign-in is switched off in the Firebase console. Sync can't
-      // work without it, so the app falls back to being local to this phone.
-      console.warn(
-        'ToastTurn: turn on Anonymous sign-in (Firebase console → Authentication → ' +
-          'Sign-in method) to sync between phones. Running local-only for now.',
-      );
-      return null;
-    }
+    return { db, fs };
   })();
 
-  return pending;
+  return remotePromise;
 }
 
-/** The id this device writes under. Null when sync is off. */
-export async function currentUid(): Promise<string | null> {
-  return (await firestore())?.uid ?? null;
+/** The sign-in used by whoever runs the family. Nobody else ever needs it. */
+export function firebaseAuth() {
+  if (!syncConfigured) return Promise.resolve(null);
+  if (authPromise) return authPromise;
+
+  authPromise = (async () => {
+    const [app, fns] = await Promise.all([getApp(), import('firebase/auth')]);
+    return { auth: fns.getAuth(app), fns };
+  })();
+
+  return authPromise;
 }
