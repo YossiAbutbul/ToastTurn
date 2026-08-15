@@ -21,6 +21,9 @@ const blankFamily = (): Family => ({
 export function Setup({ onDone }: { onDone: () => void }) {
   const { state, dispatch } = useFamily();
   const existing = state.family;
+  // Starting a rotation only asks who you are. Everyone else arrives by asking
+  // to join, or gets added from settings later.
+  const firstRun = !existing;
 
   const [name, setName] = useState(existing?.name ?? '');
   const [people, setPeople] = useState<Person[]>(
@@ -64,16 +67,18 @@ export function Setup({ onDone }: { onDone: () => void }) {
 
   const save = () => {
     const base = existing ?? blankFamily();
-    // Ownership is claimed by whoever signs in, not by making the family.
-    const ownerUid = base.ownerUid;
+    const roster = firstRun
+      ? [{ id: newId(), name: draft.trim(), color: colorForIndex(0), order: 0, active: true }]
+      : people.map((p, i) => ({ ...p, order: i }));
 
     dispatch({
       type: 'createFamily',
       family: {
         ...base,
-        ownerUid,
         name: name.trim() || base.name,
-        people: people.map((p, i) => ({ ...p, order: i })),
+        people: roster,
+        // The rotation knows which of its people is the one who started it.
+        ownerPersonId: firstRun ? roster[0].id : base.ownerPersonId,
       },
     });
     onDone();
@@ -100,10 +105,25 @@ export function Setup({ onDone }: { onDone: () => void }) {
           onChange={(e) => setName(e.target.value)}
         />
 
-        <div className="fieldlabel spaced">{en.setup.peopleLabel}</div>
+        <div className="fieldlabel spaced">{firstRun ? en.setup.yourName : en.setup.peopleLabel}</div>
 
-        {people.length === 0 && <p className="empty">{en.setup.empty}</p>}
+        {firstRun && (
+          <>
+            <input
+              type="text"
+              value={draft}
+              aria-label={en.setup.yourName}
+              placeholder={en.setup.namePlaceholder}
+              onChange={(e) => setDraft(e.target.value)}
+            />
+            <p className="empty">{en.setup.yourNameHint}</p>
+          </>
+        )}
 
+        {!firstRun && people.length === 0 && <p className="empty">{en.setup.empty}</p>}
+
+        {!firstRun && (
+          <>
         <ul className="people" style={{ height: people.length * ROW_HEIGHT }}>
           {people.map((person, i) => (
             <PersonRow
@@ -148,10 +168,12 @@ export function Setup({ onDone }: { onDone: () => void }) {
             {en.setup.add}
           </button>
         </div>
+          </>
+        )}
       </div>
 
       <div className="setup-foot">
-        <button className="close" type="button" onClick={save} disabled={people.length === 0}>
+        <button className="close" type="button" onClick={save} disabled={firstRun ? draft.trim().length === 0 : people.length === 0}>
           {existing ? en.setup.save : en.setup.start}
         </button>
       </div>

@@ -63,7 +63,9 @@ export const en = {
   },
 
   setup: {
-    title: 'Set up the rotation',
+    title: 'Start a rotation',
+    yourName: 'Your name',
+    yourNameHint: 'Everyone else asks to join, or you add them later from settings.',
     familyLabel: 'Family name',
     familyPlaceholder: 'The Abutbuls',
     peopleLabel: 'Who makes toast',

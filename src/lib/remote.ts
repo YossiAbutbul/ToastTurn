@@ -5,13 +5,20 @@ import type { Family, Person, Schedule, Turn } from './types';
 export type RemoteFamily = {
   id: string;
   ownerUid?: string;
+  ownerPersonId?: string;
   name: string;
   people: Person[];
   schedule: Schedule;
   turns: Turn[];
 } | null;
 
-type FamilyDoc = { name?: string; people?: Person[]; schedule?: Schedule; ownerUid?: string };
+type FamilyDoc = {
+  name?: string;
+  people?: Person[];
+  schedule?: Schedule;
+  ownerUid?: string;
+  ownerPersonId?: string;
+};
 
 /**
  * Watches one family and its turns. Fires on every change from any phone, and
@@ -36,6 +43,7 @@ export function subscribeFamily(id: string, onChange: (family: RemoteFamily) => 
       onChange({
         id,
         ownerUid: meta.ownerUid,
+        ownerPersonId: meta.ownerPersonId,
         name: meta.name ?? '',
         people: meta.people ?? [],
         schedule: meta.schedule ?? { weekday: 0, time: '20:00', remind: true },
@@ -50,7 +58,11 @@ export function subscribeFamily(id: string, onChange: (family: RemoteFamily) => 
     });
 
     const stopTurns = fs.onSnapshot(fs.collection(db, 'families', id, 'turns'), (snap) => {
-      turns = snap.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<Turn, 'id'>) }));
+      turns = snap.docs
+        .map((d) => ({ id: d.id, ...(d.data() as Omit<Turn, 'id'>) }))
+        // A half-written turn — ratings that landed before the turn itself —
+        // is not a turn yet, and would crash anything that reads its date.
+        .filter((turn) => typeof turn.madeAt === 'string' && typeof turn.personId === 'string');
       emit();
     });
 
@@ -81,6 +93,7 @@ export async function pushFamily(family: Family, ownerUid?: string): Promise<voi
     {
       // The owner never changes hands; the server refuses writes that move it.
       ownerUid: family.ownerUid ?? ownerUid,
+      ownerPersonId: family.ownerPersonId ?? null,
       name: family.name,
       people: family.people,
       schedule: family.schedule,

@@ -70,9 +70,10 @@ export function useMembership(family: Family, account: Account | null, isOwner: 
     [family.id, members],
   );
 
+  const myPersonId = isOwner ? (family.ownerPersonId ?? mine?.personId) : mine?.personId;
   const me: Person | null =
-    (isOwner || state === 'member') && mine?.personId
-      ? (family.people.find((p) => p.id === mine.personId) ?? null)
+    (isOwner || state === 'member') && myPersonId
+      ? (family.people.find((p) => p.id === myPersonId) ?? null)
       : null;
 
   const waiting = Object.entries(members)

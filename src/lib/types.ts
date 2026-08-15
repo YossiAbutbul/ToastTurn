@@ -44,6 +44,8 @@ export type Family = {
    * Absent on families made before sync, and on local-only phones.
    */
   ownerUid?: string;
+  /** Which person in the rotation the owner is. */
+  ownerPersonId?: string;
   name: string;
   people: Person[];
   schedule: Schedule;

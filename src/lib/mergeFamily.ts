@@ -31,6 +31,7 @@ export function mergeFamily(local: Family | null, remote: Family): Family {
   return {
     ...local,
     ownerUid: remote.ownerUid ?? local.ownerUid,
+    ownerPersonId: remote.ownerPersonId ?? local.ownerPersonId,
     name: remote.name,
     people: remote.people,
     schedule: remote.schedule,
@@ -68,8 +69,12 @@ export function unsentRatings(
 
   return local.turns
     .filter((turn) => {
+      const theirs = published.get(turn.id);
+      // Only rate turns the others already have, or the rating would arrive as
+      // a document with a rating and nothing else in it.
+      if (!theirs) return false;
       const mine = turn.ratings?.[uid];
-      return mine !== undefined && published.get(turn.id)?.ratings?.[uid] !== mine;
+      return mine !== undefined && theirs.ratings?.[uid] !== mine;
     })
     .map((turn) => ({ turnId: turn.id, rating: turn.ratings![uid] }));
 }
@@ -79,6 +84,7 @@ export function metaChanged(local: Family, remote: Family | null): boolean {
   if (!remote) return true;
   return (
     local.name !== remote.name ||
+    local.ownerPersonId !== remote.ownerPersonId ||
     JSON.stringify(local.schedule) !== JSON.stringify(remote.schedule) ||
     JSON.stringify(local.people) !== JSON.stringify(remote.people)
   );

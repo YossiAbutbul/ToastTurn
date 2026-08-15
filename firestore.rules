@@ -50,6 +50,7 @@ service cloud.firestore {
         function isOwner() {
           return request.auth != null && ownerUid() == request.auth.uid;
         }
+
         function mine() {
           return request.resource.data[request.auth.uid];
         }
@@ -63,9 +64,11 @@ service cloud.firestore {
 
         allow get, list: if true;
 
-        allow create: if request.auth != null
-          && request.resource.data.keys().hasOnly([request.auth.uid])
-          && mine().status == 'pending';
+        // The owner writes this doc freely — it is how they let people in.
+        allow create: if isOwner()
+          || (request.auth != null
+              && request.resource.data.keys().hasOnly([request.auth.uid])
+              && mine().status == 'pending');
 
         allow update: if isOwner()
           || (request.auth != null && myKeyOnly()
@@ -86,6 +89,13 @@ service cloud.firestore {
         allow get, list: if true;
 
         // Anyone in the family can log toast without signing in.
+        // `resource` here is the turn, not the family, so the owner has to be
+        // looked up rather than read off the document being written.
+        function familyOwner() {
+          return request.auth != null
+            && get(/databases/$(database)/documents/families/$(familyId)).data.ownerUid == request.auth.uid;
+        }
+
         // Logging toast is for people who were let in.
         function approvedMember() {
           return request.auth != null
@@ -106,12 +116,11 @@ service cloud.firestore {
                      .affectedKeys().hasOnly([request.auth.uid]));
         }
 
-        allow create: if saneTurn() && (isOwner() || approvedMember());
-        allow update: if saneTurn() && (isOwner() || approvedMember()) && ratingsUntouchedOrMine();
+        allow create: if saneTurn() && (familyOwner() || approvedMember());
+        allow update: if saneTurn() && (familyOwner() || approvedMember()) && ratingsUntouchedOrMine();
 
         // Only as part of the owner clearing the whole family.
-        allow delete: if request.auth != null
-          && get(/databases/$(database)/documents/families/$(familyId)).data.ownerUid == request.auth.uid;
+        allow delete: if familyOwner();
       }
     }
   }
