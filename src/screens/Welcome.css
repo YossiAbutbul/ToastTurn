@@ -6,11 +6,15 @@
   background: var(--sky);
 }
 
+/* The width has to be stated: an SVG carries an intrinsic ratio, so with only
+   a height it sizes itself from that and spills far past the phone — which is
+   what pushed the crest off to one side. */
 .welcome-wave {
   position: absolute;
   inset-inline: 0;
   bottom: 0;
-  height: 52%;
+  width: 100%;
+  height: 46%;
   z-index: 0;
   display: block;
 }
