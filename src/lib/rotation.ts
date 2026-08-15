@@ -72,10 +72,32 @@ function withTurn(family: Family, turn: Turn): Family {
   return { ...family, turns: [turn, ...family.turns].slice(0, TURN_CAP) };
 }
 
-/** Credit the current person and move the rotation on. */
+/** The day part of an ISO date or timestamp. */
+function dayPart(iso: string): string {
+  return iso.slice(0, 10);
+}
+
+/**
+ * Credit the current person and move the rotation on.
+ *
+ * Toast gets made once a day. A second pull on the same day is somebody
+ * leaning on the lever, not the next person's turn coming early, so it moves
+ * the time on the turn already logged rather than logging another and marching
+ * the rotation forward.
+ */
 export function logTurn(family: Family, turn: { id: string; madeAt: string; personId?: string }): Family {
   const personId = turn.personId ?? getCurrentPerson(family)?.id;
   if (!personId) return family;
+
+  const today = dayPart(turn.madeAt);
+  const already = family.turns.find((t) => !t.skipped && dayPart(t.madeAt) === today);
+  if (already) {
+    return {
+      ...family,
+      turns: family.turns.map((t) => (t.id === already.id ? { ...t, madeAt: turn.madeAt } : t)),
+    };
+  }
+
   return withTurn(family, { id: turn.id, personId, madeAt: turn.madeAt, skipped: false });
 }
 
@@ -83,6 +105,11 @@ export function logTurn(family: Family, turn: { id: string; madeAt: string; pers
 export function skipWeek(family: Family, turn: { id: string; madeAt: string; personId?: string }): Family {
   const personId = turn.personId ?? getCurrentPerson(family)?.id;
   if (!personId) return family;
+
+  // Saying it twice is still the one week nobody made toast.
+  const today = dayPart(turn.madeAt);
+  if (family.turns.some((t) => t.skipped && dayPart(t.madeAt) === today)) return family;
+
   return withTurn(family, { id: turn.id, personId, madeAt: turn.madeAt, skipped: true });
 }
 

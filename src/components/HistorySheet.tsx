@@ -13,15 +13,17 @@ type HistorySheetProps = {
   open: boolean;
   family: Family;
   onClose: () => void;
+  onPickDay: (date: Date) => void;
+  covered?: boolean;
   onRate: (turnId: string, rating: number) => void;
   /** The account doing the rating, if anyone is signed in. */
   uid?: string;
 };
 
-export function HistorySheet({ open, family, onClose, onRate, uid }: HistorySheetProps) {
+export function HistorySheet({ open, family, onClose, onPickDay, onRate, uid, covered }: HistorySheetProps) {
   return (
-    <Sheet open={open} title={en.history.title} onClose={onClose} fixedHeight>
-      <MonthCalendar family={family} month={now()} />
+    <Sheet open={open} title={en.history.title} onClose={onClose} fixedHeight covered={covered}>
+      <MonthCalendar family={family} month={now()} onPickDay={onPickDay} />
 
       <div className="fieldlabel spaced">{en.history.thisMonth}</div>
       <MonthStats family={family} now={now()} />
@@ -32,11 +34,12 @@ export function HistorySheet({ open, family, onClose, onRate, uid }: HistoryShee
       {family.turns.map((turn) => {
         const who = getPerson(family, turn.personId)?.name ?? '—';
         return (
-          <div className="row" key={turn.id}>
-            <b>{who}</b>
-            {turn.skipped ? (
-              <span className="stars">{en.history.skippedRow}</span>
-            ) : (
+          <div className="turn-row" key={turn.id}>
+            <div className="turn-head">
+              <b>{turn.skipped ? en.day.nobody : who}</b>
+              <span className="when">{formatShortDate(turn.madeAt)}</span>
+            </div>
+            {!turn.skipped && (
               <Stars
                 verdict={verdict(turn)}
                 mine={myRating(turn, uid)}
@@ -44,7 +47,6 @@ export function HistorySheet({ open, family, onClose, onRate, uid }: HistoryShee
                 onRate={(rating) => onRate(turn.id, rating)}
               />
             )}
-            <span className="when">{formatShortDate(turn.madeAt)}</span>
           </div>
         );
       })}

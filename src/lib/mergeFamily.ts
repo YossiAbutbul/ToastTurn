@@ -44,10 +44,13 @@ function sortTurns(turns: Turn[]): Turn[] {
     .slice(0, TURN_CAP);
 }
 
-/** Turns the others have not seen at all yet. */
+/** Turns the others have not seen, or have seen at a different time. */
 export function unsentTurns(local: Family, remote: Family | null): Turn[] {
-  const published = new Set((remote?.turns ?? []).map((turn) => turn.id));
-  return local.turns.filter((turn) => !published.has(turn.id));
+  const published = new Map((remote?.turns ?? []).map((turn) => [turn.id, turn]));
+  return local.turns.filter((turn) => {
+    const theirs = published.get(turn.id);
+    return !theirs || theirs.madeAt !== turn.madeAt;
+  });
 }
 
 /**

@@ -1,3 +1,4 @@
+import { TimePicker } from './TimePicker';
 import { en } from '../i18n/en';
 import type { Schedule } from '../lib/types';
 
@@ -27,14 +28,7 @@ export function ScheduleFields({ schedule, onChange }: ScheduleFieldsProps) {
       </div>
 
       <div className="fieldlabel">{en.schedule.time}</div>
-      <div className="timerow">
-        <input
-          type="time"
-          value={schedule.time}
-          aria-label={en.schedule.time}
-          onChange={(e) => e.target.value && onChange({ time: e.target.value })}
-        />
-      </div>
+      <TimePicker value={schedule.time} onChange={(time) => onChange({ time })} />
 
       <div className="remind">
         {en.schedule.remind}

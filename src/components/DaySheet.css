@@ -1,0 +1,42 @@
+.day-entry {
+  padding: 4px 0 14px;
+  border-bottom: 2px dashed var(--dash);
+}
+.day-entry:last-of-type {
+  border-bottom: none;
+}
+
+.day-who {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-block-end: 2px;
+}
+.day-who b {
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 19px;
+}
+
+.day-entry .stars-row {
+  margin-block-start: 6px;
+}
+.day-entry .star {
+  min-width: 40px;
+  min-height: 40px;
+  font-size: 24px;
+}
+
+/* Your stars are the ones to tap, so they are the big ones. */
+.day-entry .stars-row {
+  margin-block-start: 4px;
+}
+.day-entry .star.on {
+  color: var(--crust);
+}
+.day-entry .star.on.mine {
+  color: var(--coral);
+}
+.day-entry .stars-score {
+  font-size: 13px;
+}

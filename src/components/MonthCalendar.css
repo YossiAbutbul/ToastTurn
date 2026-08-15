@@ -32,7 +32,17 @@
   align-items: center;
   justify-content: flex-start;
   gap: 2px;
-  padding-block-start: 3px;
+  padding: 3px 0 0;
+  border: none;
+  background: none;
+  font: inherit;
+  cursor: pointer;
+}
+.calendar-day.empty-day {
+  cursor: default;
+}
+.calendar-day:active:not(.empty-day) {
+  transform: translateY(1px);
 }
 
 /* Today gets the outline, so the month has somewhere to start reading from. */
@@ -62,12 +72,17 @@
   color: var(--ink);
 }
 
-/* A week nobody made it. */
+/* A week nobody made it: an empty crust rather than a filled one. */
 .calendar-skip {
-  margin-block-start: 6px;
-  width: 14px;
-  height: 3px;
-  border-radius: 2px;
-  background: var(--ink-soft);
-  opacity: 0.55;
+  width: 22px;
+  height: 18px;
+  border: 2.5px dashed var(--ink-soft);
+  border-radius: 8px 8px 3px 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 11px;
+  color: var(--ink-soft);
 }

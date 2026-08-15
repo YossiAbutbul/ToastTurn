@@ -6,7 +6,10 @@ import type { Family, Person } from '../lib/types';
 
 export type Membership = {
   status: 'pending' | 'approved';
+  /** Which person in the rotation this account is, once the owner has let them in. */
   personId?: string;
+  /** What they said their name is when they asked to join. */
+  name?: string;
   email?: string;
 };
 
@@ -51,25 +54,24 @@ export function useMembership(family: Family, account: Account | null, isOwner: 
     [account, family.id],
   );
 
-  /** Ask to be let in. */
+  /** Ask to be let in, saying who you are. */
   const askToJoin = useCallback(
-    () => write({ status: 'pending', email: account?.email ?? undefined }),
+    (name: string) => write({ status: 'pending', name: name.trim(), email: account?.email ?? undefined }),
     [account, write],
   );
 
-  /** Say which person you are, once you have been let in. */
+  /** Say which person you are — the owner's own tool, from settings. */
   const claim = useCallback(
     (personId: string) => write({ ...(mine ?? { status: 'approved' }), status: 'approved', personId }),
     [mine, write],
   );
 
-  /** Owner only: let someone in, or take them back out. */
-  const decide = useCallback(
-    (uid: string, allowed: boolean) => {
-      const entry = members[uid];
-      const next: Membership = { ...entry, status: allowed ? 'approved' : 'pending' };
+  /** Owner only: let someone in as the person they will be in the rotation. */
+  const approve = useCallback(
+    (uid: string, personId: string) => {
+      const next: Membership = { ...members[uid], status: 'approved', personId };
       setMembers((current) => ({ ...current, [uid]: next }));
-      void pushMember(family.id, uid, allowed ? next : { ...next, status: 'pending' });
+      void pushMember(family.id, uid, next);
     },
     [family.id, members],
   );
@@ -81,7 +83,7 @@ export function useMembership(family: Family, account: Account | null, isOwner: 
 
   const waiting = Object.entries(members)
     .filter(([, entry]) => entry.status === 'pending')
-    .map(([uid, entry]) => ({ uid, email: entry.email ?? uid }));
+    .map(([uid, entry]) => ({ uid, name: entry.name ?? '', email: entry.email ?? uid }));
 
-  return { state, me, waiting, askToJoin, claim, decide, canLog: state === 'owner' || state === 'member' };
+  return { state, me, waiting, askToJoin, claim, approve, canLog: state === 'owner' || state === 'member' };
 }

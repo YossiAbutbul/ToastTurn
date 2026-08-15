@@ -11,6 +11,10 @@
   opacity: 1;
   pointer-events: auto;
 }
+/* A second sheet stacks above the first, with its own dimming in between. */
+.scrim.over {
+  z-index: 7;
+}
 
 .sheet {
   position: absolute;
@@ -47,12 +51,50 @@
 .sheet-body::-webkit-scrollbar {
   display: none;
 }
+.sheet.over {
+  z-index: 8;
+}
+
+/* Whatever is underneath goes soft, so there is only ever one sheet to read. */
+.sheet.covered {
+  filter: blur(3px) saturate(0.85);
+  pointer-events: none;
+}
+
 .sheet.show {
   transform: translateY(0);
   visibility: visible;
   transition:
     transform 0.26s cubic-bezier(0.2, 0.9, 0.25, 1),
     visibility 0s;
+}
+
+/* The handle you drag down to close, and the only place a drag starts — a drag
+   anywhere else would fight with scrolling a long history. */
+.sheet-grip {
+  display: block;
+  width: 44px;
+  height: 5px;
+  margin: -6px auto 10px;
+  border-radius: 999px;
+  background: var(--dash);
+  touch-action: none;
+  cursor: grab;
+}
+.sheet-grip::after {
+  /* a taller invisible target than the bar itself */
+  content: '';
+  display: block;
+  height: 26px;
+  margin-block-start: -12px;
+}
+.sheet-grip:active {
+  cursor: grabbing;
+}
+
+/* While a drag is live the sheet must follow the finger, not ease after it. */
+.sheet.dragging {
+  transition: none;
 }
 
 .sheet h2 {
@@ -63,17 +105,17 @@
 }
 
 /* schedule editor */
-/* Seven 44px targets have to fit a 390px phone, so the gap is tighter than
-   elsewhere. */
+/* Seven across, whatever the width: a grid divides the room up rather than
+   letting the last day fall off the edge. */
 .days {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
   gap: 4px;
   margin-block-end: 18px;
 }
 .day {
-  flex: 1;
   aspect-ratio: 1 / 1;
-  min-height: 44px;
+  min-width: 0;
   border: 2.5px solid var(--ink);
   border-radius: 12px;
   background: var(--paper);
@@ -103,4 +145,27 @@
   padding: 14px 0 2px;
   font-weight: 700;
   font-size: 13px;
+}
+
+/* A logged turn: who and when on one line, the stars under it with room to be
+   tapped. Squeezing all three onto one line left the stars unreachable. */
+.turn-row {
+  padding: 10px 0 8px;
+  border-bottom: 2px dashed var(--dash);
+}
+.turn-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+.turn-head b {
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 17px;
+}
+.turn-head .when {
+  margin-inline-start: auto;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--ink-soft);
 }

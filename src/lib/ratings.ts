@@ -18,6 +18,21 @@ export function verdict(turn: Turn): Verdict {
   return { average: total / votes.length, votes: votes.length };
 }
 
+/** What the rest of the family made of it, leaving your own vote out. */
+export function othersVerdict(turn: Turn, uid: string | undefined): Verdict {
+  const entries = Object.entries(turn.ratings ?? {}).filter(([who]) => who !== uid);
+  if (entries.length === 0) {
+    // A turn rated before ratings were per person belongs to nobody in
+    // particular, so it counts as somebody else's.
+    return turn.ratings === undefined && typeof turn.rating === 'number'
+      ? { average: turn.rating, votes: 1 }
+      : null;
+  }
+
+  const total = entries.reduce((sum, [, value]) => sum + value, 0);
+  return { average: total / entries.length, votes: entries.length };
+}
+
 /** What this account said, if it has said anything. */
 export function myRating(turn: Turn, uid: string | undefined): number | undefined {
   if (!uid) return undefined;

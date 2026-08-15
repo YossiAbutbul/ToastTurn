@@ -1,13 +1,12 @@
 import { useState } from 'react';
 import { Sheet } from './Sheet';
 import { SettingsYou } from './SettingsYou';
-import { ScheduleFields } from './ScheduleFields';
 import { en } from '../i18n/en';
 import { initialOf } from '../lib/format';
 import { linkForFamily } from '../lib/url';
 import type { Account } from '../lib/auth';
 import type { MembershipState } from '../hooks/useMembership';
-import type { Family, Person, Schedule } from '../lib/types';
+import type { Family, Person } from '../lib/types';
 
 type SettingsSheetProps = {
   open: boolean;
@@ -19,10 +18,11 @@ type SettingsSheetProps = {
   onClaim: () => void;
   onSignIn: () => void;
   onSignOut: () => void;
-  onSchedule: (patch: Partial<Schedule>) => void;
   onToggleHoliday: (personId: string, active: boolean) => void;
   onEditPeople: () => void;
   onStartOver: () => void;
+  /** Owner only: let someone in, adding them to the rotation by name. */
+  onApprove: (uid: string, name: string) => void;
   /** False on a phone that joined by link: it can log toast, not run the rotation. */
   isOwner: boolean;
 };
@@ -59,18 +59,18 @@ export function SettingsSheet(props: SettingsSheetProps) {
 
       {isOwner && (
         <>
-          <div className="fieldlabel spaced">{en.schedule.title}</div>
-          <ScheduleFields schedule={family.schedule} onChange={props.onSchedule} />
-
           <div className="fieldlabel spaced">{en.member.waiting}</div>
           {props.membership.waiting.length === 0 && <p className="empty">{en.member.nobodyWaiting}</p>}
           {props.membership.waiting.map((person) => (
             <div className="row" key={person.uid}>
-              <b className="waiting-email">{person.email}</b>
+              <div className="waiting-who">
+                <b>{person.name || en.member.waitingUnnamed}</b>
+                <span className="waiting-email">{person.email}</span>
+              </div>
               <button
                 type="button"
                 className="ghost let-in"
-                onClick={() => props.membership.decide(person.uid, true)}
+                onClick={() => props.onApprove(person.uid, person.name)}
               >
                 {en.member.approve}
               </button>

@@ -8,7 +8,13 @@ import './MonthCalendar.css';
 const MONTH = new Intl.DateTimeFormat('en', { month: 'long', year: 'numeric' });
 
 /** Who made toast on which day, a month at a time. */
-export function MonthCalendar({ family, month }: { family: Family; month: Date }) {
+type MonthCalendarProps = {
+  family: Family;
+  month: Date;
+  onPickDay: (date: Date) => void;
+};
+
+export function MonthCalendar({ family, month, onPickDay }: MonthCalendarProps) {
   const weeks = monthCalendar(month, family.turns);
   const today = new Date();
   const isThisMonth =
@@ -30,12 +36,21 @@ export function MonthCalendar({ family, month }: { family: Family; month: Date }
           const person = turn ? getPerson(family, turn.personId) : undefined;
           const isToday = isThisMonth && cell.day === today.getDate();
 
+          if (cell.day === null) return <span className="calendar-day empty-day" key={i} />;
+
           return (
-            <div className={isToday ? 'calendar-day today' : 'calendar-day'} key={i}>
-              {cell.day !== null && <span className="calendar-date">{cell.day}</span>}
+            <button
+              type="button"
+              className={isToday ? 'calendar-day today' : 'calendar-day'}
+              key={i}
+              onClick={() => onPickDay(new Date(month.getFullYear(), month.getMonth(), cell.day!))}
+            >
+              <span className="calendar-date">{cell.day}</span>
               {turn &&
                 (turn.skipped ? (
-                  <span className="calendar-skip" title={en.history.skippedRow} />
+                  <span className="calendar-skip" title={en.history.skippedRow}>
+                    –
+                  </span>
                 ) : (
                   <span
                     className="calendar-toast"
@@ -45,7 +60,7 @@ export function MonthCalendar({ family, month }: { family: Family; month: Date }
                     {person ? initialOf(person.name) : '?'}
                   </span>
                 ))}
-            </div>
+            </button>
           );
         })}
       </div>

@@ -135,6 +135,29 @@ describe('logTurn and skipWeek', () => {
     expect(getCurrentPerson(next)?.id).toBe('a');
   });
 
+  it('moves the time rather than logging twice on one day', () => {
+    const once = logTurn(family(four()), { id: 't1', madeAt: '2026-08-16T08:00:00.000Z' });
+    const twice = logTurn(once, { id: 't2', madeAt: '2026-08-16T08:00:30.000Z' });
+
+    expect(twice.turns).toHaveLength(1);
+    expect(twice.turns[0]).toMatchObject({ id: 't1', madeAt: '2026-08-16T08:00:30.000Z' });
+    expect(getCurrentPerson(twice)?.id).toBe('b');
+  });
+
+  it('logs the next day as its own turn', () => {
+    const monday = logTurn(family(four()), { id: 't1', madeAt: '2026-08-16T08:00:00.000Z' });
+    const tuesday = logTurn(monday, { id: 't2', madeAt: '2026-08-17T08:00:00.000Z' });
+
+    expect(tuesday.turns.map((t) => t.id)).toEqual(['t2', 't1']);
+    expect(getCurrentPerson(tuesday)?.id).toBe('c');
+  });
+
+  it('records one skip a day however often it is tapped', () => {
+    const once = skipWeek(family(four()), { id: 's1', madeAt: '2026-08-16T08:00:00.000Z' });
+    const twice = skipWeek(once, { id: 's2', madeAt: '2026-08-16T09:00:00.000Z' });
+    expect(twice.turns).toHaveLength(1);
+  });
+
   it('leaves an empty family alone', () => {
     const empty = family([]);
     expect(logTurn(empty, { id: 't1', madeAt: '2026-08-16' })).toBe(empty);

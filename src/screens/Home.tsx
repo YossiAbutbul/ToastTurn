@@ -12,13 +12,16 @@ import { useAccount } from '../hooks/useAccount';
 import { useMembership } from '../hooks/useMembership';
 import { ClaimSheet } from '../components/ClaimSheet';
 import { SignInSheet } from '../components/SignInSheet';
+import { JoinRequestSheet } from '../components/JoinRequestSheet';
 import { signOut } from '../lib/auth';
+import { syncConfigured } from '../lib/firebase';
 import { useFamily } from '../store/useFamily';
 import { en } from '../i18n/en';
 import { formatShortDate, initialOf } from '../lib/format';
 import { getCurrentPerson, getUpcoming, lastTurnFor, rotationOrder, turnCounts } from '../lib/rotation';
 import { nowISO } from '../lib/clock';
 import { newId } from '../lib/id';
+import { colorForIndex } from '../lib/palette';
 import { deleteFamily } from '../lib/remote';
 import type { Family } from '../lib/types';
 import './Home.css';
@@ -38,12 +41,16 @@ export function Home({ onEditPeople, onLeave }: HomeProps) {
   const { account } = useAccount();
   const membership = useMembership(family, account, isOwner);
   const { me, canLog } = membership;
+  // With no keys there are no accounts, so a rating is filed under the phone.
+  const ratingUid = account?.uid ?? (syncConfigured ? undefined : 'this-phone');
 
   const [sheet, setSheet] = useState<SheetName>(null);
   const [status, setStatus] = useState<ToasterStatus>('idle');
   const [flash, setFlash] = useState<string | null>(null);
   const [note, setNote] = useState({ key: 0, text: '' });
   const [signingIn, setSigningIn] = useState(false);
+  const [day, setDay] = useState<Date | null>(null);
+  const [asking, setAsking] = useState(false);
   const [claiming, setClaiming] = useState(false);
   const [skippedClaim, setSkippedClaim] = useState(false);
   const flashTimer = useRef<number | undefined>(undefined);
@@ -52,7 +59,22 @@ export function Home({ onEditPeople, onLeave }: HomeProps) {
 
   const current = getCurrentPerson(family);
   const queue = rotationOrder(family);
-  const closeSheet = () => setSheet(null);
+  const closeSheet = () => {
+    setSheet(null);
+    setDay(null);
+  };
+
+  // What was logged on the day tapped in the calendar.
+  const dayTurns = day
+    ? family.turns.filter((turn) => {
+        const at = new Date(turn.madeAt.length <= 10 ? `${turn.madeAt}T00:00:00` : turn.madeAt);
+        return (
+          at.getFullYear() === day.getFullYear() &&
+          at.getMonth() === day.getMonth() &&
+          at.getDate() === day.getDate()
+        );
+      })
+    : [];
 
   const handlePop = useCallback(() => {
     const done = getCurrentPerson(family);
@@ -67,6 +89,31 @@ export function Home({ onEditPeople, onLeave }: HomeProps) {
     flashTimer.current = window.setTimeout(() => setFlash(null), FLASH_MS);
   }, [dispatch, family]);
 
+  const approve = (uid: string, name: string) => {
+    const wanted = name.trim().toLowerCase();
+    const taken = new Set(
+      membership.waiting.map(() => '').concat(family.people.map((p) => p.id)).filter(Boolean),
+    );
+    const existing = family.people.find(
+      (p) => p.name.trim().toLowerCase() === wanted && taken.has(p.id),
+    );
+
+    if (existing && wanted) {
+      membership.approve(uid, existing.id);
+      return;
+    }
+
+    const person = {
+      id: newId(),
+      name: name.trim() || en.member.waitingUnnamed,
+      color: colorForIndex(family.people.length),
+      order: family.people.length,
+      active: true,
+    };
+    dispatch({ type: 'addPerson', person });
+    membership.approve(uid, person.id);
+  };
+
   const sheets = (
     <>
       <HomeSheets
@@ -75,9 +122,12 @@ export function Home({ onEditPeople, onLeave }: HomeProps) {
         current={current}
         account={account}
         onClose={closeSheet}
-        uid={account?.uid}
+        uid={ratingUid}
+        onPickDay={setDay}
+        onCloseDay={() => setDay(null)}
+        day={{ date: day, turns: dayTurns }}
         onRate={(turnId, rating) =>
-          account && dispatch({ type: 'rateTurn', turnId, uid: account.uid, rating })
+          ratingUid && dispatch({ type: 'rateTurn', turnId, uid: ratingUid, rating })
         }
         onSwap={(personId) => {
           if (current) dispatch({ type: 'swap', aId: current.id, bId: personId });
@@ -86,6 +136,7 @@ export function Home({ onEditPeople, onLeave }: HomeProps) {
         onSchedule={(schedule) => dispatch({ type: 'setSchedule', schedule })}
         onToggleHoliday={(id, active) => dispatch({ type: 'setActive', id, active })}
         onEditPeople={onEditPeople}
+        onApprove={approve}
         onStartOver={() => {
           if (!window.confirm(en.settings.startOverConfirm)) return;
           void deleteFamily(family.id);
@@ -109,6 +160,14 @@ export function Home({ onEditPeople, onLeave }: HomeProps) {
         isOwner={isOwner}
       />
       <SignInSheet open={signingIn} account={account} onClose={() => setSigningIn(false)} />
+      <JoinRequestSheet
+        open={asking}
+        onClose={() => setAsking(false)}
+        onAsk={(name) => {
+          membership.askToJoin(name);
+          setAsking(false);
+        }}
+      />
       <ClaimSheet
         open={claiming || (canLog && !me && !skippedClaim && family.people.length > 0)}
         family={family}
@@ -127,8 +186,7 @@ export function Home({ onEditPeople, onLeave }: HomeProps) {
   const bar = (
     <TopBar
       schedule={family.schedule}
-      // The night lives in settings now, so the pill is a shortcut into it.
-      onSchedule={isOwner ? () => setSheet('settings') : undefined}
+      onSchedule={isOwner ? () => setSheet('schedule') : undefined}
       onHistory={() => setSheet('history')}
       onSettings={() => setSheet('settings')}
     />
@@ -211,7 +269,7 @@ export function Home({ onEditPeople, onLeave }: HomeProps) {
             disabled={membership.state === 'pending'}
             onClick={() => {
               if (membership.state === 'signed-out') setSigningIn(true);
-              else membership.askToJoin();
+              else setAsking(true);
             }}
           >
             {membership.state === 'signed-out' ? en.signIn.action : en.member.ask}
