@@ -76,7 +76,7 @@ export const en = {
     open: 'Open your rotation',
     join: 'Join a rotation',
     signIn: 'Sign in',
-    signInFirst: 'You sign in once, and the app knows which toast is yours on any phone.',
+    signInFirst: 'Sign in to make a toast yours. You can pull the lever either way.',
   },
 
   join: {

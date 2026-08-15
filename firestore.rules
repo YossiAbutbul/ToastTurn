@@ -68,8 +68,10 @@ service cloud.firestore {
         allow get, list: if true;
 
         // Anyone in the family can log toast without signing in.
-        // Everyone in the rotation signs in, so a turn carries an account.
-        allow create, update: if request.auth != null && saneTurn();
+        // Making toast needs no account. Whoever has the link can say it got
+        // made — signing in is what gives you a profile, a colour, and the
+        // right to run the rotation.
+        allow create, update: if saneTurn();
 
         // Only as part of the owner clearing the whole family.
         allow delete: if request.auth != null

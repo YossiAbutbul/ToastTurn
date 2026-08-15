@@ -32,8 +32,12 @@ export function Welcome({ onStart, onOpen, notFound }: WelcomeProps) {
     if (what === 'join') setJoining(true);
   };
 
+  /**
+   * Only starting a rotation needs an account — someone has to own it. Opening
+   * and joining stay open, so a guest can pull the lever without signing in.
+   */
   const need = (what: Exclude<Pending, null>) => () => {
-    if (syncConfigured && !account) {
+    if (what === 'start' && syncConfigured && !account) {
       setPending(what);
       setSigningIn(true);
       return;

@@ -48,11 +48,11 @@ up on every phone that has the link.
    family** and open that link on the second phone. It joins, asks which person
    is holding it, and from then on a pull on one phone lands on the other.
 
-**Who is who.** Everyone signs in — Google, or an email and password. The
-rotation stores each person's email, so a phone works out which person is
-holding it from the account, and their toast colour follows them anywhere. Put
-those addresses in when you add people; a signed-in account with no matching
-address can still watch the rotation, but it isn't anybody in it yet.
+**Who is who.** Making toast needs no account: open the link, see the turn, pull
+the lever. Signing in — Google, or an email and password — is what makes a toast
+*yours*. The rotation stores each person's email, so a signed-in phone works out
+which person is holding it and their colour follows them to any device. Put
+those addresses in when you add people.
 
 **Who can change what.** The account that created the rotation runs it: people,
 schedule, order, clearing it. Everyone else can see whose turn it is, pull the

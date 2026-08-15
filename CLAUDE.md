@@ -19,12 +19,12 @@ one of these, the constraint wins.
 2. **Identity, as of phase 3.** The original rule was "no accounts, no
    passwords, no email"; the family code in the URL plus a "who am I" choice on
    the device was the whole system. That was replaced on the owner's
-   instruction: everyone signs in now, with Google or an email and password.
-   The rotation stores each person's email, so a phone matches itself to a
-   person by who is signed in — there is no picker to get wrong, and your toast
-   colour follows you to any device. The account that creates a rotation owns
-   it, and is the only one the server lets change people, the schedule or the
-   order.
+   instruction. Logging toast still needs nothing: open the link, pull the
+   lever. Signing in — Google, or an email and password — is what makes a toast
+   yours: the rotation stores each person's email, so a signed-in phone matches
+   itself to a person and their colour follows them to any device. The account
+   that creates a rotation owns it, and is the only one the server lets change
+   people, the schedule or the order.
 3. **Works offline.** Opening the app on the kitchen wifi dead-spot must still
    show whose turn it is. Writes queue and sync when back online.
 4. **The main screen answers the question with zero taps.** Everything else —
