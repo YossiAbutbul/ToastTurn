@@ -67,12 +67,22 @@ export const en = {
     dragLabel: (name: string) => `Reorder ${name}`,
   },
 
+  welcome: {
+    tagline: 'Whose turn is it to make toast this week?',
+    start: 'Start a family',
+    signIn: 'Sign in to run a family',
+    signInFirst: 'You sign in once, so the family is yours to run from any phone.',
+    joinNote: 'Joining someone else? Open the link they sent you.',
+  },
+
   signIn: {
     title: 'Sign in to run the family',
     blurb: 'Only needed by whoever looks after the people and the schedule.',
     email: 'Email',
     password: 'Password',
     action: 'Sign in',
+    google: 'Continue with Google',
+    or: 'or with an email and password',
     working: 'Signing in…',
     open: 'Sign in to run the family',
     signedInTitle: 'Running the family',

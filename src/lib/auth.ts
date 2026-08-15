@@ -15,6 +15,27 @@ export async function signIn(email: string, password: string): Promise<Account> 
   return { uid: credential.user.uid, email: credential.user.email };
 }
 
+/**
+ * One tap instead of a password. Popups are blocked in some installed PWAs, so
+ * it falls back to a full-page redirect and finishes when the app reloads.
+ */
+export async function signInWithGoogle(): Promise<Account | 'redirecting'> {
+  const ready = await firebaseAuth();
+  if (!ready) throw new Error('offline');
+
+  const provider = new ready.fns.GoogleAuthProvider();
+  try {
+    const credential = await ready.fns.signInWithPopup(ready.auth, provider);
+    return { uid: credential.user.uid, email: credential.user.email };
+  } catch (error) {
+    const code = (error as { code?: string })?.code ?? '';
+    if (!/popup-blocked|popup-closed-by-user|operation-not-supported/.test(code)) throw error;
+    if (/popup-closed-by-user/.test(code)) throw error;
+    await ready.fns.signInWithRedirect(ready.auth, provider);
+    return 'redirecting';
+  }
+}
+
 export async function signOut(): Promise<void> {
   const ready = await firebaseAuth();
   if (!ready) return;

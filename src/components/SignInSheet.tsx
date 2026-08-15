@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Sheet } from './Sheet';
 import { en } from '../i18n/en';
-import { signIn, signInProblem, signOut } from '../lib/auth';
+import { signIn, signInProblem, signInWithGoogle, signOut } from '../lib/auth';
 import type { Account } from '../lib/auth';
 
 type SignInSheetProps = {
@@ -31,6 +31,19 @@ export function SignInSheet({ open, account, onClose }: SignInSheetProps) {
     }
   };
 
+  const withGoogle = async () => {
+    setBusy(true);
+    setProblem(null);
+    try {
+      const result = await signInWithGoogle();
+      if (result !== 'redirecting') onClose();
+    } catch (error) {
+      setProblem(en.signIn.problem[signInProblem(error)]);
+    } finally {
+      setBusy(false);
+    }
+  };
+
   if (account) {
     return (
       <Sheet open={open} title={en.signIn.signedInTitle} onClose={onClose}>
@@ -45,6 +58,11 @@ export function SignInSheet({ open, account, onClose }: SignInSheetProps) {
   return (
     <Sheet open={open} title={en.signIn.title} onClose={onClose}>
       <p className="empty">{en.signIn.blurb}</p>
+
+      <button className="ghost" type="button" disabled={busy} onClick={() => void withGoogle()}>
+        {en.signIn.google}
+      </button>
+      <p className="empty">{en.signIn.or}</p>
 
       <div className="fieldlabel spaced">{en.signIn.email}</div>
       <input
