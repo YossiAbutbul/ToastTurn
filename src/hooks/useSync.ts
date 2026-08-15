@@ -19,6 +19,8 @@ export function useSync() {
   const { state, dispatch } = useFamily();
   const { account } = useAccount();
   const [remote, setRemote] = useState<Family | null>(null);
+  /** Which family the server has answered about, whether or not it exists. */
+  const [checkedId, setCheckedId] = useState<string | null>(null);
   /** Whether this family has ever been seen on the server. */
   const sawRemote = useRef(false);
 
@@ -39,6 +41,7 @@ export function useSync() {
     if (!syncConfigured || !familyId || !state.ready) return;
 
     return subscribeFamily(familyId, (incoming: RemoteFamily) => {
+      setCheckedId(familyId);
       if (!incoming) {
         setRemote(null);
         // It was there and now it isn't: someone cleared the family. Let it go
@@ -76,6 +79,8 @@ export function useSync() {
     configured: syncConfigured,
     joining,
     account,
+    /** The link points at a rotation that isn't there. */
+    missing: Boolean(joining) && checkedId === familyId && remote === null,
     /** True once the family has been seen from the other side. */
     synced: remote !== null,
   };

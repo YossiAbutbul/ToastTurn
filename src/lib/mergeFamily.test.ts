@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { mergeFamily, metaChanged, unsentTurns } from './mergeFamily';
-import { familyIdFromPath, linkForFamily } from './url';
+import { familyIdFromInput, familyIdFromPath, linkForFamily } from './url';
 import type { Family, Person, Turn } from './types';
 
 const person = (id: string, order: number): Person => ({
@@ -125,5 +125,25 @@ describe('turns logged on the same day', () => {
 
     const merged = mergeFamily(family({ turns: [morning] }), family({ turns: [evening] }));
     expect(merged.turns.map((t) => t.id)).toEqual(['b', 'x']);
+  });
+});
+
+describe('joining by pasted text', () => {
+  it('takes a code straight', () => {
+    expect(familyIdFromInput('abc12345')).toBe('abc12345');
+    expect(familyIdFromInput('  abc12345  ')).toBe('abc12345');
+  });
+
+  it('digs the code out of a whole link', () => {
+    expect(familyIdFromInput('https://toastturn.app/f/abc12345')).toBe('abc12345');
+    expect(familyIdFromInput('https://toastturn.app/f/abc12345?x=1')).toBe('abc12345');
+  });
+
+  it('refuses what is neither', () => {
+    expect(familyIdFromInput('')).toBeNull();
+    expect(familyIdFromInput('   ')).toBeNull();
+    expect(familyIdFromInput('no')).toBeNull();
+    expect(familyIdFromInput('nope')).toBeNull();
+    expect(familyIdFromInput('two words')).toBeNull();
   });
 });

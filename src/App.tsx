@@ -15,11 +15,13 @@ export function App() {
   const [screen, setScreen] = useState<'welcome' | 'setup'>('welcome');
 
   if (!state.ready) return null;
-  // Someone opened a share link: wait for that family rather than offering to
-  // set up a new one.
-  if (sync.joining && !state.family) return null;
+  // Someone opened a share link: wait for that rotation rather than offering to
+  // set up a new one — unless the server says there is no such rotation.
+  if (sync.joining && !state.family && !sync.missing) return null;
 
   if (state.family && screen !== 'setup') return <Home onEditPeople={() => setScreen('setup')} />;
-  if (!state.family && screen === 'welcome') return <Welcome onStart={() => setScreen('setup')} />;
+  if (!state.family && screen === 'welcome') {
+    return <Welcome onStart={() => setScreen('setup')} notFound={sync.missing} />;
+  }
   return <Setup onDone={() => setScreen('welcome')} />;
 }

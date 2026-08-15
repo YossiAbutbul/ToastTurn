@@ -28,13 +28,8 @@
 }
 
 .welcome-slice {
-  width: min(60%, 220px);
-  margin-block-start: 8px;
-}
-.welcome-slice svg {
-  width: 100%;
-  height: auto;
-  display: block;
+  width: min(92%, 330px);
+  margin-block-start: 6px;
 }
 
 .welcome-foot {

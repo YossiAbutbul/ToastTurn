@@ -69,10 +69,20 @@ export const en = {
 
   welcome: {
     tagline: 'Whose turn is it to make toast this week?',
-    start: 'Start a family',
-    signIn: 'Sign in to run a family',
-    signInFirst: 'You sign in once, so the family is yours to run from any phone.',
-    joinNote: 'Joining someone else? Open the link they sent you.',
+    start: 'Start a rotation',
+    join: 'Join a rotation',
+    signIn: 'Sign in to run a rotation',
+    signInFirst: 'You sign in once, so the rotation is yours to run from any phone.',
+  },
+
+  join: {
+    title: 'Join a rotation',
+    blurb: 'Paste the link someone sent you, or type the code from the end of it.',
+    label: 'Link or code',
+    placeholder: 'abc12345',
+    action: 'Join',
+    problem: "That doesn't look like a link or a code. Check it and try again.",
+    notFound: "There's no rotation with that code. Ask for the link again.",
   },
 
   signIn: {
