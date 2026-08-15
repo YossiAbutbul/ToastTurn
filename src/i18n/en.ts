@@ -54,6 +54,9 @@ export const en = {
     familyPlaceholder: 'The Cohens',
     peopleLabel: 'Who makes toast',
     namePlaceholder: 'Name',
+    emailPlaceholder: 'their email',
+    emailFor: (name: string) => `Email for ${name}`,
+    emailHint: 'The address each person signs in with — that is how their phone knows them.',
     add: 'Add',
     remove: (name: string) => `Remove ${name}`,
     moveUp: (name: string) => `Move ${name} earlier`,
@@ -70,9 +73,10 @@ export const en = {
   welcome: {
     tagline: 'Whose turn is it to make toast this week?',
     start: 'Start a rotation',
+    open: 'Open your rotation',
     join: 'Join a rotation',
-    signIn: 'Sign in to run a rotation',
-    signInFirst: 'You sign in once, so the rotation is yours to run from any phone.',
+    signIn: 'Sign in',
+    signInFirst: 'You sign in once, and the app knows which toast is yours on any phone.',
   },
 
   join: {
@@ -86,8 +90,8 @@ export const en = {
   },
 
   signIn: {
-    title: 'Sign in to run the family',
-    blurb: 'Only needed by whoever looks after the people and the schedule.',
+    title: 'Sign in',
+    blurb: 'So the rotation knows which toast is yours.',
     email: 'Email',
     password: 'Password',
     action: 'Sign in',
@@ -105,10 +109,6 @@ export const en = {
     },
   },
 
-  whoAmI: {
-    title: 'Which one are you?',
-    blurb: 'Just on this phone. It stays here.',
-  },
 
   install: {
     prompt: 'Keep ToastTurn on your home screen.',
@@ -117,12 +117,20 @@ export const en = {
     dismiss: 'Not now',
   },
 
+  profile: {
+    nobody: 'Not in this rotation',
+    thisPhone: 'This phone',
+    notInRotation: 'Ask whoever runs the rotation to add your email to it.',
+    colour: 'Your toast colour',
+  },
+
   settings: {
     title: 'Settings',
     open: 'Settings',
+    youSection: 'You',
+    rotationSection: 'The rotation',
     share: 'Copy the link for the family',
     shared: 'Link copied',
-    whoAmI: 'Change who this phone is',
     guest: 'The phone that started the family looks after the people and the schedule.',
     holiday: 'On holiday',
     editPeople: 'Add or remove people',

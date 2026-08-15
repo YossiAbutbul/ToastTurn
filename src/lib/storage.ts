@@ -2,7 +2,6 @@ import type { Family } from './types';
 
 const FAMILY_KEY = 'toastturn.family.v1';
 const INSTALL_HINT_KEY = 'toastturn.installHint.v1';
-const ME_KEY = 'toastturn.me.v1';
 
 /**
  * The only module that touches localStorage. Every read is defensive: a phone
@@ -38,22 +37,6 @@ export function loadFamily(): Family | null {
 
 export function saveFamily(family: Family): void {
   write(FAMILY_KEY, JSON.stringify(family));
-}
-
-/** Who is holding this phone. Per device, per family — never synced. */
-export function loadMe(familyId: string): string | null {
-  const raw = read(ME_KEY);
-  if (!raw) return null;
-  try {
-    const parsed = JSON.parse(raw) as { familyId: string; personId: string };
-    return parsed.familyId === familyId ? parsed.personId : null;
-  } catch {
-    return null;
-  }
-}
-
-export function saveMe(familyId: string, personId: string): void {
-  write(ME_KEY, JSON.stringify({ familyId, personId }));
 }
 
 /** The add-to-home-screen hint is offered once and then never again. */

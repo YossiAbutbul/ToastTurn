@@ -38,6 +38,25 @@ service cloud.firestore {
 
       allow delete: if isOwner();
 
+      // Each person's chosen toast colour, keyed by the address they sign in
+      // with. You may write your own key and nobody else's, which is why this
+      // sits outside the owner-only family document.
+      match /prefs/colors {
+        function onlyMine() {
+          return request.auth != null
+            && request.auth.token.email != null
+            && request.resource.data.diff(resource.data).affectedKeys()
+                 .hasOnly([request.auth.token.email.lower()]);
+        }
+
+        allow get, list: if true;
+        allow create: if request.auth != null
+          && request.resource.data.keys().hasOnly([request.auth.token.email.lower()]);
+        allow update: if onlyMine();
+        allow delete: if request.auth != null
+          && get(/databases/$(database)/documents/families/$(familyId)).data.ownerUid == request.auth.uid;
+      }
+
       match /turns/{turnId} {
         function saneTurn() {
           return request.resource.data.personId is string
@@ -49,7 +68,8 @@ service cloud.firestore {
         allow get, list: if true;
 
         // Anyone in the family can log toast without signing in.
-        allow create, update: if saneTurn();
+        // Everyone in the rotation signs in, so a turn carries an account.
+        allow create, update: if request.auth != null && saneTurn();
 
         // Only as part of the owner clearing the whole family.
         allow delete: if request.auth != null

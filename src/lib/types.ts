@@ -1,6 +1,12 @@
 export type Person = {
   id: string;
   name: string;
+  /**
+   * The address they sign in with. It is how a phone knows which person it is
+   * holding — set by whoever runs the rotation, so nobody can claim to be
+   * someone else.
+   */
+  email?: string;
   color: string;
   /** Position in the rotation. */
   order: number;

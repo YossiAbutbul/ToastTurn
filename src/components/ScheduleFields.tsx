@@ -1,17 +1,15 @@
-import { Sheet } from './Sheet';
 import { en } from '../i18n/en';
 import type { Schedule } from '../lib/types';
 
-type ScheduleSheetProps = {
-  open: boolean;
+type ScheduleFieldsProps = {
   schedule: Schedule;
-  onClose: () => void;
   onChange: (patch: Partial<Schedule>) => void;
 };
 
-export function ScheduleSheet({ open, schedule, onClose, onChange }: ScheduleSheetProps) {
+/** Toast night: which day, what time, whether to nudge people that morning. */
+export function ScheduleFields({ schedule, onChange }: ScheduleFieldsProps) {
   return (
-    <Sheet open={open} title={en.schedule.title} onClose={onClose}>
+    <>
       <div className="fieldlabel">{en.schedule.day}</div>
       <div className="days">
         {en.days.map((day, index) => (
@@ -51,6 +49,6 @@ export function ScheduleSheet({ open, schedule, onClose, onChange }: ScheduleShe
           <i />
         </button>
       </div>
-    </Sheet>
+    </>
   );
 }

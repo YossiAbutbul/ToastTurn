@@ -1,15 +1,19 @@
 import { HistorySheet } from './HistorySheet';
 import { SwapSheet } from './SwapSheet';
-import { ScheduleSheet } from './ScheduleSheet';
 import { SettingsSheet } from './SettingsSheet';
+import type { Account } from '../lib/auth';
 import type { Family, Person, Schedule } from '../lib/types';
 
-export type SheetName = 'history' | 'swap' | 'schedule' | 'settings' | null;
+export type SheetName = 'history' | 'swap' | 'settings' | null;
 
 type HomeSheetsProps = {
   sheet: SheetName;
   family: Family;
   current: Person | null;
+  me: Person | null;
+  myColor: string;
+  account: Account | null;
+  colorOf: (person: Person) => string;
   onClose: () => void;
   onSkip: () => void;
   onSwap: (personId: string) => void;
@@ -17,59 +21,51 @@ type HomeSheetsProps = {
   onToggleHoliday: (personId: string, active: boolean) => void;
   onEditPeople: () => void;
   onStartOver: () => void;
-  onWhoAmI: () => void;
   onSignIn: () => void;
+  onSignOut: () => void;
+  onPickColor: (color: string) => void;
   isOwner: boolean;
-  signedIn: boolean;
 };
 
 /** Everything that isn't the answer, gathered in one place. */
-export function HomeSheets({
-  sheet,
-  family,
-  current,
-  onClose,
-  onSkip,
-  onSwap,
-  onSchedule,
-  onToggleHoliday,
-  onEditPeople,
-  onStartOver,
-  onWhoAmI,
-  onSignIn,
-  isOwner,
-  signedIn,
-}: HomeSheetsProps) {
+export function HomeSheets(props: HomeSheetsProps) {
+  const { family, sheet, current, isOwner, onClose } = props;
+
   return (
     <>
-      <HistorySheet open={sheet === 'history'} family={family} onClose={onClose} onSkip={onSkip} />
-      {isOwner && (
-        <ScheduleSheet
-          open={sheet === 'schedule'}
-          schedule={family.schedule}
-          onClose={onClose}
-          onChange={onSchedule}
-        />
-      )}
+      <HistorySheet
+        open={sheet === 'history'}
+        family={family}
+        onClose={onClose}
+        onSkip={props.onSkip}
+      />
+
       <SettingsSheet
         open={sheet === 'settings'}
         family={family}
+        me={props.me}
+        myColor={props.myColor}
+        account={props.account}
+        colorOf={props.colorOf}
         onClose={onClose}
-        onEditPeople={onEditPeople}
-        onToggleHoliday={onToggleHoliday}
-        onStartOver={onStartOver}
-        onWhoAmI={onWhoAmI}
-        onSignIn={onSignIn}
+        onPickColor={props.onPickColor}
+        onSignIn={props.onSignIn}
+        onSignOut={props.onSignOut}
+        onSchedule={props.onSchedule}
+        onToggleHoliday={props.onToggleHoliday}
+        onEditPeople={props.onEditPeople}
+        onStartOver={props.onStartOver}
         isOwner={isOwner}
-        signedIn={signedIn}
       />
+
       {current && isOwner && (
         <SwapSheet
           open={sheet === 'swap'}
           family={family}
           current={current}
+          colorOf={props.colorOf}
           onClose={onClose}
-          onSwap={onSwap}
+          onSwap={props.onSwap}
         />
       )}
     </>

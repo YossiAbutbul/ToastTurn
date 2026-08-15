@@ -1,0 +1,31 @@
+.profile-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 4px 0 14px;
+}
+
+.profile-toast {
+  width: 58px;
+  height: 52px;
+  flex: 0 0 auto;
+  border: 3.5px solid var(--ink);
+  border-radius: 20px 20px 9px 9px;
+  box-shadow: 0 3px 0 var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 24px;
+  color: var(--ink);
+}
+
+.profile-who b {
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 20px;
+}
+.profile-who .empty {
+  padding: 2px 0 0;
+}

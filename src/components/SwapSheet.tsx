@@ -8,11 +8,12 @@ type SwapSheetProps = {
   open: boolean;
   family: Family;
   current: Person;
+  colorOf: (person: Person) => string;
   onClose: () => void;
   onSwap: (personId: string) => void;
 };
 
-export function SwapSheet({ open, family, current, onClose, onSwap }: SwapSheetProps) {
+export function SwapSheet({ open, family, current, colorOf, onClose, onSwap }: SwapSheetProps) {
   const counts = turnCounts(family);
   const others = [...family.people]
     .sort((a, b) => a.order - b.order)
@@ -24,7 +25,7 @@ export function SwapSheet({ open, family, current, onClose, onSwap }: SwapSheetP
 
       {others.map((person) => (
         <button className="pickbtn" type="button" key={person.id} onClick={() => onSwap(person.id)}>
-          <span className="mini" style={{ background: person.color }}>
+          <span className="mini" style={{ background: colorOf(person) }}>
             {initialOf(person.name)}
           </span>
           <b>{person.name}</b>

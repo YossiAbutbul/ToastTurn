@@ -1,6 +1,6 @@
 import { en } from '../i18n/en';
-import { prettyTime } from '../lib/format';
-import type { Schedule } from '../lib/types';
+import { initialOf, prettyTime } from '../lib/format';
+import type { Person, Schedule } from '../lib/types';
 
 type TopBarProps = {
   schedule: Schedule;
@@ -8,9 +8,12 @@ type TopBarProps = {
   onSchedule?: () => void;
   onHistory: () => void;
   onSettings: () => void;
+  /** Who this phone is, shown as the way into settings. */
+  me: Person | null;
+  myColor?: string;
 };
 
-export function TopBar({ schedule, onSchedule, onHistory, onSettings }: TopBarProps) {
+export function TopBar({ schedule, onSchedule, onHistory, onSettings, me, myColor }: TopBarProps) {
   return (
     <div className="bar">
       <div className="mark">
@@ -30,8 +33,16 @@ export function TopBar({ schedule, onSchedule, onHistory, onSettings }: TopBarPr
       <button className="pill" type="button" onClick={onHistory}>
         {en.home.history}
       </button>
-      <button className="pill dots" type="button" onClick={onSettings} aria-label={en.settings.open}>
-        ···
+      {/* Your own toast is the way into settings — it is also the reminder of
+          who this phone is. */}
+      <button
+        className="avatar"
+        type="button"
+        onClick={onSettings}
+        aria-label={en.settings.open}
+        style={myColor ? { background: myColor } : undefined}
+      >
+        {me ? initialOf(me.name) : '···'}
       </button>
     </div>
   );

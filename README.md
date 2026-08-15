@@ -48,10 +48,16 @@ up on every phone that has the link.
    family** and open that link on the second phone. It joins, asks which person
    is holding it, and from then on a pull on one phone lands on the other.
 
-**Who can change what.** The phone that created the family runs it: people,
-schedule, swapping the rotation, clearing the family. Every phone with the link
-can see whose turn it is, pull the lever and read the history. That split is
-enforced by the rules, not just hidden in the interface.
+**Who is who.** Everyone signs in — Google, or an email and password. The
+rotation stores each person's email, so a phone works out which person is
+holding it from the account, and their toast colour follows them anywhere. Put
+those addresses in when you add people; a signed-in account with no matching
+address can still watch the rotation, but it isn't anybody in it yet.
+
+**Who can change what.** The account that created the rotation runs it: people,
+schedule, order, clearing it. Everyone else can see whose turn it is, pull the
+lever, read the history and set their own colour. That split is enforced by the
+rules, not just hidden in the interface.
 
 Writes go through Firestore's persistent cache, so a turn logged with no signal
 is stored locally, shown immediately and replayed when the phone is back.

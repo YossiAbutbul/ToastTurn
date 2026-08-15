@@ -90,6 +90,39 @@ export async function pushFamily(family: Family, ownerUid?: string): Promise<voi
   );
 }
 
+/** The colours people picked for their own toast, by person id. */
+export function subscribeColors(
+  familyId: string,
+  onChange: (colors: Record<string, string>) => void,
+): () => void {
+  let stop: (() => void) | null = null;
+  let cancelled = false;
+
+  void (async () => {
+    const remote = await firestore();
+    if (!remote || cancelled) return;
+    const { db, fs } = remote;
+
+    stop = fs.onSnapshot(fs.doc(db, 'families', familyId, 'prefs', 'colors'), (snap) => {
+      onChange(snap.exists() ? (snap.data() as Record<string, string>) : {});
+    });
+    if (cancelled) stop();
+  })();
+
+  return () => {
+    cancelled = true;
+    stop?.();
+  };
+}
+
+/** Anyone in the rotation may set their own colour, and only their own. */
+export async function pushColor(familyId: string, personId: string, color: string): Promise<void> {
+  const remote = await firestore();
+  if (!remote) return;
+  const { db, fs } = remote;
+  await fs.setDoc(fs.doc(db, 'families', familyId, 'prefs', 'colors'), { [personId]: color }, { merge: true });
+}
+
 /**
  * Wipe a family everywhere. Without this a phone that still holds the family
  * locally simply republishes it, and nothing can ever be deleted.
@@ -102,6 +135,7 @@ export async function deleteFamily(familyId: string): Promise<void> {
   const turns = await fs.getDocs(fs.collection(db, 'families', familyId, 'turns'));
   const batch = fs.writeBatch(db);
   turns.forEach((turn) => batch.delete(turn.ref));
+  batch.delete(fs.doc(db, 'families', familyId, 'prefs', 'colors'));
   batch.delete(fs.doc(db, 'families', familyId));
   await batch.commit();
 }

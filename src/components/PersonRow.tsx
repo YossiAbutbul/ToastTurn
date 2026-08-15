@@ -17,10 +17,11 @@ type PersonRowProps = {
   lifted: boolean;
   drag: DragHandlers;
   onRemove: () => void;
+  onEmail: (email: string) => void;
 };
 
-/** One draggable name in the setup list. */
-export function PersonRow({ person, top, offset, lifted, drag, onRemove }: PersonRowProps) {
+/** One draggable name in the setup list, with the address they sign in with. */
+export function PersonRow({ person, top, offset, lifted, drag, onRemove, onEmail }: PersonRowProps) {
   return (
     <li
       className={lifted ? 'person-row lifted' : 'person-row'}
@@ -37,7 +38,18 @@ export function PersonRow({ person, top, offset, lifted, drag, onRemove }: Perso
           {initialOf(person.name)}
         </span>
       </span>
-      <b>{person.name}</b>
+      <div className="person-fields">
+        <b>{person.name}</b>
+        <input
+          type="text"
+          inputMode="email"
+          className="person-email"
+          aria-label={en.setup.emailFor(person.name)}
+          placeholder={en.setup.emailPlaceholder}
+          value={person.email ?? ''}
+          onChange={(e) => onEmail(e.target.value)}
+        />
+      </div>
       <button
         type="button"
         className="remove"

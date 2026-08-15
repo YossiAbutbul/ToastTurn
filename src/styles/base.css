@@ -21,6 +21,14 @@ body,
   height: 100%;
 }
 
+/* body centres #root, but #root still fills the width — without this the phone
+   frame sits against the left edge on a desktop. */
+#root {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 body {
   font-family: var(--ui);
   color: var(--ink);

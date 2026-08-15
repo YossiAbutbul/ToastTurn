@@ -7,15 +7,16 @@ import { Note } from '../components/Note';
 import { InstallHint } from '../components/InstallHint';
 import { HomeSheets } from '../components/HomeSheets';
 import type { SheetName } from '../components/HomeSheets';
-import { WhoAmI } from '../components/WhoAmI';
-import { useMe } from '../hooks/useMe';
 import { useIsOwner } from '../hooks/useIsOwner';
 import { useAccount } from '../hooks/useAccount';
+import { useColors } from '../hooks/useColors';
 import { SignInSheet } from '../components/SignInSheet';
+import { signOut } from '../lib/auth';
 import { useFamily } from '../store/useFamily';
 import { en } from '../i18n/en';
 import { formatShortDate, initialOf } from '../lib/format';
 import { getCurrentPerson, getUpcoming, lastTurnFor, turnCounts } from '../lib/rotation';
+import { personForEmail } from '../lib/people';
 import { nowISO } from '../lib/clock';
 import { newId } from '../lib/id';
 import { deleteFamily } from '../lib/remote';
@@ -24,19 +25,24 @@ import './Home.css';
 
 const FLASH_MS = 2400;
 
-export function Home({ onEditPeople }: { onEditPeople: () => void }) {
+type HomeProps = {
+  onEditPeople: () => void;
+  /** Signing out drops back to the welcome, without giving up the rotation. */
+  onLeave: () => void;
+};
+
+export function Home({ onEditPeople, onLeave }: HomeProps) {
   const { state, dispatch } = useFamily();
   const family = state.family as Family;
-  const { me, setMe } = useMe(family.id);
   const isOwner = useIsOwner(family);
   const { account } = useAccount();
+  const mePerson = personForEmail(family, account?.email);
+  const { colorOf, setMyColor } = useColors(family.id, account?.email);
 
   const [sheet, setSheet] = useState<SheetName>(null);
   const [status, setStatus] = useState<ToasterStatus>('idle');
   const [flash, setFlash] = useState<string | null>(null);
   const [note, setNote] = useState({ key: 0, text: '' });
-  const [asking, setAsking] = useState(false);
-  const [skippedAsk, setSkippedAsk] = useState(false);
   const [signingIn, setSigningIn] = useState(false);
   const flashTimer = useRef<number | undefined>(undefined);
 
@@ -44,7 +50,7 @@ export function Home({ onEditPeople }: { onEditPeople: () => void }) {
 
   const current = getCurrentPerson(family);
   const upcoming = getUpcoming(family, 4);
-  const closeSheet = useCallback(() => setSheet(null), []);
+  const closeSheet = () => setSheet(null);
 
   const handlePop = useCallback(() => {
     const done = getCurrentPerson(family);
@@ -65,6 +71,10 @@ export function Home({ onEditPeople }: { onEditPeople: () => void }) {
         sheet={sheet}
         family={family}
         current={current}
+        me={mePerson}
+        myColor={mePerson ? colorOf(mePerson) : 'var(--butter)'}
+        account={account}
+        colorOf={colorOf}
         onClose={closeSheet}
         onSkip={() => {
           dispatch({ type: 'skipWeek', id: newId(), madeAt: nowISO() });
@@ -83,39 +93,30 @@ export function Home({ onEditPeople }: { onEditPeople: () => void }) {
           dispatch({ type: 'reset' });
           window.history.replaceState(null, '', '/');
         }}
-        onWhoAmI={() => {
-          closeSheet();
-          setAsking(true);
-        }}
         onSignIn={() => {
           closeSheet();
           setSigningIn(true);
         }}
+        onSignOut={() => {
+          closeSheet();
+          void signOut().then(onLeave);
+        }}
+        onPickColor={setMyColor}
         isOwner={isOwner}
-        signedIn={Boolean(account)}
       />
       <SignInSheet open={signingIn} account={account} onClose={() => setSigningIn(false)} />
-      <WhoAmI
-        open={(asking || (!me && !skippedAsk)) && family.people.length > 0}
-        family={family}
-        onPick={(personId) => {
-          setMe(personId);
-          setAsking(false);
-        }}
-        onClose={() => {
-          setAsking(false);
-          setSkippedAsk(true);
-        }}
-      />
     </>
   );
 
   const bar = (
     <TopBar
       schedule={family.schedule}
-      onSchedule={isOwner ? () => setSheet('schedule') : undefined}
+      // The night lives in settings now, so the pill is a shortcut into it.
+      onSchedule={isOwner ? () => setSheet('settings') : undefined}
       onHistory={() => setSheet('history')}
       onSettings={() => setSheet('settings')}
+      me={mePerson}
+      myColor={mePerson ? colorOf(mePerson) : undefined}
     />
   );
 
@@ -136,7 +137,7 @@ export function Home({ onEditPeople }: { onEditPeople: () => void }) {
   }
 
   const last = lastTurnFor(family, current.id);
-  const idle = current.id === me ? en.lever.idleYou : en.lever.idle;
+  const idle = current.id === mePerson?.id ? en.lever.idleYou : en.lever.idle;
   const hint = flash ?? (status === 'idle' || status === 'popped' ? idle : en.lever[status]);
 
   return (

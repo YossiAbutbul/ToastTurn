@@ -1,36 +1,35 @@
 import { useState } from 'react';
 import { Sheet } from './Sheet';
+import { SettingsYou } from './SettingsYou';
+import { ScheduleFields } from './ScheduleFields';
 import { en } from '../i18n/en';
 import { initialOf } from '../lib/format';
 import { linkForFamily } from '../lib/url';
-import type { Family } from '../lib/types';
+import type { Account } from '../lib/auth';
+import type { Family, Person, Schedule } from '../lib/types';
 
 type SettingsSheetProps = {
   open: boolean;
   family: Family;
+  me: Person | null;
+  myColor: string;
+  account: Account | null;
+  colorOf: (person: Person) => string;
   onClose: () => void;
-  onEditPeople: () => void;
-  onToggleHoliday: (personId: string, active: boolean) => void;
-  onStartOver: () => void;
-  onWhoAmI: () => void;
+  onPickColor: (color: string) => void;
   onSignIn: () => void;
-  /** False on a phone that joined by link: it can log toast, not run the family. */
+  onSignOut: () => void;
+  onSchedule: (patch: Partial<Schedule>) => void;
+  onToggleHoliday: (personId: string, active: boolean) => void;
+  onEditPeople: () => void;
+  onStartOver: () => void;
+  /** False on a phone that joined by link: it can log toast, not run the rotation. */
   isOwner: boolean;
-  signedIn: boolean;
 };
 
-export function SettingsSheet({
-  open,
-  family,
-  onClose,
-  onEditPeople,
-  onToggleHoliday,
-  onStartOver,
-  onWhoAmI,
-  onSignIn,
-  isOwner,
-  signedIn,
-}: SettingsSheetProps) {
+/** Everything adjustable, in one place: you first, then the rotation. */
+export function SettingsSheet(props: SettingsSheetProps) {
+  const { family, isOwner, colorOf, onClose, open } = props;
   const [copied, setCopied] = useState(false);
   const people = [...family.people].sort((a, b) => a.order - b.order);
 
@@ -41,12 +40,32 @@ export function SettingsSheet({
 
   return (
     <Sheet open={open} title={en.settings.title} onClose={onClose}>
+      <div className="fieldlabel">{en.settings.youSection}</div>
+      <SettingsYou
+        me={props.me}
+        color={props.myColor}
+        account={props.account}
+        onPickColor={props.onPickColor}
+        onSignIn={props.onSignIn}
+        onSignOut={props.onSignOut}
+      />
+
+      <div className="fieldlabel spaced">{en.settings.rotationSection}</div>
+      <button className="ghost" type="button" onClick={() => void copyLink()}>
+        {copied ? en.settings.shared : en.settings.share}
+      </button>
+
+      {!isOwner && <p className="empty">{en.settings.guest}</p>}
+
       {isOwner && (
         <>
-          <div className="fieldlabel">{en.settings.holiday}</div>
+          <div className="fieldlabel spaced">{en.schedule.title}</div>
+          <ScheduleFields schedule={family.schedule} onChange={props.onSchedule} />
+
+          <div className="fieldlabel spaced">{en.settings.holiday}</div>
           {people.map((person) => (
             <div className="row" key={person.id}>
-              <span className="mini" style={{ background: person.color }}>
+              <span className="mini" style={{ background: colorOf(person) }}>
                 {initialOf(person.name)}
               </span>
               <b>{person.name}</b>
@@ -56,36 +75,20 @@ export function SettingsSheet({
                 role="switch"
                 aria-checked={!person.active}
                 aria-label={`${en.settings.holiday} — ${person.name}`}
-                onClick={() => onToggleHoliday(person.id, !person.active)}
+                onClick={() => props.onToggleHoliday(person.id, !person.active)}
               >
                 <i />
               </button>
             </div>
           ))}
-        </>
-      )}
 
-      <button className="ghost" type="button" onClick={() => void copyLink()}>
-        {copied ? en.settings.shared : en.settings.share}
-      </button>
-      <button className="ghost" type="button" onClick={onWhoAmI}>
-        {en.settings.whoAmI}
-      </button>
-      <button className="ghost" type="button" onClick={onSignIn}>
-        {isOwner && signedIn ? en.signIn.signedInTitle : en.signIn.open}
-      </button>
-
-      {isOwner ? (
-        <>
-          <button className="ghost" type="button" onClick={onEditPeople}>
+          <button className="ghost" type="button" onClick={props.onEditPeople}>
             {en.settings.editPeople}
           </button>
-          <button className="ghost" type="button" onClick={onStartOver}>
+          <button className="ghost" type="button" onClick={props.onStartOver}>
             {en.settings.startOver}
           </button>
         </>
-      ) : (
-        <p className="empty">{en.settings.guest}</p>
       )}
     </Sheet>
   );

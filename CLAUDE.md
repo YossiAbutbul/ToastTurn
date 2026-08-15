@@ -16,12 +16,15 @@ one of these, the constraint wins.
 1. **Mobile-first, and that's not a slogan.** Design at 390×844. Desktop is a
    centred phone-width column. Every interactive target is at least 44×44px and
    sits in the lower two thirds of the screen.
-2. **No accounts, no passwords, no email.** A family code in the URL plus a
-   "who am I" choice saved on the device is the entire identity system. From
-   phase 3 there is one invisible addition: an anonymous Firebase sign-in, which
-   nobody ever sees or types anything for. It exists only so the server can tell
-   the phone that created a family — the one allowed to change people, the
-   schedule and the rotation — from the phones that joined by link.
+2. **Identity, as of phase 3.** The original rule was "no accounts, no
+   passwords, no email"; the family code in the URL plus a "who am I" choice on
+   the device was the whole system. That was replaced on the owner's
+   instruction: everyone signs in now, with Google or an email and password.
+   The rotation stores each person's email, so a phone matches itself to a
+   person by who is signed in — there is no picker to get wrong, and your toast
+   colour follows you to any device. The account that creates a rotation owns
+   it, and is the only one the server lets change people, the schedule or the
+   order.
 3. **Works offline.** Opening the app on the kitchen wifi dead-spot must still
    show whose turn it is. Writes queue and sync when back online.
 4. **The main screen answers the question with zero taps.** Everything else —

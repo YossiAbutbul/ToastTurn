@@ -7,18 +7,38 @@ import { syncConfigured } from '../lib/firebase';
 import { en } from '../i18n/en';
 import './Welcome.css';
 
+type WelcomeProps = {
+  onStart: () => void;
+  /** Present when this phone already has a rotation to go back to. */
+  onOpen?: () => void;
+  notFound?: boolean;
+};
+
+type Pending = 'open' | 'start' | 'join' | null;
+
 /**
- * The first screen on a phone with no family. Whoever runs the family signs in
- * here; everyone else never sees it, because a share link goes straight home.
+ * The first screen on a phone with nothing open. Everything past it needs a
+ * sign-in, so each action asks for one and then carries on where it left off.
  */
-export function Welcome({ onStart, notFound }: { onStart: () => void; notFound?: boolean }) {
+export function Welcome({ onStart, onOpen, notFound }: WelcomeProps) {
   const { account } = useAccount();
   const [signingIn, setSigningIn] = useState(false);
   const [joining, setJoining] = useState(false);
+  const [pending, setPending] = useState<Pending>(null);
 
-  const start = () => {
-    if (syncConfigured && !account) setSigningIn(true);
-    else onStart();
+  const run = (what: Exclude<Pending, null>) => {
+    if (what === 'open') onOpen?.();
+    if (what === 'start') onStart();
+    if (what === 'join') setJoining(true);
+  };
+
+  const need = (what: Exclude<Pending, null>) => () => {
+    if (syncConfigured && !account) {
+      setPending(what);
+      setSigningIn(true);
+      return;
+    }
+    run(what);
   };
 
   return (
@@ -39,35 +59,38 @@ export function Welcome({ onStart, notFound }: { onStart: () => void; notFound?:
         {notFound && <p className="problem">{en.join.notFound}</p>}
         {account && <p className="empty">{en.signIn.signedInAs(account.email ?? '')}</p>}
 
-        <button className="close" type="button" onClick={start}>
-          {en.welcome.start}
-        </button>
+        {onOpen ? (
+          <>
+            <button className="close" type="button" onClick={need('open')}>
+              {en.welcome.open}
+            </button>
+            <button className="ghost" type="button" onClick={need('start')}>
+              {en.welcome.start}
+            </button>
+          </>
+        ) : (
+          <button className="close" type="button" onClick={need('start')}>
+            {en.welcome.start}
+          </button>
+        )}
 
-        <button className="ghost" type="button" onClick={() => setJoining(true)}>
+        <button className="ghost" type="button" onClick={need('join')}>
           {en.welcome.join}
         </button>
 
-        {account ? (
-          <button className="ghost" type="button" onClick={() => setSigningIn(true)}>
-            {en.signIn.signedInTitle}
-          </button>
-        ) : (
-          <p className="empty welcome-note">{en.welcome.signInFirst}</p>
-        )}
+        {!account && <p className="empty welcome-note">{en.welcome.signInFirst}</p>}
       </div>
 
-      <JoinSheet open={joining} onClose={() => setJoining(false)} />
-
-      {/* Starting a family while signed out would leave it on this phone with a
-          link nobody else could open, so sign-in comes first. */}
       <SignInSheet
         open={signingIn}
         account={account}
         onClose={() => {
           setSigningIn(false);
-          if (account) onStart();
+          if (account && pending) run(pending);
+          setPending(null);
         }}
       />
+      <JoinSheet open={joining} onClose={() => setJoining(false)} />
     </div>
   );
 }
