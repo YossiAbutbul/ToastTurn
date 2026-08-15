@@ -17,6 +17,7 @@ export const en = {
   lever: {
     label: "Pull the lever down to log this week's toast",
     idle: 'Pull the lever down when the toast is made',
+    idleYou: "You're up — pull the lever down when it's made",
     pulling: 'Keep pulling…',
     ready: 'Let go!',
     toasting: 'Toasting…',
@@ -66,6 +67,11 @@ export const en = {
     dragLabel: (name: string) => `Reorder ${name}`,
   },
 
+  whoAmI: {
+    title: 'Which one are you?',
+    blurb: 'Just on this phone. It stays here.',
+  },
+
   install: {
     prompt: 'Keep ToastTurn on your home screen.',
     ios: 'Keep ToastTurn on your home screen: tap Share, then Add to Home Screen.',
@@ -76,6 +82,9 @@ export const en = {
   settings: {
     title: 'Settings',
     open: 'Settings',
+    share: 'Copy the link for the family',
+    shared: 'Link copied',
+    whoAmI: 'Change who this phone is',
     holiday: 'On holiday',
     editPeople: 'Add or remove people',
     startOver: 'Start over',

@@ -1,3 +1,4 @@
+import { mergeFamily } from '../lib/mergeFamily';
 import { logTurn, skipWeek, swapPeople } from '../lib/rotation';
 import type { Family, Person, Schedule } from '../lib/types';
 
@@ -9,6 +10,7 @@ export type State = {
 
 export type Action =
   | { type: 'hydrate'; family: Family | null }
+  | { type: 'applyRemote'; family: Family }
   | { type: 'createFamily'; family: Family }
   | { type: 'renameFamily'; name: string }
   | { type: 'logTurn'; id: string; madeAt: string }
@@ -32,6 +34,9 @@ function renumber(people: Person[]): Person[] {
 
 export function familyReducer(state: State, action: Action): State {
   if (action.type === 'hydrate') return { family: action.family, ready: true };
+  if (action.type === 'applyRemote') {
+    return { family: mergeFamily(state.family, action.family), ready: true };
+  }
   if (action.type === 'createFamily') return { family: action.family, ready: true };
   if (action.type === 'reset') return { family: null, ready: true };
 

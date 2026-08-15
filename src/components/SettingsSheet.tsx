@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import { Sheet } from './Sheet';
 import { en } from '../i18n/en';
 import { initialOf } from '../lib/format';
+import { linkForFamily } from '../lib/url';
 import type { Family } from '../lib/types';
 
 type SettingsSheetProps = {
@@ -10,6 +12,7 @@ type SettingsSheetProps = {
   onEditPeople: () => void;
   onToggleHoliday: (personId: string, active: boolean) => void;
   onStartOver: () => void;
+  onWhoAmI: () => void;
 };
 
 export function SettingsSheet({
@@ -19,8 +22,15 @@ export function SettingsSheet({
   onEditPeople,
   onToggleHoliday,
   onStartOver,
+  onWhoAmI,
 }: SettingsSheetProps) {
+  const [copied, setCopied] = useState(false);
   const people = [...family.people].sort((a, b) => a.order - b.order);
+
+  const copyLink = async () => {
+    await navigator.clipboard.writeText(linkForFamily(window.location.origin, family.id));
+    setCopied(true);
+  };
 
   return (
     <Sheet open={open} title={en.settings.title} onClose={onClose}>
@@ -44,6 +54,12 @@ export function SettingsSheet({
         </div>
       ))}
 
+      <button className="ghost" type="button" onClick={() => void copyLink()}>
+        {copied ? en.settings.shared : en.settings.share}
+      </button>
+      <button className="ghost" type="button" onClick={onWhoAmI}>
+        {en.settings.whoAmI}
+      </button>
       <button className="ghost" type="button" onClick={onEditPeople}>
         {en.settings.editPeople}
       </button>

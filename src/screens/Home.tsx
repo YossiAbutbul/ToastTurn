@@ -5,10 +5,10 @@ import { TopBar } from '../components/TopBar';
 import { QueueBar } from '../components/QueueBar';
 import { Note } from '../components/Note';
 import { InstallHint } from '../components/InstallHint';
-import { HistorySheet } from '../components/HistorySheet';
-import { SwapSheet } from '../components/SwapSheet';
-import { ScheduleSheet } from '../components/ScheduleSheet';
-import { SettingsSheet } from '../components/SettingsSheet';
+import { HomeSheets } from '../components/HomeSheets';
+import type { SheetName } from '../components/HomeSheets';
+import { WhoAmI } from '../components/WhoAmI';
+import { useMe } from '../hooks/useMe';
 import { useFamily } from '../store/useFamily';
 import { en } from '../i18n/en';
 import { formatShortDate, initialOf } from '../lib/format';
@@ -18,18 +18,19 @@ import { newId } from '../lib/id';
 import type { Family } from '../lib/types';
 import './Home.css';
 
-type SheetName = 'history' | 'swap' | 'schedule' | 'settings' | null;
-
 const FLASH_MS = 2400;
 
 export function Home({ onEditPeople }: { onEditPeople: () => void }) {
   const { state, dispatch } = useFamily();
   const family = state.family as Family;
+  const { me, setMe } = useMe(family.id);
 
   const [sheet, setSheet] = useState<SheetName>(null);
   const [status, setStatus] = useState<ToasterStatus>('idle');
   const [flash, setFlash] = useState<string | null>(null);
   const [note, setNote] = useState({ key: 0, text: '' });
+  const [asking, setAsking] = useState(false);
+  const [skippedAsk, setSkippedAsk] = useState(false);
   const flashTimer = useRef<number | undefined>(undefined);
 
   useEffect(() => () => window.clearTimeout(flashTimer.current), []);
@@ -51,6 +52,47 @@ export function Home({ onEditPeople }: { onEditPeople: () => void }) {
     flashTimer.current = window.setTimeout(() => setFlash(null), FLASH_MS);
   }, [dispatch, family]);
 
+  const sheets = (
+    <>
+      <HomeSheets
+        sheet={sheet}
+        family={family}
+        current={current}
+        onClose={closeSheet}
+        onSkip={() => {
+          dispatch({ type: 'skipWeek', id: newId(), madeAt: todayISO() });
+          closeSheet();
+        }}
+        onSwap={(personId) => {
+          if (current) dispatch({ type: 'swap', aId: current.id, bId: personId });
+          closeSheet();
+        }}
+        onSchedule={(schedule) => dispatch({ type: 'setSchedule', schedule })}
+        onToggleHoliday={(id, active) => dispatch({ type: 'setActive', id, active })}
+        onEditPeople={onEditPeople}
+        onStartOver={() => {
+          if (window.confirm(en.settings.startOverConfirm)) dispatch({ type: 'reset' });
+        }}
+        onWhoAmI={() => {
+          closeSheet();
+          setAsking(true);
+        }}
+      />
+      <WhoAmI
+        open={(asking || (!me && !skippedAsk)) && family.people.length > 0}
+        family={family}
+        onPick={(personId) => {
+          setMe(personId);
+          setAsking(false);
+        }}
+        onClose={() => {
+          setAsking(false);
+          setSkippedAsk(true);
+        }}
+      />
+    </>
+  );
+
   const bar = (
     <TopBar
       schedule={family.schedule}
@@ -58,36 +100,6 @@ export function Home({ onEditPeople }: { onEditPeople: () => void }) {
       onHistory={() => setSheet('history')}
       onSettings={() => setSheet('settings')}
     />
-  );
-
-  const sheets = (
-    <>
-      <HistorySheet
-        open={sheet === 'history'}
-        family={family}
-        onClose={closeSheet}
-        onSkip={() => {
-          dispatch({ type: 'skipWeek', id: newId(), madeAt: todayISO() });
-          closeSheet();
-        }}
-      />
-      <ScheduleSheet
-        open={sheet === 'schedule'}
-        schedule={family.schedule}
-        onClose={closeSheet}
-        onChange={(schedule) => dispatch({ type: 'setSchedule', schedule })}
-      />
-      <SettingsSheet
-        open={sheet === 'settings'}
-        family={family}
-        onClose={closeSheet}
-        onEditPeople={onEditPeople}
-        onToggleHoliday={(id, active) => dispatch({ type: 'setActive', id, active })}
-        onStartOver={() => {
-          if (window.confirm(en.settings.startOverConfirm)) dispatch({ type: 'reset' });
-        }}
-      />
-    </>
   );
 
   if (!current) {
@@ -107,7 +119,8 @@ export function Home({ onEditPeople }: { onEditPeople: () => void }) {
   }
 
   const last = lastTurnFor(family, current.id);
-  const hint = flash ?? en.lever[status === 'popped' ? 'idle' : status];
+  const idle = current.id === me ? en.lever.idleYou : en.lever.idle;
+  const hint = flash ?? (status === 'idle' || status === 'popped' ? idle : en.lever[status]);
 
   return (
     <div className="device">
@@ -138,16 +151,6 @@ export function Home({ onEditPeople }: { onEditPeople: () => void }) {
       <QueueBar people={upcoming} onPick={() => setSheet('swap')} swapLabel={en.swap.title} />
       <Note playKey={note.key} text={note.text} />
 
-      <SwapSheet
-        open={sheet === 'swap'}
-        family={family}
-        current={current}
-        onClose={closeSheet}
-        onSwap={(personId) => {
-          dispatch({ type: 'swap', aId: current.id, bId: personId });
-          closeSheet();
-        }}
-      />
       {sheets}
     </div>
   );

@@ -1,0 +1,36 @@
+rules_version = '2';
+
+// The family code is the key to the family, exactly like the share link says.
+// You have to know a family id to read it, and nothing can list families, so a
+// code that is never shared is never found. There are no accounts by design —
+// see the "No accounts" non-negotiable in CLAUDE.md.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /families/{familyId} {
+      function sane() {
+        return request.resource.data.name is string
+          && request.resource.data.name.size() < 60
+          && request.resource.data.people is list
+          && request.resource.data.people.size() <= 20;
+      }
+
+      allow get: if true;
+      allow create, update: if sane();
+      allow list, delete: if false;
+
+      match /turns/{turnId} {
+        function saneTurn() {
+          return request.resource.data.personId is string
+            && request.resource.data.madeAt is string
+            && request.resource.data.skipped is bool;
+        }
+
+        // Listing turns needs the family id in the path, so it stays scoped.
+        allow get, list: if true;
+        allow create, update: if saneTurn();
+        allow delete: if false;
+      }
+    }
+  }
+}

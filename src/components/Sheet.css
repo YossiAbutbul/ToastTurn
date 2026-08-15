@@ -31,9 +31,10 @@
   overflow: hidden;
   visibility: hidden;
 }
-/* One height, whatever is in it — the list scrolls, the sheet doesn't move. */
+/* One height, whatever is in it — the list scrolls, the sheet doesn't move.
+   Half the screen keeps the toaster in view behind it. */
 .sheet.tall {
-  height: 78%;
+  height: 52%;
 }
 
 .sheet-body {

@@ -39,7 +39,7 @@ one of these, the constraint wins.
 | Styling | Plain CSS with custom properties, one file per component | The design is bespoke SVG and hand-tuned tokens. A utility framework would fight it |
 | State | React context + `useReducer` in `src/store/` | Five people and a queue. Redux/Zustand is overkill |
 | Persistence (phase 1) | `localStorage`, wrapped in `src/lib/storage.ts` | Never call `localStorage` directly from a component |
-| Persistence (phase 3) | Supabase (Postgres + realtime + anon key) | Free tier, realtime subscriptions, no server to run |
+| Persistence (phase 3) | Firebase Firestore (web SDK, no auth) | Free tier, realtime listeners, and its persistent cache queues offline writes for us |
 | Hosting | Netlify or Vercel, static | Push to main, deploy |
 | Tests | Vitest for the rotation logic only | Do not chase coverage on UI |
 
@@ -235,11 +235,13 @@ Commit at the end of each.
 - [ ] **Done when:** it installs on an iPhone and launches with no browser chrome.
 
 ### Phase 3 — Sync between phones
-- [ ] Supabase project, `families` and `turns` tables, RLS keyed on the family id
+- [ ] Firebase project, `families/{id}` documents with a `turns` subcollection,
+      security rules keyed on the family id (`firestore.rules`)
 - [ ] The family id lives in the URL (`/f/{id}`); opening that link joins
 - [ ] "Who am I" picker on first visit, stored per device
 - [ ] Realtime subscription so a pop on one phone updates the others
-- [ ] Optimistic writes with an offline queue, replayed on reconnect
+- [ ] Optimistic writes with an offline queue, replayed on reconnect —
+      Firestore's persistent cache does this, so do not hand-roll a queue
 - [ ] **Done when:** two phones show the same person, and pulling the lever on
       one updates the other within a second.
 
