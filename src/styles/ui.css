@@ -182,6 +182,13 @@ input[type='text'] {
   min-height: 48px;
 }
 
+/* Somebody else's order: the switch is refused, so it has to look refused.
+   A control that quietly ignores a tap reads as a broken one. */
+.tog:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
 .tog {
   width: 48px;
   height: 28px;

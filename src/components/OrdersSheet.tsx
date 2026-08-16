@@ -49,6 +49,11 @@ export function OrdersSheet({
   const [who, setWho] = useState<string | undefined>(first?.person.id);
   const [tab, setTab] = useState(0);
 
+  // Looking at somebody else lasts as long as the sheet is open. Closing it
+  // puts it back to you, because that is what it is for nine times in ten,
+  // and being shown a sibling's order on opening is a puzzle.
+  if (!open && who !== first?.person.id) setWho(first?.person.id);
+
   const chosen = lines.find((line) => line.person.id === who) ?? first;
   const mine = chosen ? canOrderFor(chosen.person.id) : false;
   const slices = chosen?.order?.slices ?? ONE_PLAIN;

@@ -19,7 +19,7 @@ export function SliceEditor({ slice, readOnly, onToggle }: SliceEditorProps) {
       {TOPPINGS.map((topping: Topping) => {
         const on = slice.toppings.includes(topping);
         return (
-          <div className="row" key={topping}>
+          <div className={readOnly ? 'row hushed' : 'row'} key={topping}>
             <span className={`mini chip-${topping}`} aria-hidden="true" />
             <b>{en.orders.toppings[topping]}</b>
             <button
