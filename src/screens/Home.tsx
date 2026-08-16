@@ -31,6 +31,7 @@ import { now, nowISO } from '../lib/clock';
 import { newId } from '../lib/id';
 import { colorForIndex } from '../lib/palette';
 import { deleteFamily, deleteTurn } from '../lib/remote';
+import { replacePath } from '../lib/history';
 import type { Family } from '../lib/types';
 import './Home.css';
 
@@ -178,10 +179,10 @@ export function Home({ onEditPeople, onLeave, onNewFamily }: HomeProps) {
           onNewFamily();
         }}
         onStartOver={() => {
-          if (!window.confirm(en.settings.startOverConfirm)) return;
+          // The asking happens in the sheet; by here it has been answered.
           void deleteFamily(family.id);
           dispatch({ type: 'reset' });
-          window.history.replaceState(null, '', '/');
+          replacePath('/');
         }}
         me={me}
         membership={membership}

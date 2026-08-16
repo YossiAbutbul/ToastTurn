@@ -221,8 +221,11 @@ export const en = {
     newRotation: 'Start another rotation',
     editPeople: 'Add or remove people',
     startOver: 'Start over',
-    startOverConfirm:
-      'This clears the family and every logged turn, on every phone that has the link. Start over?',
+    startOverAsk: (family: string) => `Clear ${family} and start over?`,
+    startOverNote:
+      'Everyone in the rotation goes, and so does every turn ever logged, on every phone that has the link. There is no getting it back.',
+    startOverYes: 'Clear it all',
+    startOverNo: 'Keep the rotation',
   },
 
   close: 'Close',

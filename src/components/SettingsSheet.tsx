@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Sheet } from './Sheet';
 import { SettingsYou } from './SettingsYou';
 import { RotationList } from './RotationList';
+import { Confirm } from './Confirm';
 import { en } from '../i18n/en';
 import { initialOf } from '../lib/format';
 import { linkForFamily } from '../lib/url';
@@ -35,6 +36,8 @@ type SettingsSheetProps = {
 export function SettingsSheet(props: SettingsSheetProps) {
   const { family, isOwner, onClose, open } = props;
   const [copied, setCopied] = useState(false);
+  // Clearing the rotation cannot be undone, so it is asked over the sheet.
+  const [clearing, setClearing] = useState(false);
   const people = [...family.people].sort((a, b) => a.order - b.order);
 
   const copyLink = async () => {
@@ -111,9 +114,22 @@ export function SettingsSheet(props: SettingsSheetProps) {
           <button className="ghost" type="button" onClick={props.onEditPeople}>
             {en.settings.editPeople}
           </button>
-          <button className="ghost" type="button" onClick={props.onStartOver}>
+          <button className="ghost" type="button" onClick={() => setClearing(true)}>
             {en.settings.startOver}
           </button>
+
+          <Confirm
+            open={clearing}
+            title={en.settings.startOverAsk(family.name || en.invite.unnamed)}
+            note={en.settings.startOverNote}
+            confirmLabel={en.settings.startOverYes}
+            cancelLabel={en.settings.startOverNo}
+            onCancel={() => setClearing(false)}
+            onConfirm={() => {
+              setClearing(false);
+              props.onStartOver();
+            }}
+          />
         </>
       )}
     </Sheet>
