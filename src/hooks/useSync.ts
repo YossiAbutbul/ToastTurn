@@ -1,8 +1,9 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { syncConfigured } from '../lib/firebase';
 import { pushFamily, pushRating, pushTurns, subscribeFamily } from '../lib/remote';
 import type { RemoteFamily } from '../lib/remote';
 import { metaChanged, unsentRatings, unsentTurns } from '../lib/mergeFamily';
+import { currentPath, replacePath, subscribePath } from '../lib/history';
 import { familyIdFromPath, pathForFamily } from '../lib/url';
 import { useAccount } from './useAccount';
 import { useFamily } from '../store/useFamily';
@@ -18,46 +19,81 @@ import type { Family } from '../lib/types';
 export function useSync() {
   const { state, dispatch } = useFamily();
   const { account } = useAccount();
-  const [remote, setRemote] = useState<Family | null>(null);
-  /** Which family the server has answered about, whether or not it exists. */
-  const [checkedId, setCheckedId] = useState<string | null>(null);
+  /**
+   * The last snapshot, tagged with the family it was of: switching rotations
+   * must not compare the new one against the old one's snapshot.
+   */
+  const [seen, setSeen] = useState<{ id: string; family: Family | null } | null>(null);
   /** Whether this family has ever been seen on the server. */
   const sawRemote = useRef(false);
+  const path = useSyncExternalStore(subscribePath, currentPath, () => '');
 
   const localId = state.family?.id ?? null;
-  const linkId = typeof window === 'undefined' ? null : familyIdFromPath(window.location.pathname);
+  const linkId = familyIdFromPath(path);
   const familyId = linkId ?? localId;
 
-  // Opening /f/{id} for a family this phone doesn't have means joining it.
-  const joining = linkId && linkId !== localId ? linkId : null;
+  // A link to a rotation this phone already holds just opens that one.
+  const held = linkId ? state.others.some((other) => other.id === linkId) : false;
 
-  // Keep the address bar on the family, so the link is always shareable, but
-  // only once someone is signed in, or the rewritten address would outlive the
-  // sign-out that was meant to close it.
+  // Opening /f/{id} for a family this phone doesn't have means joining it.
+  const joining = linkId && linkId !== localId && !held ? linkId : null;
+
+  /** Only a snapshot of the family being watched says anything about it. */
+  const remote = seen && seen.id === familyId ? seen.family : null;
+  /** Whether the server has answered about it, whether or not it exists. */
+  const checked = seen?.id === familyId;
+
+  /**
+   * The link, once it has had its say. A link decides which rotation opens,
+   * but only the first time it is seen: after that the open rotation decides
+   * the link, or switching rotations and rewriting the address would each keep
+   * undoing the other.
+   */
+  const followed = useRef<string | null>(null);
+
   useEffect(() => {
-    if (!localId || linkId === localId) return;
+    if (!localId) return;
+
+    if (linkId && linkId !== localId && followed.current !== linkId) {
+      followed.current = linkId;
+      // A rotation this phone already holds opens straight away; one it does
+      // not is waited for, with the link left in the address bar meanwhile.
+      if (held) return dispatch({ type: 'switchFamily', id: linkId });
+      if (joining) return;
+    }
+
+    if (linkId === localId) {
+      followed.current = linkId;
+      return;
+    }
+
+    // Keep the address bar on the open rotation, so the link is always
+    // shareable, but only once someone is signed in, or the rewritten address
+    // would outlive the sign-out that was meant to close it.
     if (syncConfigured && !account) return;
-    window.history.replaceState(null, '', pathForFamily(localId));
-  }, [account, linkId, localId]);
+    replacePath(pathForFamily(localId));
+  }, [account, dispatch, held, joining, linkId, localId]);
 
   useEffect(() => {
     if (!syncConfigured || !familyId || !state.ready) return;
 
+    // Nothing has been seen of this rotation yet, whatever was seen of the last.
+    sawRemote.current = false;
+
     return subscribeFamily(familyId, (incoming: RemoteFamily) => {
-      setCheckedId(familyId);
       if (!incoming) {
-        setRemote(null);
+        setSeen({ id: familyId, family: null });
         // It was there and now it isn't: someone cleared the family. Let it go
         // rather than republishing it from this phone's copy.
         if (sawRemote.current) {
           sawRemote.current = false;
           dispatch({ type: 'reset' });
-          window.history.replaceState(null, '', '/');
+          replacePath('/');
         }
         return;
       }
       sawRemote.current = true;
-      setRemote(incoming);
+      setSeen({ id: familyId, family: incoming });
       dispatch({ type: 'applyRemote', family: incoming });
     });
   }, [dispatch, familyId, state.ready]);
@@ -86,7 +122,7 @@ export function useSync() {
     joining,
     account,
     /** The link points at a rotation that isn't there. */
-    missing: Boolean(joining) && checkedId === familyId && remote === null,
+    missing: Boolean(joining) && checked && remote === null,
     /** True once the family has been seen from the other side. */
     synced: remote !== null,
   };

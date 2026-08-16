@@ -1,6 +1,7 @@
 import type { Family } from './types';
 
 const FAMILY_KEY = 'toastturn.family.v1';
+const FAMILIES_KEY = 'toastturn.families.v1';
 const INSTALL_HINT_KEY = 'toastturn.installHint.v1';
 
 /**
@@ -23,20 +24,34 @@ function write(key: string, value: string): void {
   }
 }
 
-export function loadFamily(): Family | null {
-  const raw = read(FAMILY_KEY);
+function parse(raw: string | null): unknown {
   if (!raw) return null;
   try {
-    const parsed = JSON.parse(raw) as Family;
-    if (!parsed?.id || !Array.isArray(parsed.people) || !Array.isArray(parsed.turns)) return null;
-    return parsed;
+    return JSON.parse(raw);
   } catch {
     return null;
   }
 }
 
-export function saveFamily(family: Family): void {
-  write(FAMILY_KEY, JSON.stringify(family));
+function isFamily(value: unknown): value is Family {
+  const family = value as Family | null;
+  return Boolean(family?.id) && Array.isArray(family?.people) && Array.isArray(family?.turns);
+}
+
+/**
+ * Every rotation this phone holds, the open one first. A phone from before
+ * rotations could be plural keeps its one, it is simply the only entry.
+ */
+export function loadFamilies(): Family[] {
+  const list = parse(read(FAMILIES_KEY));
+  if (Array.isArray(list)) return list.filter(isFamily);
+
+  const one = parse(read(FAMILY_KEY));
+  return isFamily(one) ? [one] : [];
+}
+
+export function saveFamilies(families: Family[]): void {
+  write(FAMILIES_KEY, JSON.stringify(families));
 }
 
 /** The add-to-home-screen hint is offered once and then never again. */
@@ -48,8 +63,9 @@ export function dismissInstallHint(): void {
   write(INSTALL_HINT_KEY, 'dismissed');
 }
 
-export function clearFamily(): void {
+export function clearFamilies(): void {
   try {
+    window.localStorage.removeItem(FAMILIES_KEY);
     window.localStorage.removeItem(FAMILY_KEY);
   } catch {
     // Nothing to do, there was nothing to clear.

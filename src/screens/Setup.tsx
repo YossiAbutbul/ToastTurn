@@ -18,12 +18,20 @@ const blankFamily = (): Family => ({
   turns: [],
 });
 
-export function Setup({ onDone }: { onDone: () => void }) {
+type SetupProps = {
+  onDone: () => void;
+  /** Start another rotation rather than edit the open one. */
+  fresh?: boolean;
+};
+
+export function Setup({ onDone, fresh }: SetupProps) {
   const { state, dispatch } = useFamily();
-  const existing = state.family;
+  const existing = fresh ? null : state.family;
   // Starting a rotation only asks who you are. Everyone else arrives by asking
   // to join, or gets added from settings later.
   const firstRun = !existing;
+  // There is somewhere to go back to only when a rotation is already open.
+  const canCancel = Boolean(state.family);
 
   const [name, setName] = useState(existing?.name ?? '');
   const [people, setPeople] = useState<Person[]>(
@@ -176,6 +184,11 @@ export function Setup({ onDone }: { onDone: () => void }) {
         <button className="close" type="button" onClick={save} disabled={firstRun ? draft.trim().length === 0 : people.length === 0}>
           {existing ? en.setup.save : en.setup.start}
         </button>
+        {canCancel && (
+          <button className="setup-back" type="button" onClick={onDone}>
+            {en.setup.cancel}
+          </button>
+        )}
       </div>
     </div>
   );

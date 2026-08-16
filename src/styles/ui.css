@@ -42,6 +42,13 @@
 .pickbtn:hover b {
   color: var(--coral);
 }
+/* The one already open: still listed, but nothing to press. */
+.pickbtn:disabled {
+  cursor: default;
+}
+.pickbtn:disabled b {
+  color: var(--coral);
+}
 .pickbtn b {
   font-family: var(--display);
   font-weight: 800;

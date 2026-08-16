@@ -11,10 +11,11 @@ import { useIsOwner } from '../hooks/useIsOwner';
 import { useAccount } from '../hooks/useAccount';
 import { useMembership } from '../hooks/useMembership';
 import { SignInSheet } from '../components/SignInSheet';
-import { JoinRequestSheet } from '../components/JoinRequestSheet';
+import { Waiting } from './Waiting';
 import { signOut } from '../lib/auth';
 import { syncConfigured } from '../lib/firebase';
 import { useFamily } from '../store/useFamily';
+import { allFamilies } from '../store/familyReducer';
 import { en } from '../i18n/en';
 import { formatShortDate, initialOf } from '../lib/format';
 import { getCurrentPerson, getUpcoming, lastTurnFor, rotationOrder, turnCounts } from '../lib/rotation';
@@ -31,9 +32,11 @@ type HomeProps = {
   onEditPeople: () => void;
   /** Signing out drops back to the welcome, without giving up the rotation. */
   onLeave: () => void;
+  /** Settings offers to start a second rotation without leaving this one. */
+  onNewFamily: () => void;
 };
 
-export function Home({ onEditPeople, onLeave }: HomeProps) {
+export function Home({ onEditPeople, onLeave, onNewFamily }: HomeProps) {
   const { state, dispatch } = useFamily();
   const family = state.family as Family;
   const isOwner = useIsOwner(family);
@@ -49,7 +52,6 @@ export function Home({ onEditPeople, onLeave }: HomeProps) {
   const [note, setNote] = useState({ key: 0, text: '' });
   const [signingIn, setSigningIn] = useState(false);
   const [day, setDay] = useState<Date | null>(null);
-  const [asking, setAsking] = useState(false);
   const flashTimer = useRef<number | undefined>(undefined);
 
   useEffect(() => () => window.clearTimeout(flashTimer.current), []);
@@ -85,6 +87,19 @@ export function Home({ onEditPeople, onLeave }: HomeProps) {
     window.clearTimeout(flashTimer.current);
     flashTimer.current = window.setTimeout(() => setFlash(null), FLASH_MS);
   }, [dispatch, family]);
+
+  // Someone who followed an invite gets the waiting room, not the rotation:
+  // the toast is nobody's business until the owner lets them in.
+  if (membership.state === 'stranger' || membership.state === 'pending') {
+    return (
+      <Waiting
+        familyName={family.name}
+        state={membership.state}
+        onAsk={membership.askToJoin}
+        onSignOut={() => void signOut().then(onLeave)}
+      />
+    );
+  }
 
   const approve = (uid: string, name: string) => {
     const wanted = name.trim().toLowerCase();
@@ -134,6 +149,15 @@ export function Home({ onEditPeople, onLeave }: HomeProps) {
         onToggleHoliday={(id, active) => dispatch({ type: 'setActive', id, active })}
         onEditPeople={onEditPeople}
         onApprove={approve}
+        families={allFamilies(state)}
+        onSwitchFamily={(id) => {
+          dispatch({ type: 'switchFamily', id });
+          closeSheet();
+        }}
+        onNewFamily={() => {
+          closeSheet();
+          onNewFamily();
+        }}
         onStartOver={() => {
           if (!window.confirm(en.settings.startOverConfirm)) return;
           void deleteFamily(family.id);
@@ -153,14 +177,6 @@ export function Home({ onEditPeople, onLeave }: HomeProps) {
         isOwner={isOwner}
       />
       <SignInSheet open={signingIn} account={account} onClose={() => setSigningIn(false)} />
-      <JoinRequestSheet
-        open={asking}
-        onClose={() => setAsking(false)}
-        onAsk={(name) => {
-          membership.askToJoin(name);
-          setAsking(false);
-        }}
-      />
     </>
   );
 
@@ -233,29 +249,6 @@ export function Home({ onEditPeople, onLeave }: HomeProps) {
         >
           {en.history.logSkip}
         </button>
-      )}
-
-      {membership.state !== 'owner' && membership.state !== 'member' && (
-        <div className="join-bar">
-          <p>
-            {membership.state === 'signed-out'
-              ? en.member.signedOut
-              : membership.state === 'pending'
-                ? en.member.pending
-                : en.member.askBlurb}
-          </p>
-          <button
-            type="button"
-            className="join-action"
-            disabled={membership.state === 'pending'}
-            onClick={() => {
-              if (membership.state === 'signed-out') setSigningIn(true);
-              else setAsking(true);
-            }}
-          >
-            {membership.state === 'signed-out' ? en.signIn.action : en.member.ask}
-          </button>
-        </div>
       )}
 
       <InstallHint />

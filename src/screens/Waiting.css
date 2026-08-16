@@ -1,0 +1,83 @@
+/* Same shape as the welcome: the slice on the wall, the buttons on the
+   counter. Nothing of the rotation shows until the owner lets them in. */
+.waiting-body {
+  position: relative;
+  z-index: 1;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: max(20px, env(safe-area-inset-top)) 24px 6px;
+  text-align: center;
+}
+
+.waiting-slice {
+  width: min(52%, 200px);
+  margin-block: auto -6px;
+}
+
+.waiting-title {
+  margin-block-start: auto;
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: clamp(26px, 8vw, 34px);
+  line-height: 1.05;
+  color: var(--coral);
+}
+
+.waiting-line {
+  margin-block-start: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink-soft);
+  max-width: 24ch;
+}
+
+.waiting-foot {
+  position: relative;
+  z-index: 1;
+  flex: 0 0 auto;
+  padding: 14px 20px max(18px, env(safe-area-inset-bottom));
+  background: var(--counter);
+}
+
+.waiting-foot .empty {
+  text-align: center;
+}
+
+.waiting-foot .close {
+  background: var(--coral);
+  border: 3px solid var(--ink);
+  box-shadow: 0 3px 0 var(--ink);
+  font-size: 14px;
+  letter-spacing: 0.02em;
+}
+.waiting-foot .close:active {
+  transform: translateY(3px);
+  box-shadow: none;
+}
+/* Once the reminder has gone there is nothing more to press. */
+.waiting-foot .close:disabled {
+  background: var(--paper);
+  color: var(--ink-soft);
+  box-shadow: none;
+  transform: none;
+}
+
+.waiting-plain {
+  display: block;
+  width: 100%;
+  margin-block-start: 12px;
+  padding: 6px;
+  border: none;
+  background: none;
+  font-family: var(--ui);
+  font-weight: 800;
+  font-size: 13px;
+  color: var(--ink-soft);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}

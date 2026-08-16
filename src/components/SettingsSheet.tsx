@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Sheet } from './Sheet';
 import { SettingsYou } from './SettingsYou';
+import { RotationList } from './RotationList';
 import { en } from '../i18n/en';
 import { initialOf } from '../lib/format';
 import { linkForFamily } from '../lib/url';
@@ -22,6 +23,10 @@ type SettingsSheetProps = {
   onStartOver: () => void;
   /** Owner only: let someone in, adding them to the rotation by name. */
   onApprove: (uid: string, name: string) => void;
+  /** Every rotation this phone is in, the open one first. */
+  families: Family[];
+  onSwitchFamily: (id: string) => void;
+  onNewFamily: () => void;
   /** False on a phone that joined by link: it can log toast, not run the rotation. */
   isOwner: boolean;
 };
@@ -46,6 +51,14 @@ export function SettingsSheet(props: SettingsSheetProps) {
         me={props.me}
         onSignIn={props.onSignIn}
         onSignOut={props.onSignOut}
+      />
+
+      <div className="fieldlabel spaced">{en.settings.rotationsSection}</div>
+      <RotationList
+        families={props.families}
+        openId={family.id}
+        onSwitch={props.onSwitchFamily}
+        onNew={props.onNewFamily}
       />
 
       <div className="fieldlabel spaced">{en.settings.rotationSection}</div>

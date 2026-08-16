@@ -14,7 +14,7 @@ export function App() {
   const { state } = useFamily();
   const sync = useSync();
   /** 'auto' means: the rotation if there is one, otherwise the welcome. */
-  const [screen, setScreen] = useState<'auto' | 'welcome' | 'setup'>('auto');
+  const [screen, setScreen] = useState<'auto' | 'welcome' | 'setup' | 'new'>('auto');
 
   if (!state.ready) return null;
   // Someone opened a share link: wait for that rotation rather than offering to
@@ -25,12 +25,17 @@ export function App() {
   // window into the rotation.
   const lockedOut = syncConfigured && !sync.account;
 
-  if (screen === 'setup') return <Setup onDone={() => setScreen('auto')} />;
+  // 'new' is the same screen with nothing filled in: a second rotation, kept
+  // alongside the ones this phone already has.
+  if (screen === 'setup' || screen === 'new') {
+    return <Setup fresh={screen === 'new'} onDone={() => setScreen('auto')} />;
+  }
 
   if (state.family && screen === 'auto' && !lockedOut) {
     return (
       <Home
         onEditPeople={() => setScreen('setup')}
+        onNewFamily={() => setScreen('new')}
         onLeave={() => {
           // Drop the link from the address bar too, or it would let them back in.
           window.history.replaceState(null, '', '/');
@@ -42,7 +47,7 @@ export function App() {
 
   return (
     <Welcome
-      onStart={() => setScreen('setup')}
+      onStart={() => setScreen('new')}
       onOpen={state.family ? () => setScreen('auto') : undefined}
       notFound={sync.missing}
     />

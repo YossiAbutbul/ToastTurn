@@ -20,7 +20,11 @@ const family = (over: Partial<Family> = {}): Family => ({
   ...over,
 });
 
-const ready = (over: Partial<Family> = {}): State => ({ family: family(over), ready: true });
+const ready = (over: Partial<Family> = {}): State => ({
+  family: family(over),
+  others: [],
+  ready: true,
+});
 
 describe('familyReducer', () => {
   it('ignores everything but hydrate until there is a family', () => {
@@ -60,6 +64,33 @@ describe('familyReducer', () => {
     const state = ready();
     expect(familyReducer(state, { type: 'movePerson', id: 'a', delta: -1 })).toBe(state);
     expect(familyReducer(state, { type: 'movePerson', id: 'c', delta: 1 })).toBe(state);
+  });
+
+  it('stands the open rotation behind a new one rather than dropping it', () => {
+    const next = familyReducer(ready(), { type: 'createFamily', family: family({ id: 'second' }) });
+    expect(next.family?.id).toBe('second');
+    expect(next.others.map((f) => f.id)).toEqual(['fam']);
+  });
+
+  it('switches to a rotation this phone already holds', () => {
+    const two = familyReducer(ready(), { type: 'createFamily', family: family({ id: 'second' }) });
+    const back = familyReducer(two, { type: 'switchFamily', id: 'fam' });
+    expect(back.family?.id).toBe('fam');
+    expect(back.others.map((f) => f.id)).toEqual(['second']);
+  });
+
+  it('opens a rotation arriving from a link without losing the others', () => {
+    const next = familyReducer(ready(), { type: 'applyRemote', family: family({ id: 'linked' }) });
+    expect(next.family?.id).toBe('linked');
+    expect(next.others.map((f) => f.id)).toEqual(['fam']);
+  });
+
+  it('opens the next rotation when the open one is left', () => {
+    const two = familyReducer(ready(), { type: 'createFamily', family: family({ id: 'second' }) });
+    const gone = familyReducer(two, { type: 'reset' });
+    expect(gone.family?.id).toBe('fam');
+    expect(gone.others).toEqual([]);
+    expect(familyReducer(gone, { type: 'reset' }).family).toBeNull();
   });
 
   it('patches the schedule without touching the rest of it', () => {

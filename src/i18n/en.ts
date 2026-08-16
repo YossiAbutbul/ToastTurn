@@ -79,6 +79,7 @@ export const en = {
     empty: "No one's in the rotation yet. Add the first person.",
     start: 'Start the rotation',
     save: 'Done',
+    cancel: 'Not now',
     editTitle: 'Who makes toast',
     dragHint: 'Drag to change the order · tap a toast to recolour it',
     colourLabel: 'Colour',
@@ -110,6 +111,16 @@ export const en = {
     waitingUnnamed: 'Someone',
     approved: (who: string) => `${who} is in.`,
     nobodyWaiting: 'Nobody is waiting.',
+
+    invitedTo: (family: string) => `You've been invited to ${family}.`,
+    invitedToRotation: "You've been invited to a rotation.",
+    askAction: 'Ask to be let in',
+    waitTitle: 'Waiting to be let in',
+    waitBlurb: 'Whoever runs the rotation has your name. The toast shows up here once they let you in.',
+    nudge: 'Remind them',
+    nudgeSent: 'Reminder sent',
+    nudgeBlurb: "They'll get a nudge the next time they open the app.",
+    notYou: 'Sign out',
   },
 
   day: {
@@ -178,6 +189,10 @@ export const en = {
     shared: 'Link copied',
     guest: 'The phone that started the rotation looks after the people and the schedule.',
     holiday: 'On holiday',
+    rotationsSection: 'Your rotations',
+    openRotation: 'Open',
+    openNow: 'Open now',
+    newRotation: 'Start another rotation',
     editPeople: 'Add or remove people',
     startOver: 'Start over',
     startOverConfirm:
