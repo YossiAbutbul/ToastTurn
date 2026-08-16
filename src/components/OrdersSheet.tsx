@@ -85,7 +85,7 @@ export function OrdersSheet({
       }),
     );
 
-  const done = chosen ? madeFor(chosen.person.id).includes(active) : false;
+  const done = chosen?.order ? madeFor(chosen.person.id).includes(active) : false;
 
   return (
     <Sheet
@@ -94,7 +94,7 @@ export function OrdersSheet({
       onClose={onClose}
       covered={covered}
       action={
-        chosen && (
+        chosen?.order && (
           <button
             type="button"
             className={done ? 'sheet-action made' : 'sheet-action'}
@@ -129,6 +129,23 @@ export function OrdersSheet({
             />
           )}
 
+          {!chosen.order &&
+            (mine ? (
+              <button
+                type="button"
+                className="ghost primary start-order"
+                onClick={() => save([{ toppings: [] }])}
+              >
+                {chosen.person.id === me?.id
+                  ? en.orders.startMine
+                  : en.orders.startTheirs(chosen.person.name)}
+              </button>
+            ) : (
+              <p className="empty">{en.orders.noneYet(chosen.person.name)}</p>
+            ))}
+
+          {chosen.order && (
+            <>
           <div className="slice-tabs" role="tablist" aria-label={en.orders.yours}>
             {slices.map((_, index) => (
               // A tab and its own × are two controls, so they are two buttons
@@ -204,6 +221,8 @@ export function OrdersSheet({
             onBlur={() => save(slices)}
             onKeyDown={(e) => e.key === 'Enter' && save(slices)}
           />
+            </>
+          )}
         </>
       )}
 
