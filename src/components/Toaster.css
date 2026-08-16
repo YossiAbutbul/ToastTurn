@@ -54,6 +54,11 @@
 .tt-slice-hop { transition: transform 0.17s cubic-bezier(0.1, 0.85, 0.3, 1); }
 .tt-crust { fill: url(#gCrust); transition: fill 0.95s linear; }
 .tt-crumb { fill: url(#gCrumb); transition: fill 0.95s linear; }
+/* The reload happens out of sight below the slot, so the fresh slice must be
+   its own colour the instant it jumps there: fading back up from toasted
+   would still be running when it springs into view. */
+.tt-slice-snap .tt-crust,
+.tt-slice-snap .tt-crumb { transition: none; }
 .tt-crust.tt-baked { fill: var(--toasted); }
 .tt-crumb.tt-baked { fill: var(--toasted-lt); }
 .tt-initial {

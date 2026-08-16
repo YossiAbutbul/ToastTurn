@@ -24,7 +24,11 @@ const SLICE_HOP = -30;
 const SLICE_BELOW = 92;
 
 const TOASTING_MS = 1050;
-const RESET_MS = 650;
+/**
+ * How long the browned slice sits there before the next person's goes in. It
+ * is the moment the whole pull is for, so it is not rushed off the screen.
+ */
+const RESET_MS = 1500;
 /** How long the slice spends in the air before it falls back into the slot. */
 const HOP_MS = 200;
 /** Long enough for one paint at the reload position, short enough to be unseen. */

@@ -161,7 +161,7 @@ the slice look inserted, so do not reorder):
 | Release ≥ 65% | — | Commit. Below that, spring back |
 | Toasting | 1050ms | Slice drops to `+78`, crust → `--toasted`, coils glow, dial needle spins |
 | Pop | 200ms up, then it settles | Slice is thrown to `-30`, drops back to `0`, steam runs, confirmation note appears |
-| Reset | 650ms later | Slice jumps to `+92` (no transition), recolours, next person's initial, then springs to `0` |
+| Reset | 1500ms later | Slice jumps to `+92` (no transition), recolours with no fade, next person's initial, then springs to `0` |
 
 Slice positions: `REST = 0`, `DEEP = 78`, `HOP = -30`, and the slice comes to
 rest back at `REST` — the jump does the popping. The slice is a whole piece of
