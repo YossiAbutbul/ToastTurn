@@ -1,13 +1,15 @@
 import { HistorySheet } from './HistorySheet';
 import { SwapSheet } from './SwapSheet';
+import { OrdersSheet } from './OrdersSheet';
 import { SettingsSheet } from './SettingsSheet';
 import { ScheduleSheet } from './ScheduleSheet';
 import { DaySheet } from './DaySheet';
 import type { Account } from '../lib/auth';
 import type { MembershipState } from '../hooks/useMembership';
+import type { Order, OrderLine, OrderTally } from '../lib/orders';
 import type { Family, Person, Schedule, Turn } from '../lib/types';
 
-export type SheetName = 'history' | 'swap' | 'settings' | 'schedule' | null;
+export type SheetName = 'history' | 'swap' | 'settings' | 'schedule' | 'orders' | null;
 
 type HomeSheetsProps = {
   sheet: SheetName;
@@ -28,6 +30,13 @@ type HomeSheetsProps = {
   uid?: string;
   /** Your own colour, however this phone is allowed to write it. */
   onSetColor: (color: string) => void;
+  /** What everyone wants, and the one line this phone may write. */
+  orders: {
+    lines: OrderLine[];
+    tally: OrderTally;
+    mine: Order | null;
+    set: (personId: string, choice: Omit<Order, 'personId' | 'updatedAt'>) => void;
+  };
   onSwap: (personId: string) => void;
   onSchedule: (patch: Partial<Schedule>) => void;
   onToggleHoliday: (personId: string, active: boolean) => void;
@@ -83,6 +92,16 @@ export function HomeSheets(props: HomeSheetsProps) {
           onChange={props.onSchedule}
         />
       )}
+
+      <OrdersSheet
+        open={sheet === 'orders'}
+        onClose={onClose}
+        lines={props.orders.lines}
+        tally={props.orders.tally}
+        me={props.me}
+        mine={props.orders.mine}
+        onSet={props.orders.set}
+      />
 
       <SettingsSheet
         open={sheet === 'settings'}

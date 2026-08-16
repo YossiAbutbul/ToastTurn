@@ -223,6 +223,40 @@ export const en = {
     theirs: (name: string) => `${name}'s colour`,
   },
 
+  orders: {
+    title: 'What everyone wants',
+    open: 'Orders',
+    orderNow: 'Order now',
+    trayEmpty: 'Nobody has said what they want',
+    trayYours: (n: number) => `You're making ${n}`,
+    trayOthers: (n: number) => `${n} on the list`,
+    yours: 'Yours',
+    everyone: 'The whole list',
+    sliceNo: (n: number) => `Slice ${n}`,
+    dropSlice: (n: number) => `Take slice ${n} off`,
+    addSlice: 'Add another slice',
+    slices: (n: number) => `${n} ${n === 1 ? 'slice' : 'slices'}`,
+    onTop: 'On top',
+    toppings: {
+      cheese: 'Cheese',
+      bulgarian: 'Bulgarian cheese',
+      tomatoes: 'Tomatoes',
+      olives: 'Olives',
+      ketchup: 'Ketchup',
+      sriracha: 'Sriracha',
+    },
+    plainSlice: 'plain',
+    noteLabel: 'Anything else',
+    notePlaceholder: 'Anything else you want on it?',
+    nothingYet: "Hasn't said yet",
+    said: (said: number, people: number, slices: number) =>
+      said === 0
+        ? 'Nobody has said yet.'
+        : `${said} of ${people} have said, ${slices} ${slices === 1 ? 'slice' : 'slices'} in all.`,
+    /** What to get out of the fridge, counted up. */
+    fridge: (parts: string[]) => parts.join(' · '),
+  },
+
   profile: {
     signedOut: 'Not signed in. You can still pull the lever.',
     notOwner: 'The account that started this rotation looks after the people and the schedule.',

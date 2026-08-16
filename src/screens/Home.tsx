@@ -11,7 +11,9 @@ import { useIsOwner } from '../hooks/useIsOwner';
 import { useAccount } from '../hooks/useAccount';
 import { useMembership } from '../hooks/useMembership';
 import { useSwaps } from '../hooks/useSwaps';
+import { useOrders } from '../hooks/useOrders';
 import { SwapAsk } from '../components/SwapAsk';
+import { OrderTray } from '../components/OrderTray';
 import { Notice } from '../components/Notice';
 import { SignInSheet } from '../components/SignInSheet';
 import { Waiting } from './Waiting';
@@ -85,6 +87,7 @@ export function Home({ onEditPeople, onLeave, onNewFamily }: HomeProps) {
     [dispatch],
   );
   const swaps = useSwaps({ family: stored, me: membership.me, isOwner, onApply: applySwap });
+  const orders = useOrders(family, membership.me?.id, isOwner);
 
   useEffect(() => () => window.clearTimeout(flashTimer.current), []);
 
@@ -218,6 +221,7 @@ export function Home({ onEditPeople, onLeave, onNewFamily }: HomeProps) {
           swaps.ask(personId, nextDue(family, now()).toISOString());
           if (them) setAsked(them.name);
         }}
+        orders={orders}
         onSetColor={(color) => {
           const mine = membership.me;
           if (!mine) return;
@@ -322,6 +326,13 @@ export function Home({ onEditPeople, onLeave, onNewFamily }: HomeProps) {
       </div>
 
       <div className="hint">{canLog ? hint : en.member.leverLocked}</div>
+
+      <OrderTray
+        lines={orders.lines}
+        making={Boolean(current) && current!.id === membership.me?.id}
+        ordered={orders.mine !== null}
+        onOpen={() => setSheet('orders')}
+      />
 
       {/* Nothing to skip once someone has made it: the week is settled. */}
       {canLog && !done && (

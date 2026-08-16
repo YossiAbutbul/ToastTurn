@@ -157,6 +157,43 @@ export async function pushMember(familyId: string, uid: string, entry: unknown):
   await fs.setDoc(fs.doc(db, 'families', familyId, 'prefs', 'members'), { [uid]: entry }, { merge: true });
 }
 
+/** What everyone wants, by person. */
+export function subscribeOrders(
+  familyId: string,
+  onChange: (board: Record<string, unknown>) => void,
+): () => void {
+  let stop: (() => void) | null = null;
+  let cancelled = false;
+
+  void (async () => {
+    const remote = await firestore();
+    if (!remote || cancelled) return;
+    const { db, fs } = remote;
+
+    stop = fs.onSnapshot(fs.doc(db, 'families', familyId, 'prefs', 'orders'), (snap) => {
+      onChange(snap.exists() ? (snap.data() as Record<string, unknown>) : {});
+    });
+    if (cancelled) stop();
+  })();
+
+  return () => {
+    cancelled = true;
+    stop?.();
+  };
+}
+
+/** Put one person's order up, under their own key and nobody else's. */
+export async function pushOrder(
+  familyId: string,
+  personId: string,
+  order: unknown,
+): Promise<void> {
+  const remote = await firestore();
+  if (!remote) return;
+  const { db, fs } = remote;
+  await fs.setDoc(fs.doc(db, 'families', familyId, 'prefs', 'orders'), { [personId]: order }, { merge: true });
+}
+
 /** The swap board: who has asked whom, and what they said back. */
 export function subscribeSwaps(
   familyId: string,
@@ -221,6 +258,7 @@ export async function deleteFamily(familyId: string): Promise<void> {
   turns.forEach((turn) => batch.delete(turn.ref));
   batch.delete(fs.doc(db, 'families', familyId, 'prefs', 'members'));
   batch.delete(fs.doc(db, 'families', familyId, 'prefs', 'swaps'));
+  batch.delete(fs.doc(db, 'families', familyId, 'prefs', 'orders'));
   batch.delete(fs.doc(db, 'families', familyId));
   await batch.commit();
 }

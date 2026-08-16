@@ -1,0 +1,166 @@
+/* One tab per slice, and a dashed one for the next. The history sheet's tabs
+   are a fixed pair; these come and go, so they share out the width instead of
+   sitting in a two column grid. */
+.slice-tabs {
+  display: flex;
+  gap: 6px;
+  padding-block: 4px 6px;
+}
+
+.slice-tabs .tab {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+/* The tab is a box holding two controls: the name, which selects it, and a
+   × which takes the slice off. It is painted as one thing. */
+.tab-box {
+  display: flex;
+  align-items: stretch;
+  overflow: hidden;
+  padding: 0;
+}
+
+.tab-pick {
+  flex: 1 1 auto;
+  min-width: 0;
+  background: none;
+  border: none;
+  font-family: var(--ui);
+  font-weight: 800;
+  font-size: 13px;
+  color: inherit;
+  cursor: pointer;
+  padding-inline: 8px;
+}
+
+.tab-x {
+  flex: 0 0 auto;
+  width: 30px;
+  background: none;
+  border: none;
+  border-inline-start: 2px dashed rgba(43, 36, 32, 0.25);
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 17px;
+  line-height: 1;
+  color: inherit;
+  cursor: pointer;
+}
+
+.tab-pick:focus,
+.tab-x:focus {
+  outline: none;
+}
+.tab-pick:focus-visible,
+.tab-x:focus-visible {
+  outline: 3px solid var(--mint);
+  outline-offset: -3px;
+  border-radius: 10px;
+}
+
+.tab-x:active {
+  transform: translateY(1px);
+}
+
+.slice-tabs .tab.add {
+  flex: 0 0 56px;
+  border-style: dashed;
+  font-family: var(--display);
+  font-size: 20px;
+  line-height: 1;
+}
+
+/* The colour chip in front of each topping is the rotation's own mini slice,
+   at its own size, so this sheet's two columns line up with every other list
+   in the app rather than nearly lining up. */
+.mini.chip-cheese { background: var(--butter); }
+.mini.chip-bulgarian { background: var(--paper); }
+.mini.chip-tomatoes { background: var(--coral); }
+.mini.chip-olives { background: var(--toasted); }
+.mini.chip-ketchup { background: var(--coral-dk); }
+.mini.chip-sriracha { background: var(--coil); }
+
+/* The marks that say what is on a slice, in the colours of the things, so an
+   order can be recognised in the list without being read. */
+.dots {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  flex: 0 0 auto;
+}
+
+.dot {
+  width: 11px;
+  height: 11px;
+  border: 2px solid var(--ink);
+  border-radius: 50%;
+  flex: 0 0 auto;
+}
+
+.empty-dots {
+  width: 20px;
+  height: 3px;
+  background: var(--dash);
+  border-radius: 2px;
+}
+
+.dot.cheese { background: var(--butter); }
+.dot.bulgarian { background: var(--paper); }
+.dot.tomatoes { background: var(--coral); }
+.dot.olives { background: var(--toasted); }
+.dot.ketchup { background: var(--coral-dk); }
+.dot.sriracha { background: var(--coil); }
+
+/* The shared field is Baloo at 24px, which is right for naming a family and
+   far too loud for "no crusts". This one talks at the same volume as the rows
+   above it. */
+.note-input[type='text'] {
+  font-family: var(--ui);
+  font-weight: 700;
+  font-size: 14.5px;
+  min-height: 44px;
+  padding-block: 8px;
+  padding-inline: 14px;
+  border-radius: 12px;
+  margin-block: 10px 2px;
+}
+
+/* What to get out of the fridge, for whoever is making it. */
+.fridge {
+  font-family: var(--ui);
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--ink);
+  padding-block: 0 8px;
+}
+
+.order-row {
+  align-items: flex-start;
+}
+
+.order-what {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.order-line {
+  font-family: var(--ui);
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--ink-soft);
+  overflow-wrap: anywhere;
+}
+
+.order-slice {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.order-line.quiet {
+  opacity: 0.75;
+}
