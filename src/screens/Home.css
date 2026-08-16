@@ -47,21 +47,30 @@
   align-items: center;
 }
 
+/* A round button, not a slice: the bread shape belongs to the people. */
 .avatar {
-  width: 34px;
-  height: 31px;
+  /* The same height as the pills beside it, or it sits proud of the bar. */
+  width: 28px;
+  height: 28px;
   flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border: 2.5px solid var(--ink);
-  border-radius: 12px 12px 5px 5px;
+  border-radius: 50%;
   background: var(--paper);
   box-shadow: 0 2px 0 var(--ink);
-  font-family: var(--display);
-  font-weight: 800;
-  font-size: 15px;
-  line-height: 1;
   color: var(--ink);
   cursor: pointer;
   padding: 0;
+}
+.avatar svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.6;
+  stroke-linecap: round;
 }
 .avatar:active {
   transform: translateY(2px);
