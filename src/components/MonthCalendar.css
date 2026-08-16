@@ -1,3 +1,12 @@
+/* The month has to fit the sheet without scrolling, so it divides up the room
+   it is given rather than asking for a fixed cell size. */
+.calendar {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
 .calendar-month {
   font-family: var(--display);
   font-weight: 800;
@@ -8,7 +17,10 @@
 .calendar-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
+  grid-auto-rows: minmax(0, 1fr);
   gap: 3px;
+  flex: 1;
+  min-height: 0;
 }
 
 .calendar-head {
@@ -25,7 +37,7 @@
    the number, which cost you the date you came to read. */
 .calendar-day {
   position: relative;
-  aspect-ratio: 1 / 1;
+  min-height: 0;
   border-radius: 10px;
   display: flex;
   flex-direction: column;
@@ -60,7 +72,7 @@
 /* A day someone made toast shows their initial in their colour. */
 .calendar-toast {
   width: 22px;
-  height: 18px;
+  height: 17px;
   border: 2.5px solid var(--ink);
   border-radius: 8px 8px 3px 3px;
   display: flex;

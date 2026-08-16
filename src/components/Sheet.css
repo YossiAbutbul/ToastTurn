@@ -35,10 +35,16 @@
   overflow: hidden;
   visibility: hidden;
 }
-/* One height, whatever is in it, the list scrolls, the sheet doesn't move.
-   Half the screen keeps the toaster in view behind it. */
+/* One height, whatever is in it, the list scrolls, the sheet doesn't move. */
 .sheet.tall {
-  height: 52%;
+  height: 76%;
+}
+
+/* A month is a fixed shape: it gets the room it needs and nothing scrolls. */
+.sheet-body:has(.calendar) {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .sheet-body {
@@ -168,4 +174,39 @@
   font-size: 11.5px;
   font-weight: 700;
   color: var(--ink-soft);
+}
+
+/* Two ways to read the same history, side by side at the top of the sheet. */
+.tabs {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  /* the sheet's own colour, so the list slides under rather than through */
+  background: var(--paper);
+  padding-block: 2px 12px;
+  margin-block-end: 4px;
+}
+
+.tab {
+  min-height: 42px;
+  border: 3px solid var(--ink);
+  border-radius: 14px;
+  background: var(--paper);
+  font-family: var(--ui);
+  font-weight: 800;
+  font-size: 13px;
+  color: var(--ink);
+  cursor: pointer;
+}
+.tab.on {
+  background: var(--coral);
+  color: var(--paper);
+  box-shadow: 0 3px 0 var(--ink);
+}
+.tab:active {
+  transform: translateY(2px);
+  box-shadow: none;
 }

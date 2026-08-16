@@ -29,6 +29,8 @@ export const en = {
 
   history: {
     title: 'History',
+    tabCalendar: 'Calendar',
+    tabList: 'Every turn',
     thisMonth: 'This month',
     everyTurn: 'Every turn',
     noneThisMonth: 'No toast this month yet.',

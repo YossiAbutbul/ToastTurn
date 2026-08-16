@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Sheet } from './Sheet';
 import { MonthStats } from './MonthStats';
 import { MonthCalendar } from './MonthCalendar';
@@ -20,36 +21,74 @@ type HistorySheetProps = {
   uid?: string;
 };
 
-export function HistorySheet({ open, family, onClose, onPickDay, onRate, uid, covered }: HistorySheetProps) {
+type Tab = 'calendar' | 'list';
+
+/** Two ways to look back: the month laid out, or everything in a line. */
+export function HistorySheet({
+  open,
+  family,
+  onClose,
+  onPickDay,
+  onRate,
+  uid,
+  covered,
+}: HistorySheetProps) {
+  const [tab, setTab] = useState<Tab>('calendar');
+
   return (
     <Sheet open={open} title={en.history.title} onClose={onClose} fixedHeight covered={covered}>
-      <MonthCalendar family={family} month={now()} onPickDay={onPickDay} />
+      <div className="tabs" role="tablist" aria-label={en.history.title}>
+        <button
+          type="button"
+          role="tab"
+          className={tab === 'calendar' ? 'tab on' : 'tab'}
+          aria-selected={tab === 'calendar'}
+          onClick={() => setTab('calendar')}
+        >
+          {en.history.tabCalendar}
+        </button>
+        <button
+          type="button"
+          role="tab"
+          className={tab === 'list' ? 'tab on' : 'tab'}
+          aria-selected={tab === 'list'}
+          onClick={() => setTab('list')}
+        >
+          {en.history.tabList}
+        </button>
+      </div>
 
-      <div className="fieldlabel spaced">{en.history.thisMonth}</div>
-      <MonthStats family={family} now={now()} />
+      {tab === 'calendar' ? (
+        <MonthCalendar family={family} month={now()} onPickDay={onPickDay} />
+      ) : (
+        <>
+          <div className="fieldlabel">{en.history.thisMonth}</div>
+          <MonthStats family={family} now={now()} />
 
-      <div className="fieldlabel spaced">{en.history.everyTurn}</div>
-      {family.turns.length === 0 && <p className="empty">{en.history.empty}</p>}
+          <div className="fieldlabel spaced">{en.history.everyTurn}</div>
+          {family.turns.length === 0 && <p className="empty">{en.history.empty}</p>}
 
-      {family.turns.map((turn) => {
-        const who = getPerson(family, turn.personId)?.name ?? '?';
-        return (
-          <div className="turn-row" key={turn.id}>
-            <div className="turn-head">
-              <b>{turn.skipped ? en.day.nobody : who}</b>
-              <span className="when">{formatShortDate(turn.madeAt)}</span>
-            </div>
-            {!turn.skipped && (
-              <Stars
-                verdict={verdict(turn)}
-                mine={myRating(turn, uid)}
-                label={en.history.rate(who)}
-                onRate={(rating) => onRate(turn.id, rating)}
-              />
-            )}
-          </div>
-        );
-      })}
+          {family.turns.map((turn) => {
+            const who = getPerson(family, turn.personId)?.name ?? '?';
+            return (
+              <div className="turn-row" key={turn.id}>
+                <div className="turn-head">
+                  <b>{turn.skipped ? en.day.nobody : who}</b>
+                  <span className="when">{formatShortDate(turn.madeAt)}</span>
+                </div>
+                {!turn.skipped && (
+                  <Stars
+                    verdict={verdict(turn)}
+                    mine={myRating(turn, uid)}
+                    label={en.history.rate(who)}
+                    onRate={(rating) => onRate(turn.id, rating)}
+                  />
+                )}
+              </div>
+            );
+          })}
+        </>
+      )}
     </Sheet>
   );
 }
