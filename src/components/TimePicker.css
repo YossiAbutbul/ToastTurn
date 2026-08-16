@@ -1,7 +1,9 @@
 /* One row, full width: hour, minutes, and which half of the day. */
+/* Fixed tracks: AM and PM are the same size, and the two dials never resize
+   when the hour goes from 9 to 12. */
 .clock {
   display: grid;
-  grid-template-columns: 1fr 1fr auto;
+  grid-template-columns: 1fr 1fr 72px;
   gap: 8px;
   margin-block-end: 4px;
 }
@@ -25,6 +27,7 @@
   line-height: 1;
   min-width: 2ch;
   text-align: center;
+  font-variant-numeric: tabular-nums;
 }
 
 .clock-step {
@@ -45,7 +48,7 @@
 }
 
 .clock-half {
-  min-width: 62px;
+  width: 100%;
   min-height: 52px;
   border: 3px solid var(--ink);
   border-radius: 16px;
