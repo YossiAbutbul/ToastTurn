@@ -18,7 +18,8 @@ const RESET_MS = 650;
 /** Long enough for one paint at the reload position, short enough to be unseen. */
 const SNAP_MS = 20;
 const NEEDLE_MS = 55;
-const NEEDLE_STEP = 22;
+/** The dial is a timer: it winds down one full turn and stops at the top. */
+const NEEDLE_SWEEP = 360;
 
 export type CyclePhase = 'idle' | 'toasting' | 'popped';
 
@@ -70,10 +71,13 @@ export function useToastCycle({ onPop }: Options) {
     setBaked(true);
 
     if (!reduced) {
+      // The step is cut from the bake, so the needle arrives at the top exactly
+      // as the toast pops rather than sweeping on past where it started.
+      const steps = Math.max(1, Math.round(toastMs / NEEDLE_MS));
       let tick = 0;
       spin.current = window.setInterval(() => {
         tick += 1;
-        setNeedle(tick * NEEDLE_STEP);
+        setNeedle(Math.min(NEEDLE_SWEEP, (tick * NEEDLE_SWEEP) / steps));
       }, NEEDLE_MS);
     }
 
