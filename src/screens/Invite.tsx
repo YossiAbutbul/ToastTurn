@@ -22,7 +22,12 @@ export function Invite({ familyName, onLeave }: InviteProps) {
   const name = familyName?.trim() || en.invite.unnamed;
 
   return (
-    <Gate kicker={en.invite.kicker} title={name} sub={en.invite.blurb}>
+    <Gate
+      kicker={en.invite.kicker}
+      title={name}
+      sub={en.invite.blurb}
+      sheets={<SignInSheet open={signingIn} account={account} onClose={() => setSigningIn(false)} />}
+    >
       <button className="close" type="button" onClick={() => setSigningIn(true)}>
         {en.invite.action}
       </button>
@@ -30,8 +35,6 @@ export function Invite({ familyName, onLeave }: InviteProps) {
       <button className="gate-plain" type="button" onClick={onLeave}>
         {en.invite.notNow}
       </button>
-
-      <SignInSheet open={signingIn} account={account} onClose={() => setSigningIn(false)} />
     </Gate>
   );
 }
