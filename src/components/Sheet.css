@@ -53,6 +53,9 @@
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-width: none;
+  /* Room under the last button for its shadow and the 2px it drops when
+     pressed: scrolled to the end, the clip would cut both off. */
+  padding-block-end: 6px;
 }
 .sheet-body::-webkit-scrollbar {
   display: none;
