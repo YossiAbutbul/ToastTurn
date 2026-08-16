@@ -244,7 +244,7 @@ export const en = {
     },
     plainSlice: 'plain',
     noteLabel: 'Anything else',
-    notePlaceholder: 'No crusts, cut in triangles…',
+    notePlaceholder: 'Anything else you want on it?',
     nothingYet: "Hasn't said yet",
     said: (said: number, people: number, slices: number) =>
       said === 0
