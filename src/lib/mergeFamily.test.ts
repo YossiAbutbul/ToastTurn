@@ -54,6 +54,14 @@ describe('mergeFamily', () => {
     expect(merged.turns).toHaveLength(1);
   });
 
+  it('leaves out the rating key on a turn nobody has rated', () => {
+    const shared = turn('t1', 'a', '2026-08-09');
+    const merged = mergeFamily(family({ turns: [shared] }), family({ turns: [shared] }));
+    // Not just undefined: the key itself has to be absent, or the server
+    // refuses the write that carries it.
+    expect(Object.hasOwn(merged.turns[0], 'rating')).toBe(false);
+  });
+
   it('lets the server settle name, people and schedule', () => {
     const local = family({ name: 'Mine', schedule: { weekday: 3, time: '07:00', remind: false } });
     const remote = family({ name: 'Theirs', people: [person('c', 0)] });

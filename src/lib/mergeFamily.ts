@@ -21,9 +21,12 @@ export function mergeFamily(local: Family | null, remote: Family): Family {
     // one given elsewhere arrives.
     const mine = byId.get(turn.id);
     const ratings = { ...mine?.ratings, ...turn.ratings };
+    // The single old-style rating is only carried when there is one: a key set
+    // to undefined is not the same as no key to the server, which refuses it.
+    const rating = turn.rating ?? mine?.rating;
     byId.set(turn.id, {
       ...turn,
-      rating: turn.rating ?? mine?.rating,
+      ...(rating === undefined ? {} : { rating }),
       ...(Object.keys(ratings).length > 0 ? { ratings } : {}),
     });
   }

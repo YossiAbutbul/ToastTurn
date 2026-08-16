@@ -21,6 +21,18 @@ type FamilyDoc = {
 };
 
 /**
+ * Firestore refuses a write that carries an undefined anywhere in it, and an
+ * optional field that was never filled in - a turn nobody has rated - is
+ * exactly that. Absent and undefined mean the same thing here, so the key goes
+ * rather than the write failing.
+ */
+function written<T extends object>(value: T): Partial<T> {
+  return Object.fromEntries(
+    Object.entries(value).filter(([, field]) => field !== undefined),
+  ) as Partial<T>;
+}
+
+/**
  * Watches one family and its turns. Fires on every change from any phone, and
  * immediately with whatever the offline cache already holds.
  */
@@ -90,7 +102,7 @@ export async function pushFamily(family: Family, ownerUid?: string): Promise<voi
 
   await fs.setDoc(
     fs.doc(db, 'families', family.id),
-    {
+    written({
       // The owner never changes hands; the server refuses writes that move it.
       ownerUid: family.ownerUid ?? ownerUid,
       ownerPersonId: family.ownerPersonId ?? null,
@@ -98,7 +110,7 @@ export async function pushFamily(family: Family, ownerUid?: string): Promise<voi
       people: family.people,
       schedule: family.schedule,
       updatedAt: fs.serverTimestamp(),
-    },
+    }),
     { merge: true },
   );
 }
@@ -183,7 +195,7 @@ export async function pushTurns(familyId: string, turns: Turn[]): Promise<void> 
   const batch = fs.writeBatch(db);
   for (const turn of turns) {
     const { id, ...rest } = turn;
-    batch.set(fs.doc(db, 'families', familyId, 'turns', id), rest, { merge: true });
+    batch.set(fs.doc(db, 'families', familyId, 'turns', id), written(rest), { merge: true });
   }
   await batch.commit();
 }
