@@ -75,12 +75,6 @@
   justify-content: center;
 }
 
-/* Yours, before you have said: an invitation rather than a count. */
-.qbadge.asking {
-  background: var(--coral);
-  color: var(--paper);
-}
-
 .qname {
   font-size: 10px;
   font-weight: 800;

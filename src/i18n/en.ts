@@ -229,7 +229,6 @@ export const en = {
     orderNow: 'Order now',
     trayYours: (n: number) => `You're making ${n}`,
     wants: (name: string, n: number) => `${name} wants ${n} ${n === 1 ? 'slice' : 'slices'}`,
-    askYours: 'Say what you want',
     yours: 'Yours',
     theirs: (name: string) => `For ${name}`,
     whose: 'Whose order',

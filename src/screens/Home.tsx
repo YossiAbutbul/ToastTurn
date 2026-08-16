@@ -382,9 +382,7 @@ export function Home({ onEditPeople, onLeave, onNewFamily }: HomeProps) {
             outstanding(line.order, orders.madeFor(line.person.id)),
           ]),
         )}
-        askingId={membership.me?.id}
         orderLabel={en.orders.wants}
-        askLabel={en.orders.askYours}
         onPick={isOwner || membership.me?.id === current?.id ? () => setSheet('swap') : undefined}
         swapLabel={en.swap.title}
         nowLabel={done ? en.home.upNext : en.home.upNow}

@@ -9,12 +9,9 @@ type QueueBarProps = {
   onPick?: () => void;
   swapLabel: (name: string) => string;
   nowLabel: (name: string) => string;
-  /** How many slices each person has asked for, by person id. */
+  /** How many slices each person still has coming, by person id. */
   slices: Record<string, number>;
-  /** You, when you have not said what you want: your toast asks. */
-  askingId?: string;
   orderLabel: (name: string, slices: number) => string;
-  askLabel: string;
 };
 
 /**
@@ -28,9 +25,7 @@ export function QueueBar({
   swapLabel,
   nowLabel,
   slices,
-  askingId,
   orderLabel,
-  askLabel,
 }: QueueBarProps) {
   return (
     <div className="queue">
@@ -38,7 +33,6 @@ export function QueueBar({
         const className = index === 0 ? 'qbtn now' : 'qbtn';
         const label = index === 0 ? nowLabel(person.name) : swapLabel(person.name);
         const wanted = slices[person.id] ?? 0;
-        const asking = person.id === askingId && wanted === 0;
 
         const inside = (
           <>
@@ -46,16 +40,12 @@ export function QueueBar({
                 with height and a heavier outline instead. */}
             <span className="qtoast" style={{ background: person.color }}>
               {initialOf(person.name)}
-              {/* What they want rides on their own toast: a number for slices
-                  asked for, and a + on yours until you have said. */}
+              {/* A badge says one thing and one thing only: how many slices
+                  are still to make for this person. Asking for an order is the
+                  button's job, and saying it twice read as clutter. */}
               {wanted > 0 && (
                 <i className="qbadge" aria-label={orderLabel(person.name, wanted)}>
                   {wanted}
-                </i>
-              )}
-              {asking && (
-                <i className="qbadge asking" aria-label={askLabel}>
-                  +
                 </i>
               )}
             </span>
