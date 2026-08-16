@@ -41,15 +41,7 @@ export function ShareCode({ familyId }: ShareCodeProps) {
 
   return (
     <>
-      <button
-        className="ghost primary"
-        type="button"
-        onClick={() => void copy(linkForFamily(window.location.origin, familyId), 'link')}
-      >
-        {copied === 'link' ? en.settings.shared : en.settings.share}
-      </button>
-
-      <p className="empty share-or">{en.settings.orCode}</p>
+      <p className="empty share-blurb">{en.settings.codeBlurb}</p>
 
       <button
         className="codebtn"
@@ -62,6 +54,16 @@ export function ShareCode({ familyId }: ShareCodeProps) {
           {familyId}
         </span>
         <span className="code-do">{copied === 'code' ? en.settings.codeCopied : en.settings.copyCode}</span>
+      </button>
+
+      <p className="empty share-or">{en.settings.orLink}</p>
+
+      <button
+        className="ghost primary"
+        type="button"
+        onClick={() => void copy(linkForFamily(window.location.origin, familyId), 'link')}
+      >
+        {copied === 'link' ? en.settings.shared : en.settings.share}
       </button>
     </>
   );
