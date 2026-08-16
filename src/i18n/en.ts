@@ -200,6 +200,14 @@ export const en = {
     dismiss: 'Not now',
   },
 
+  color: {
+    title: 'Your colour',
+    custom: 'Mix your own',
+    hue: 'Colour',
+    shade: 'Shade',
+    theirs: (name: string) => `${name}'s colour`,
+  },
+
   profile: {
     signedOut: 'Not signed in. You can still pull the lever.',
     notOwner: 'The account that started this rotation looks after the people and the schedule.',

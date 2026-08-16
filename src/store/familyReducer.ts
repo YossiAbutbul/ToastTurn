@@ -26,6 +26,7 @@ export type Action =
   | { type: 'addPerson'; person: Person }
   | { type: 'removePerson'; id: string }
   | { type: 'setActive'; id: string; active: boolean }
+  | { type: 'setColor'; id: string; color: string }
   | { type: 'movePerson'; id: string; delta: number }
   | { type: 'reset' };
 
@@ -139,6 +140,17 @@ export function familyReducer(state: State, action: Action): State {
         family: {
           ...family,
           people: family.people.map((p) => (p.id === action.id ? { ...p, active: action.active } : p)),
+        },
+      };
+
+    // Only the owner takes this path: everyone else keeps their colour in
+    // their own membership entry, which is theirs to write.
+    case 'setColor':
+      return {
+        ...state,
+        family: {
+          ...family,
+          people: family.people.map((p) => (p.id === action.id ? { ...p, color: action.color } : p)),
         },
       };
 

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { syncConfigured } from '../lib/firebase';
 import { pushMember, subscribeMembers } from '../lib/remote';
 import type { Account } from '../lib/auth';
@@ -11,6 +11,12 @@ export type Membership = {
   /** What they said their name is when they asked to join. */
   name?: string;
   email?: string;
+  /**
+   * Their own choice of colour. It lives here rather than on the person
+   * because only the owner's account may write the people, and everybody gets
+   * to choose their own.
+   */
+  color?: string;
 };
 
 export type MemberState = 'signed-out' | 'stranger' | 'pending' | 'member' | 'owner';
@@ -60,6 +66,19 @@ export function useMembership(family: Family, account: Account | null, isOwner: 
     [account, write],
   );
 
+  /**
+   * Your colour, kept under your own key. The owner does not come through
+   * here: they can write the people themselves, so their choice goes straight
+   * onto the person and reaches phones that never load this document.
+   */
+  const setColor = useCallback(
+    (color: string) => {
+      if (!mine) return;
+      write({ ...mine, color });
+    },
+    [mine, write],
+  );
+
   /** Owner only: let someone in as the person they will be in the rotation. */
   const approve = useCallback(
     (uid: string, personId: string) => {
@@ -76,9 +95,29 @@ export function useMembership(family: Family, account: Account | null, isOwner: 
       ? (family.people.find((p) => p.id === myPersonId) ?? null)
       : null;
 
+  // Everyone who has chosen a colour, by the person they are in the rotation.
+  const colorsByPerson = useMemo(() => {
+    const byPerson: Record<string, string> = {};
+    for (const entry of Object.values(members)) {
+      if (entry.status === 'approved' && entry.personId && entry.color) {
+        byPerson[entry.personId] = entry.color;
+      }
+    }
+    return byPerson;
+  }, [members]);
+
   const waiting = Object.entries(members)
     .filter(([, entry]) => entry.status === 'pending')
     .map(([uid, entry]) => ({ uid, name: entry.name ?? '', email: entry.email ?? uid }));
 
-  return { state, me, waiting, askToJoin, approve, canLog: state === 'owner' || state === 'member' };
+  return {
+    state,
+    me,
+    waiting,
+    askToJoin,
+    approve,
+    setColor,
+    colorsByPerson,
+    canLog: state === 'owner' || state === 'member',
+  };
 }

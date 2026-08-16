@@ -19,6 +19,7 @@ type SettingsSheetProps = {
   membership: MembershipState;
   onSignIn: () => void;
   onSignOut: () => void;
+  onSetColor: (color: string) => void;
   onToggleHoliday: (personId: string, active: boolean) => void;
   onEditPeople: () => void;
   onStartOver: () => void;
@@ -54,6 +55,7 @@ export function SettingsSheet(props: SettingsSheetProps) {
         me={props.me}
         onSignIn={props.onSignIn}
         onSignOut={props.onSignOut}
+        onSetColor={props.onSetColor}
       />
 
       <div className="fieldlabel spaced">{en.settings.rotationsSection}</div>

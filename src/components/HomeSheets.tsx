@@ -26,6 +26,8 @@ type HomeSheetsProps = {
   day: { date: Date | null; turns: Turn[] };
   /** The account doing the rating, if anyone is signed in. */
   uid?: string;
+  /** Your own colour, however this phone is allowed to write it. */
+  onSetColor: (color: string) => void;
   onSwap: (personId: string) => void;
   onSchedule: (patch: Partial<Schedule>) => void;
   onToggleHoliday: (personId: string, active: boolean) => void;
@@ -91,6 +93,7 @@ export function HomeSheets(props: HomeSheetsProps) {
         membership={props.membership}
         onSignIn={props.onSignIn}
         onSignOut={props.onSignOut}
+        onSetColor={props.onSetColor}
         onToggleHoliday={props.onToggleHoliday}
         onEditPeople={props.onEditPeople}
         onStartOver={props.onStartOver}

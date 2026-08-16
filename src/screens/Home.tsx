@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Toaster } from '../components/Toaster';
 import type { ToasterStatus } from '../components/Toaster';
 import { TopBar } from '../components/TopBar';
@@ -30,6 +30,7 @@ import {
 import { now, nowISO } from '../lib/clock';
 import { newId } from '../lib/id';
 import { colorForIndex } from '../lib/palette';
+import { withMemberColors } from '../lib/people';
 import { deleteFamily, deleteTurn } from '../lib/remote';
 import { replacePath } from '../lib/history';
 import type { Family } from '../lib/types';
@@ -47,11 +48,19 @@ type HomeProps = {
 
 export function Home({ onEditPeople, onLeave, onNewFamily }: HomeProps) {
   const { state, dispatch } = useFamily();
-  const family = state.family as Family;
-  const isOwner = useIsOwner(family);
+  const stored = state.family as Family;
+  const isOwner = useIsOwner(stored);
   const { account } = useAccount();
-  const membership = useMembership(family, account, isOwner);
-  const { me, canLog } = membership;
+  const membership = useMembership(stored, account, isOwner);
+  const { canLog } = membership;
+  // What everyone chose for themselves, over what the rotation has on file.
+  // Display only: what goes back up is always the stored copy, or a phone
+  // would publish colours that were never its to write.
+  const family = useMemo(
+    () => withMemberColors(stored, membership.colorsByPerson),
+    [stored, membership.colorsByPerson],
+  );
+  const me = membership.me ? (family.people.find((p) => p.id === membership.me!.id) ?? null) : null;
   // With no keys there are no accounts, so a rating is filed under the phone.
   const ratingUid = account?.uid ?? (syncConfigured ? undefined : 'this-phone');
 
@@ -164,6 +173,14 @@ export function Home({ onEditPeople, onLeave, onNewFamily }: HomeProps) {
         onSwap={(personId) => {
           if (current) dispatch({ type: 'swap', aId: current.id, bId: personId });
           closeSheet();
+        }}
+        onSetColor={(color) => {
+          const mine = membership.me;
+          if (!mine) return;
+          // The owner writes the person, everyone else writes their own
+          // membership entry: the rules allow each exactly one of the two.
+          if (membership.state === 'owner') dispatch({ type: 'setColor', id: mine.id, color });
+          else membership.setColor(color);
         }}
         onSchedule={(schedule) => dispatch({ type: 'setSchedule', schedule })}
         onToggleHoliday={(id, active) => dispatch({ type: 'setActive', id, active })}
