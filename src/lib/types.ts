@@ -51,6 +51,17 @@ export type Family = {
   schedule: Schedule;
   /** Newest first, capped at 200 locally. */
   turns: Turn[];
+  /**
+   * Turns the owner took off the board.
+   *
+   * Deleting a turn is not enough on its own: the logs of two phones are
+   * merged by union, so a turn removed here comes straight back from the other
+   * side, and then gets republished. The id is remembered instead, and every
+   * phone drops it.
+   */
+  removed?: string[];
 };
 
 export const TURN_CAP = 200;
+/** How many removals to remember. Long past what any family will undo. */
+export const REMOVED_CAP = 100;

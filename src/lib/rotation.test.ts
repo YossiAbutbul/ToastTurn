@@ -295,6 +295,11 @@ describe('removeTurn', () => {
     const twice = family(four(), [turn('t2', 'b', '2026-08-16'), turn('t1', 'a', '2026-08-09')]);
     expect(removeTurn(twice, 't2').turns.map((t) => t.id)).toEqual(['t1']);
   });
+
+  it('remembers the removal, so the other phones cannot hand it back', () => {
+    const made = family(four(), [turn('t1', 'a', '2026-08-16')]);
+    expect(removeTurn(made, 't1').removed).toEqual(['t1']);
+  });
 });
 
 describe('monthRange', () => {

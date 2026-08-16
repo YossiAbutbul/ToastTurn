@@ -1,4 +1,4 @@
-import { TURN_CAP } from './types';
+import { REMOVED_CAP, TURN_CAP } from './types';
 import type { Family, Person, Schedule, Turn } from './types';
 
 /** Everyone still in the rotation, in rotation order. */
@@ -157,7 +157,12 @@ export function logTurn(family: Family, turn: { id: string; madeAt: string; pers
  * turn hands it back to whoever was up before it.
  */
 export function removeTurn(family: Family, turnId: string): Family {
-  return { ...family, turns: family.turns.filter((turn) => turn.id !== turnId) };
+  return {
+    ...family,
+    turns: family.turns.filter((turn) => turn.id !== turnId),
+    // Remembered, or the other phones would hand it straight back.
+    removed: [turnId, ...(family.removed ?? []).filter((id) => id !== turnId)].slice(0, REMOVED_CAP),
+  };
 }
 
 /** Record a week nobody made toast. The rotation stays where it is. */

@@ -10,6 +10,7 @@ export type RemoteFamily = {
   people: Person[];
   schedule: Schedule;
   turns: Turn[];
+  removed?: string[];
 } | null;
 
 type FamilyDoc = {
@@ -18,6 +19,8 @@ type FamilyDoc = {
   schedule?: Schedule;
   ownerUid?: string;
   ownerPersonId?: string;
+  /** Turns the owner took off the board, so every phone drops them. */
+  removed?: string[];
 };
 
 /**
@@ -60,6 +63,7 @@ export function subscribeFamily(id: string, onChange: (family: RemoteFamily) => 
         people: meta.people ?? [],
         schedule: meta.schedule ?? { weekday: 0, time: '20:00', remind: true },
         turns,
+        removed: meta.removed ?? [],
       });
     };
 
@@ -109,6 +113,8 @@ export async function pushFamily(family: Family, ownerUid?: string): Promise<voi
       name: family.name,
       people: family.people,
       schedule: family.schedule,
+      // Every phone needs these, or it hands back the turns the owner removed.
+      removed: family.removed ?? [],
       updatedAt: fs.serverTimestamp(),
     }),
     { merge: true },

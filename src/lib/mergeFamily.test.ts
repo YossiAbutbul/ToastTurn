@@ -54,6 +54,27 @@ describe('mergeFamily', () => {
     expect(merged.turns).toHaveLength(1);
   });
 
+  it('does not hand back a turn this phone took off the board', () => {
+    const gone = turn('t1', 'a', '2026-08-09');
+    const local = family({ turns: [], removed: ['t1'] });
+    // The server has not caught up with the deletion yet.
+    const merged = mergeFamily(local, family({ turns: [gone] }));
+    expect(merged.turns).toEqual([]);
+  });
+
+  it('drops a turn the owner removed elsewhere, and remembers why', () => {
+    const gone = turn('t1', 'a', '2026-08-09');
+    const merged = mergeFamily(family({ turns: [gone] }), family({ turns: [], removed: ['t1'] }));
+    expect(merged.turns).toEqual([]);
+    expect(merged.removed).toEqual(['t1']);
+  });
+
+  it('carries the removals of a rotation joined by link', () => {
+    const gone = turn('t1', 'a', '2026-08-09');
+    const remote = family({ id: 'other', turns: [gone], removed: ['t1'] });
+    expect(mergeFamily(family({ id: 'mine' }), remote).turns).toEqual([]);
+  });
+
   it('leaves out the rating key on a turn nobody has rated', () => {
     const shared = turn('t1', 'a', '2026-08-09');
     const merged = mergeFamily(family({ turns: [shared] }), family({ turns: [shared] }));

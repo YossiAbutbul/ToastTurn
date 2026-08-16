@@ -1,4 +1,4 @@
-import { TURN_CAP } from './types';
+import { REMOVED_CAP, TURN_CAP } from './types';
 import type { Family, Turn } from './types';
 
 /**
@@ -11,11 +11,24 @@ import type { Family, Turn } from './types';
  * place that settles two phones editing at once.
  */
 export function mergeFamily(local: Family | null, remote: Family): Family {
-  if (!local || local.id !== remote.id) return { ...remote, turns: sortTurns(remote.turns) };
+  // A turn either side has taken off the board stays off it. The union below
+  // would otherwise hand back whatever the other phone still holds, and the
+  // phone that still held it would publish it again.
+  const sameFamily = Boolean(local) && local!.id === remote.id;
+  const removed = [
+    ...new Set([...(sameFamily ? (local!.removed ?? []) : []), ...(remote.removed ?? [])]),
+  ].slice(0, REMOVED_CAP);
+  const gone = new Set(removed);
+  const kept = (turns: Turn[]) => turns.filter((turn) => !gone.has(turn.id));
+  const tombstones = removed.length > 0 ? { removed } : {};
+
+  if (!sameFamily) {
+    return { ...remote, ...tombstones, turns: sortTurns(kept(remote.turns)) };
+  }
 
   const byId = new Map<string, Turn>();
-  for (const turn of local.turns) byId.set(turn.id, turn);
-  for (const turn of remote.turns) {
+  for (const turn of kept(local!.turns)) byId.set(turn.id, turn);
+  for (const turn of kept(remote.turns)) {
     // Ratings are per account, so the two sides are unioned rather than one
     // winning: a rating given here survives a snapshot that predates it, and
     // one given elsewhere arrives.
@@ -32,9 +45,10 @@ export function mergeFamily(local: Family | null, remote: Family): Family {
   }
 
   return {
-    ...local,
-    ownerUid: remote.ownerUid ?? local.ownerUid,
-    ownerPersonId: remote.ownerPersonId ?? local.ownerPersonId,
+    ...local!,
+    ...tombstones,
+    ownerUid: remote.ownerUid ?? local!.ownerUid,
+    ownerPersonId: remote.ownerPersonId ?? local!.ownerPersonId,
     name: remote.name,
     people: remote.people,
     schedule: remote.schedule,
@@ -97,6 +111,8 @@ function metaShape(family: Family): string {
   return JSON.stringify({
     name: family.name ?? '',
     ownerPersonId: family.ownerPersonId ?? null,
+    // Publishing these is how a removal reaches the other phones at all.
+    removed: [...(family.removed ?? [])].sort(),
     schedule: {
       weekday: family.schedule.weekday,
       time: family.schedule.time,
