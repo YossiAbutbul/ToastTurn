@@ -27,7 +27,10 @@ const ONE_PLAIN: Slice[] = [{ toppings: [] }];
 /** What everyone wants: yours at the top, the whole list underneath. */
 export function OrdersSheet({ open, onClose, lines, tally, me, mine, onSet, covered }: OrdersSheetProps) {
   const [note, setNote] = useState(mine?.note ?? '');
+  const [tab, setTab] = useState(0);
   const slices = mine?.slices ?? ONE_PLAIN;
+  // Taking a slice off can leave the tab pointing past the end of the list.
+  const active = Math.min(tab, slices.length - 1);
 
   const save = (nextSlices: Slice[], nextNote = note) => {
     if (!me) return;
@@ -64,23 +67,47 @@ export function OrdersSheet({ open, onClose, lines, tally, me, mine, onSet, cove
         <>
           <div className="fieldlabel">{en.orders.yours}</div>
 
-          {slices.map((slice, index) => (
-            <SliceEditor
-              key={index}
-              slice={slice}
-              index={index}
-              onRemove={slices.length > 1 ? () => save(slices.filter((_, i) => i !== index)) : undefined}
-              onToggle={(topping) => toggle(index, topping)}
-            />
-          ))}
+          <div className="tabs slice-tabs" role="tablist" aria-label={en.orders.yours}>
+            {slices.map((_, index) => (
+              <button
+                key={index}
+                type="button"
+                role="tab"
+                className={index === active ? 'tab on' : 'tab'}
+                aria-selected={index === active}
+                onClick={() => setTab(index)}
+              >
+                {en.orders.sliceNo(index + 1)}
+              </button>
+            ))}
 
-          {slices.length < SLICE_MAX && (
+            {slices.length < SLICE_MAX && (
+              <button
+                type="button"
+                className="tab add"
+                aria-label={en.orders.addSlice}
+                onClick={() => {
+                  save([...slices, { toppings: [] }]);
+                  setTab(slices.length);
+                }}
+              >
+                +
+              </button>
+            )}
+          </div>
+
+          <SliceEditor slice={slices[active]} onToggle={(topping) => toggle(active, topping)} />
+
+          {slices.length > 1 && (
             <button
               type="button"
-              className="ghost add-slice"
-              onClick={() => save([...slices, { toppings: [] }])}
+              className="skip-week drop-slice"
+              onClick={() => {
+                save(slices.filter((_, i) => i !== active));
+                setTab(Math.max(0, active - 1));
+              }}
             >
-              {en.orders.addSlice}
+              {en.orders.dropSlice(active + 1)}
             </button>
           )}
 
