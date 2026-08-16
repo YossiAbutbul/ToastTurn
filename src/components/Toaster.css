@@ -109,8 +109,9 @@
 .tt-lever {
   cursor: grab;
   transition: transform 0.26s cubic-bezier(0.16, 1.35, 0.4, 1);
-  /* Without this the browser claims the vertical drag as a pan and cancels
-     the pointer stream, so the lever never moves on a phone. */
+  /* Chrome and Firefox honour this on an SVG element and it stops the vertical
+     drag being claimed as a pan. Safari ignores it here, which is why .scene
+     carries the same rule and the drag is tracked on the window. */
   touch-action: none;
   -webkit-user-select: none;
   user-select: none;

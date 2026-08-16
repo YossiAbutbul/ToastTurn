@@ -105,6 +105,10 @@
 .scene {
   flex: 1 1 auto;
   min-height: 0;
+  /* Safari ignores touch-action on SVG elements, so the lever's own rule never
+     took effect on a phone and the pull was swallowed as a page pan. Declared
+     on the HTML box around it, where WebKit honours it. */
+  touch-action: none;
   display: flex;
   align-items: center;
   justify-content: center;
