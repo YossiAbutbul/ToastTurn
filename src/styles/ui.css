@@ -156,6 +156,18 @@
   box-shadow: none;
 }
 
+/* A code or a pasted link is not a family name: it is read, not announced. */
+input.code-input[type='text'] {
+  font-family: var(--ui);
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.04em;
+  min-height: 46px;
+  padding-block: 8px;
+  padding-inline: 14px;
+  border-radius: 12px;
+}
+
 input[type='time'],
 input[type='text'] {
   width: 100%;

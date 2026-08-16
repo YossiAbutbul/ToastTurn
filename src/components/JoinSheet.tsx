@@ -24,6 +24,7 @@ export function JoinSheet({ open, onClose }: { open: boolean; onClose: () => voi
       <div className="fieldlabel spaced">{en.join.label}</div>
       <input
         type="text"
+        className="code-input"
         aria-label={en.join.label}
         placeholder={en.join.placeholder}
         value={text}

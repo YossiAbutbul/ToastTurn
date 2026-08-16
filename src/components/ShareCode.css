@@ -14,14 +14,14 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding-block: 12px;
-  padding-inline: 16px;
+  padding-block: 10px;
+  padding-inline: 14px;
   background: var(--paper);
   border: 3.5px solid var(--ink);
   border-radius: 18px;
   box-shadow: 0 2px 0 var(--ink);
   cursor: pointer;
-  min-height: 56px;
+  min-height: 50px;
 }
 
 .codebtn:active {
@@ -37,11 +37,13 @@
   outline-offset: 3px;
 }
 
+/* Big enough to read out across a kitchen, no bigger. It was set at heading
+   size, which made a code look like a title. */
 .code {
   font-family: var(--display);
   font-weight: 800;
-  font-size: 22px;
-  letter-spacing: 2px;
+  font-size: 17px;
+  letter-spacing: 1.5px;
   color: var(--ink);
   overflow-wrap: anywhere;
   text-align: start;
