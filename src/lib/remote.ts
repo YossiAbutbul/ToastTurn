@@ -226,6 +226,18 @@ export async function pushMade(familyId: string, personId: string, made: number[
   await fs.setDoc(fs.doc(db, 'families', familyId, 'prefs', 'made'), { [personId]: made }, { merge: true });
 }
 
+/** Somebody wants nothing today: the order comes off the board. */
+export async function dropOrder(familyId: string, personId: string): Promise<void> {
+  const remote = await firestore();
+  if (!remote) return;
+  const { db, fs } = remote;
+  await fs.setDoc(
+    fs.doc(db, 'families', familyId, 'prefs', 'orders'),
+    { [personId]: fs.deleteField() },
+    { merge: true },
+  );
+}
+
 /** The swap board: who has asked whom, and what they said back. */
 export function subscribeSwaps(
   familyId: string,

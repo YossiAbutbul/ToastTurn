@@ -236,6 +236,7 @@ export const en = {
     everyone: 'The whole list',
     sliceNo: (n: number) => `Slice ${n}`,
     dropSlice: (n: number) => `Take slice ${n} off`,
+    dropOrder: (name: string) => `Nothing for ${name} today`,
     done: (slice: string) => `${slice} is made`,
     notDoneYet: (slice: string) => `${slice}: not made yet`,
     addSlice: 'Add another slice',

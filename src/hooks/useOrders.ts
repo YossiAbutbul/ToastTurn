@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { syncConfigured } from '../lib/firebase';
-import { pushMade, pushOrder, subscribeMade, subscribeOrders } from '../lib/remote';
+import { dropOrder, pushMade, pushOrder, subscribeMade, subscribeOrders } from '../lib/remote';
 import { listForFamily, madeFor, orderFor, tally, toggleMade } from '../lib/orders';
 import type { MadeBoard, Order, OrderBoard } from '../lib/orders';
 import { loadMade, loadOrders, saveMade, saveOrders } from '../lib/storage';
@@ -84,6 +84,30 @@ export function useOrders(family: Family, myPersonId: string | undefined, isOwne
     [family.id, setBoard],
   );
 
+  /** Nothing for them today: the order goes, rather than sitting there empty. */
+  const clear = useCallback(
+    (personId: string) => {
+      setBoard((current) => {
+        const next = { ...current };
+        delete next[personId];
+        if (!syncConfigured) saveOrders(family.id, next);
+        return next;
+      });
+
+      // The ticks go with it, or a later order would arrive half made.
+      setTicks((current) => {
+        const next = { ...current.board };
+        delete next[personId];
+        if (!syncConfigured) saveMade(current.id, next);
+        else void pushMade(current.id, personId, []);
+        return { id: current.id, board: next };
+      });
+
+      if (syncConfigured) void dropOrder(family.id, personId);
+    },
+    [family.id, setBoard],
+  );
+
   const lines = useMemo(() => listForFamily(board, family), [board, family]);
 
   return {
@@ -93,6 +117,7 @@ export function useOrders(family: Family, myPersonId: string | undefined, isOwne
     /** Which of a person's slices are already made. */
     madeFor: (personId: string) => madeFor(made, personId),
     setMade,
+    clear,
     /**
      * Whose order this phone may write. Everyone has their own; the owner
      * also speaks for the people who have no phone of their own.

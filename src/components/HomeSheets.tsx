@@ -38,6 +38,7 @@ type HomeSheetsProps = {
     canOrderFor: (personId: string) => boolean;
     madeFor: (personId: string) => number[];
     setMade: (personId: string, index: number) => void;
+    clear: (personId: string) => void;
     set: (personId: string, choice: Omit<Order, 'personId' | 'updatedAt'>) => void;
   };
   onSwap: (personId: string) => void;
@@ -104,6 +105,7 @@ export function HomeSheets(props: HomeSheetsProps) {
         canOrderFor={props.orders.canOrderFor}
         madeFor={props.orders.madeFor}
         onTick={props.orders.setMade}
+        onClear={props.orders.clear}
         onSet={props.orders.set}
       />
 

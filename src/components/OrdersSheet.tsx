@@ -22,6 +22,8 @@ type OrdersSheetProps = {
   /** Whose order this phone may write: your own, and everyone's if you run it. */
   canOrderFor: (personId: string) => boolean;
   onSet: (personId: string, choice: Choice) => void;
+  /** Take the whole order off: somebody wants nothing today. */
+  onClear: (personId: string) => void;
   covered?: boolean;
 };
 
@@ -37,6 +39,7 @@ export function OrdersSheet({
   me,
   canOrderFor,
   onSet,
+  onClear,
   covered,
 }: OrdersSheetProps) {
   // Everyone, because whoever is making the toast has to read the lot. What
@@ -141,14 +144,25 @@ export function OrdersSheet({
                   {en.orders.sliceNo(index + 1)}
                 </button>
 
-                {mine && slices.length > 1 && (
+                {/* On the last slice this takes the order off altogether:
+                    without it there is no way to say you want nothing. */}
+                {mine && (chosen.order || slices.length > 1) && (
                   <button
                     type="button"
                     className="tab-x"
-                    aria-label={en.orders.dropSlice(index + 1)}
+                    aria-label={
+                      slices.length > 1
+                        ? en.orders.dropSlice(index + 1)
+                        : en.orders.dropOrder(chosen.person.name)
+                    }
                     onClick={() => {
-                      save(slices.filter((_, i) => i !== index));
-                      setTab(index > 0 ? index - 1 : 0);
+                      if (slices.length > 1) {
+                        save(slices.filter((_, i) => i !== index));
+                        setTab(index > 0 ? index - 1 : 0);
+                      } else {
+                        onClear(chosen.person.id);
+                        setTab(0);
+                      }
                     }}
                   >
                     ×
