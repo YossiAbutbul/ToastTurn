@@ -257,17 +257,23 @@ Commit at the end of each.
       one updates the other within a second.
 
 ### Phase 4 — The nice parts
-- [ ] Push notification on toast morning (see the caveat below)
+- [x] ~~Push notification on toast morning~~ — dropped by the owner on
+      17 Aug 2026, after building it and walking through the setup. The caveat
+      below turned out to understate it: a reminder needs a Firebase service
+      account, a scheduler, and on the free plan a single daily cron that
+      cannot fire at the family's own hour. The work lives on the `feat/push`
+      branch, unmerged, if it is ever wanted.
 - [ ] Rate the toast 1–5, shown in history
 - [ ] Fairness stats — turns per person this month
 - [ ] Holiday mode toggle per person
 - [ ] Orders: each person marks what they want, the maker sees one combined list
 
-**Push caveat:** on iOS, web push only works if the PWA is installed to the home
-screen, needs iOS 16.4+, and requires a permission prompt triggered by a user
-gesture. Do not build the notification flow until phase 4, and when you do, treat
-it as an enhancement that silently no-ops if unsupported. Never block the core
-flow on it.
+**Push caveat, kept for the record.** On iOS, web push only works if the PWA is
+installed to the home screen, needs iOS 16.4+, and requires a permission prompt
+triggered by a user gesture. Building it confirmed all of that and added more:
+the browser half is the easy half. If it is ever picked up again, start from
+`feat/push`, where the client works end to end and only the scheduled sender is
+unproven.
 
 ---
 
