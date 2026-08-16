@@ -36,7 +36,9 @@ export function useSync() {
   const held = linkId ? state.others.some((other) => other.id === linkId) : false;
 
   // Opening /f/{id} for a family this phone doesn't have means joining it.
-  const joining = linkId && linkId !== localId && !held ? linkId : null;
+  // Without keys nothing can arrive, so the link is not something to wait on:
+  // waiting on it would leave the screen blank for good.
+  const joining = syncConfigured && linkId && linkId !== localId && !held ? linkId : null;
 
   /** Only a snapshot of the family being watched says anything about it. */
   const remote = seen && seen.id === familyId ? seen.family : null;
