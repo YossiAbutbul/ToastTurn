@@ -78,6 +78,46 @@ service cloud.firestore {
         allow delete: if isOwner();
       }
 
+      // What everyone wants, by person: { personId: { toastiness, butter } }.
+      //
+      // Keyed by person rather than by account, because half a family has no
+      // phone: the owner puts an order in for a child who cannot. Everyone
+      // else is held to the one line that belongs to them, which means looking
+      // up which person they are before letting the write through.
+      match /prefs/orders {
+        function familyOwner() {
+          return request.auth != null
+            && get(/databases/$(database)/documents/families/$(familyId)).data.ownerUid == request.auth.uid;
+        }
+
+        function membership() {
+          return get(/databases/$(database)/documents/families/$(familyId)/prefs/members)
+                   .data[request.auth.uid];
+        }
+
+        function approvedMember() {
+          return request.auth != null
+            && exists(/databases/$(database)/documents/families/$(familyId)/prefs/members)
+            && get(/databases/$(database)/documents/families/$(familyId)/prefs/members)
+                 .data.keys().hasAny([request.auth.uid])
+            && membership().status == 'approved';
+        }
+
+        // Whoever is making it has to be able to read the lot, signed in or not.
+        allow get, list: if true;
+
+        allow create: if familyOwner()
+          || (approvedMember()
+              && request.resource.data.keys().hasOnly([membership().personId]));
+
+        allow update: if familyOwner()
+          || (approvedMember()
+              && request.resource.data.diff(resource.data).affectedKeys()
+                   .hasOnly([membership().personId]));
+
+        allow delete: if familyOwner();
+      }
+
       // Asking someone to take your turn: { id: { from, to, date, status } }.
       //
       // The board is a place to leave a note, not a way around the owner. It

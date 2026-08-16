@@ -223,6 +223,33 @@ export const en = {
     theirs: (name: string) => `${name}'s colour`,
   },
 
+  orders: {
+    title: 'What everyone wants',
+    open: 'Orders',
+    openCount: (n: number) => `Orders (${n})`,
+    yours: 'Yours',
+    everyone: 'The whole list',
+    howToasted: 'How toasted',
+    toastiness: { light: 'Light', medium: 'Medium', dark: 'Dark' },
+    onTop: 'On top',
+    toppings: {
+      cheese: 'Cheese',
+      bulgarian: 'Bulgarian cheese',
+      tomatoes: 'Tomatoes',
+      olives: 'Olives',
+      ketchup: 'Ketchup',
+      sriracha: 'Sriracha',
+    },
+    plain: ', plain',
+    noteLabel: 'Anything else',
+    notePlaceholder: 'No crusts, cut in triangles…',
+    nothingYet: "Hasn't said yet",
+    said: (said: number, people: number) =>
+      said === 0 ? 'Nobody has said yet.' : `${said} of ${people} have said.`,
+    /** What to get out of the fridge, counted up. */
+    fridge: (parts: string[]) => parts.join(' · '),
+  },
+
   profile: {
     signedOut: 'Not signed in. You can still pull the lever.',
     notOwner: 'The account that started this rotation looks after the people and the schedule.',
