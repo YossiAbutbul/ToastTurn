@@ -29,11 +29,12 @@ one of these, the constraint wins.
    show whose turn it is. Writes queue and sync when back online.
 4. **The main screen answers the question with zero taps.** Everything else —
    history, swapping, settings — is behind a control.
-5. **RTL-ready from day one.** The UI ships in English, but the family reads
-   Hebrew. Use logical CSS properties (`margin-inline-start`, not
-   `margin-left`), never hardcode `left`/`right` in layout CSS, and keep all
-   user-facing strings in `src/i18n/en.ts` so a Hebrew file can be dropped in later.
-   The toaster SVG is the one exception — it does not mirror.
+5. **English only.** A Hebrew translation and an RTL pass were dropped by the
+   owner on 16 Aug 2026: the app ships in English and stays that way. The two
+   habits that came from that plan are worth keeping anyway, and the codebase
+   already follows them throughout, so leave them alone: logical CSS
+   properties (`margin-inline-start`, not `margin-left`), and every
+   user-facing string in `src/i18n/en.ts` rather than loose in JSX.
 
 ---
 
@@ -261,7 +262,6 @@ Commit at the end of each.
 - [ ] Fairness stats — turns per person this month
 - [ ] Holiday mode toggle per person
 - [ ] Orders: each person marks what they want, the maker sees one combined list
-- [ ] Hebrew translation and an RTL pass
 
 **Push caveat:** on iOS, web push only works if the PWA is installed to the home
 screen, needs iOS 16.4+, and requires a permission prompt triggered by a user

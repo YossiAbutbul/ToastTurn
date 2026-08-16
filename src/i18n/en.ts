@@ -1,4 +1,4 @@
-/** Every user-facing string. A Hebrew file drops in beside this one later. */
+/** Every user-facing string. One file, so no copy is stranded in a component. */
 export const en = {
   brand: { first: 'Toast', second: 'Turn' },
 
