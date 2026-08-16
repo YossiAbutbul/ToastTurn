@@ -62,7 +62,7 @@ export function SettingsSheet(props: SettingsSheetProps) {
       />
 
       <div className="fieldlabel spaced">{en.settings.rotationSection}</div>
-      <button className="ghost" type="button" onClick={() => void copyLink()}>
+      <button className="ghost primary" type="button" onClick={() => void copyLink()}>
         {copied ? en.settings.shared : en.settings.share}
       </button>
 

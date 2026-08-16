@@ -36,7 +36,7 @@ export function JoinSheet({ open, onClose }: { open: boolean; onClose: () => voi
 
       {problem && <p className="problem">{en.join.problem}</p>}
 
-      <button className="ghost" type="button" onClick={join}>
+      <button className="ghost primary" type="button" onClick={join}>
         {en.join.action}
       </button>
     </Sheet>

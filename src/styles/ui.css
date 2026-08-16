@@ -134,6 +134,28 @@
   box-shadow: none;
 }
 
+/* The one thing a sheet is actually for: the ink slab. Everything else in it
+   stays light, so a list of settings never reads as a row of demands. */
+.ghost.primary {
+  background: var(--ink);
+  color: var(--paper);
+}
+.ghost.primary:disabled {
+  background: var(--dash);
+  color: var(--ink-soft);
+}
+
+.sheet .close {
+  background: var(--paper);
+  color: var(--ink);
+  border: 2.5px solid var(--ink);
+  box-shadow: 0 2px 0 var(--ink);
+}
+.sheet .close:active {
+  transform: translateY(2px);
+  box-shadow: none;
+}
+
 input[type='time'],
 input[type='text'] {
   width: 100%;

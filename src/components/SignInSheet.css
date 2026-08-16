@@ -1,0 +1,33 @@
+/* The Google button, which has to look like Google's rather than like ours:
+   its mark carries Google's four colours. They are brand marks, not tokens,
+   and nothing outside this button may use them. */
+.google {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.google-g {
+  width: 19px;
+  height: 19px;
+  flex: 0 0 auto;
+}
+.google-g .g-blue {
+  fill: #4285f4;
+}
+.google-g .g-green {
+  fill: #34a853;
+}
+.google-g .g-yellow {
+  fill: #fbbc05;
+}
+.google-g .g-red {
+  fill: #ea4335;
+}
+
+.google:disabled .google-g {
+  opacity: 0.4;
+}
