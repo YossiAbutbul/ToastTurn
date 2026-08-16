@@ -67,7 +67,7 @@ export function ToasterBody({ glow, needle }: ToasterBodyProps) {
       {/* badge */}
       <rect x="146" y="180" width="108" height="32" rx="16" className="tt-badge tt-ink" strokeWidth="4.5" />
       <text x="200" y="202" textAnchor="middle" className="tt-badge-text" letterSpacing="1.2">
-        TOASTTURN
+        TOAST
       </text>
 
       {/* base plinth */}

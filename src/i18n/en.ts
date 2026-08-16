@@ -149,7 +149,10 @@ export const en = {
     made: (name: string) => `${name} made it`,
     notYet: 'That day has not happened yet.',
     remove: 'Take this turn off the board',
-    removeConfirm: 'Take this turn off the board? Whoever was up before it goes back to being up.',
+    removeAsk: (name: string) => `Take ${name}'s turn off the board?`,
+    removeNote: 'Whoever was up before it goes back to being up.',
+    removeYes: 'Take it off',
+    removeNo: 'Keep it',
   },
 
   join: {

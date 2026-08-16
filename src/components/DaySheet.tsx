@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Sheet } from './Sheet';
 import { Stars } from './Stars';
 import { en } from '../i18n/en';
@@ -32,10 +33,9 @@ export function DaySheet(props: DaySheetProps) {
   const { open, family, date, turns, uid, onClose, onRate, isOwner } = props;
   const title = date ? LONG_DATE.format(date) : en.history.title;
 
-  const remove = (turnId: string) => {
-    if (!window.confirm(en.day.removeConfirm)) return;
-    props.onRemove(turnId);
-  };
+  // Asking happens in the sheet, in the app's own voice, rather than in the
+  // browser's grey box with the family's rotation named in it.
+  const [asking, setAsking] = useState<string | null>(null);
 
   // A day gone by with nothing on it is one the family forgot to log, and the
   // owner is the one who can say who made it after the fact.
@@ -110,11 +110,36 @@ export function DaySheet(props: DaySheetProps) {
               </>
             )}
 
-            {isOwner && (
-              <button className="ghost day-remove" type="button" onClick={() => remove(turn.id)}>
-                {en.day.remove}
-              </button>
-            )}
+            {isOwner &&
+              (asking === turn.id ? (
+                <div className="day-confirm">
+                  <b>{en.day.removeAsk(turn.skipped ? en.day.nobody.toLowerCase() : name)}</b>
+                  <p>{en.day.removeNote}</p>
+                  <div className="day-confirm-row">
+                    <button className="ghost" type="button" onClick={() => setAsking(null)}>
+                      {en.day.removeNo}
+                    </button>
+                    <button
+                      className="ghost primary"
+                      type="button"
+                      onClick={() => {
+                        setAsking(null);
+                        props.onRemove(turn.id);
+                      }}
+                    >
+                      {en.day.removeYes}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  className="ghost day-remove"
+                  type="button"
+                  onClick={() => setAsking(turn.id)}
+                >
+                  {en.day.remove}
+                </button>
+              ))}
           </div>
         );
       })}
