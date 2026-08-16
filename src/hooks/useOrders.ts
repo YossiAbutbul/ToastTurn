@@ -15,7 +15,7 @@ import type { Family } from '../lib/types';
  * keeps the board in local storage, which is enough for a family that shares
  * one tablet on the counter.
  */
-export function useOrders(family: Family, myPersonId: string | undefined, isOwner: boolean) {
+export function useOrders(family: Family, myPersonId: string | undefined) {
   const [held, setHeld] = useState<{ id: string; board: OrderBoard }>(() => ({
     id: family.id,
     board: syncConfigured ? {} : (loadOrders(family.id) as OrderBoard),
@@ -119,10 +119,12 @@ export function useOrders(family: Family, myPersonId: string | undefined, isOwne
     setMade,
     clear,
     /**
-     * Whose order this phone may write. Everyone has their own; the owner
-     * also speaks for the people who have no phone of their own.
+     * Whose order this phone may write: your own, and nobody else's. Running
+     * the rotation does not extend to deciding what anyone else eats.
+     * Reading everyone's, and ticking them off, is a separate matter, because
+     * whoever is making the toast has to do both.
      */
-    canOrderFor: (personId: string) => isOwner || personId === myPersonId,
+    canOrderFor: (personId: string) => Boolean(myPersonId) && personId === myPersonId,
     set,
   };
 }

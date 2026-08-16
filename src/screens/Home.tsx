@@ -90,7 +90,7 @@ export function Home({ onEditPeople, onLeave, onNewFamily, onHome }: HomeProps) 
     [dispatch],
   );
   const swaps = useSwaps({ family: stored, me: membership.me, isOwner, onApply: applySwap });
-  const orders = useOrders(family, membership.me?.id, isOwner);
+  const orders = useOrders(family, membership.me?.id);
 
   useEffect(() => () => window.clearTimeout(flashTimer.current), []);
 
