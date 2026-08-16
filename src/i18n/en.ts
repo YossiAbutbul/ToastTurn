@@ -1,6 +1,10 @@
 /** Every user-facing string. One file, so no copy is stranded in a component. */
 export const en = {
-  brand: { first: 'Toast', second: 'Turn' },
+  brand: {
+    home: 'ToastTurn, back to the start',
+    first: 'Toast',
+    second: 'Turn',
+  },
 
   days: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
 

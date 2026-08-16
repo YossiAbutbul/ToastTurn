@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useFamily } from '../store/useFamily';
 import { useDragReorder } from '../hooks/useDragReorder';
 import { PersonRow } from '../components/PersonRow';
+import { Wordmark } from '../components/Wordmark';
 import { en } from '../i18n/en';
 import { newFamilyCode, newId } from '../lib/id';
 import { PALETTE, colorForIndex } from '../lib/palette';
@@ -103,10 +104,7 @@ export function Setup({ onDone, onBack, fresh }: SetupProps) {
           </svg>
         </button>
 
-        <div className="mark">
-          {en.brand.first}
-          <span>{en.brand.second}</span>
-        </div>
+        <Wordmark onClick={onBack} />
       </div>
 
       <div className="setup-body">

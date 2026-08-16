@@ -50,9 +50,11 @@ type HomeProps = {
   onLeave: () => void;
   /** Settings offers to start a second rotation without leaving this one. */
   onNewFamily: () => void;
+  /** The wordmark: back to the welcome, still holding the rotation. */
+  onHome: () => void;
 };
 
-export function Home({ onEditPeople, onLeave, onNewFamily }: HomeProps) {
+export function Home({ onEditPeople, onLeave, onNewFamily, onHome }: HomeProps) {
   const { state, dispatch } = useFamily();
   const stored = state.family as Family;
   const isOwner = useIsOwner(stored);
@@ -268,6 +270,7 @@ export function Home({ onEditPeople, onLeave, onNewFamily }: HomeProps) {
 
   const bar = (
     <TopBar
+      onHome={onHome}
       schedule={family.schedule}
       onSchedule={isOwner ? () => setSheet('schedule') : undefined}
       onHistory={() => setSheet('history')}

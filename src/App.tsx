@@ -63,6 +63,9 @@ export function App() {
       <Home
         onEditPeople={() => setScreen('setup')}
         onNewFamily={() => setScreen('new')}
+        // The rotation stays open behind it: this is a way to the front door,
+        // not a way out of the family.
+        onHome={() => setScreen('welcome')}
         onLeave={() => {
           // Drop the link from the address bar too, or it would let them back in.
           replacePath('/');

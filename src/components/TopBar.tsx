@@ -1,3 +1,4 @@
+import { Wordmark } from './Wordmark';
 import { en } from '../i18n/en';
 import { prettyTime } from '../lib/format';
 import type { Schedule } from '../lib/types';
@@ -8,15 +9,14 @@ type TopBarProps = {
   onSchedule?: () => void;
   onHistory: () => void;
   onSettings: () => void;
+  /** The wordmark goes back to the welcome, without giving up the rotation. */
+  onHome: () => void;
 };
 
-export function TopBar({ schedule, onSchedule, onHistory, onSettings }: TopBarProps) {
+export function TopBar({ schedule, onSchedule, onHistory, onSettings, onHome }: TopBarProps) {
   return (
     <div className="bar">
-      <div className="mark">
-        {en.brand.first}
-        <span>{en.brand.second}</span>
-      </div>
+      <Wordmark onClick={onHome} />
       <div className="spacer" />
       {onSchedule ? (
         <button className="pill" type="button" onClick={onSchedule}>
