@@ -22,7 +22,9 @@ export function Sheet({ open, title, onClose, fixedHeight, onTop, covered, child
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      // A confirmation over the sheet answers for itself first: escaping out of
+      // both at once would take the sheet away before the question was read.
+      if (e.key === 'Escape' && !document.querySelector('.confirm-scrim')) onClose();
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Sheet } from './Sheet';
+import { Confirm } from './Confirm';
 import { Stars } from './Stars';
 import { en } from '../i18n/en';
 import { initialOf } from '../lib/format';
@@ -110,28 +111,8 @@ export function DaySheet(props: DaySheetProps) {
               </>
             )}
 
-            {isOwner &&
-              (asking === turn.id ? (
-                <div className="day-confirm">
-                  <b>{en.day.removeAsk(turn.skipped ? en.day.nobody.toLowerCase() : name)}</b>
-                  <p>{en.day.removeNote}</p>
-                  <div className="day-confirm-row">
-                    <button className="ghost" type="button" onClick={() => setAsking(null)}>
-                      {en.day.removeNo}
-                    </button>
-                    <button
-                      className="ghost primary"
-                      type="button"
-                      onClick={() => {
-                        setAsking(null);
-                        props.onRemove(turn.id);
-                      }}
-                    >
-                      {en.day.removeYes}
-                    </button>
-                  </div>
-                </div>
-              ) : (
+            {isOwner && (
+              <>
                 <button
                   className="ghost day-remove"
                   type="button"
@@ -139,7 +120,21 @@ export function DaySheet(props: DaySheetProps) {
                 >
                   {en.day.remove}
                 </button>
-              ))}
+
+                <Confirm
+                  open={asking === turn.id}
+                  title={en.day.removeAsk(turn.skipped ? en.day.nobody.toLowerCase() : name)}
+                  note={en.day.removeNote}
+                  confirmLabel={en.day.removeYes}
+                  cancelLabel={en.day.removeNo}
+                  onCancel={() => setAsking(null)}
+                  onConfirm={() => {
+                    setAsking(null);
+                    props.onRemove(turn.id);
+                  }}
+                />
+              </>
+            )}
           </div>
         );
       })}
