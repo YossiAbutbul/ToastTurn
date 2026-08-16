@@ -13,7 +13,7 @@ import { useMembership } from '../hooks/useMembership';
 import { useSwaps } from '../hooks/useSwaps';
 import { useOrders } from '../hooks/useOrders';
 import { SwapAsk } from '../components/SwapAsk';
-import { OrderTray } from '../components/OrderTray';
+import { OrdersButton } from '../components/OrdersButton';
 import { Notice } from '../components/Notice';
 import { SignInSheet } from '../components/SignInSheet';
 import { Waiting } from './Waiting';
@@ -36,6 +36,7 @@ import { now, nowISO } from '../lib/clock';
 import { newId } from '../lib/id';
 import { colorForIndex } from '../lib/palette';
 import { withMemberColors } from '../lib/people';
+import { outstanding } from '../lib/orders';
 import { deleteFamily, deleteTurn } from '../lib/remote';
 import { replacePath } from '../lib/history';
 import type { Family } from '../lib/types';
@@ -327,8 +328,8 @@ export function Home({ onEditPeople, onLeave, onNewFamily }: HomeProps) {
 
       <div className="hint">{canLog ? hint : en.member.leverLocked}</div>
 
-      <OrderTray
-        lines={orders.lines}
+      <OrdersButton
+        slices={orders.tally.slices}
         making={Boolean(current) && current!.id === membership.me?.id}
         ordered={orders.mine !== null}
         onOpen={() => setSheet('orders')}
@@ -373,6 +374,17 @@ export function Home({ onEditPeople, onLeave, onNewFamily }: HomeProps) {
       <InstallHint />
       <QueueBar
         people={queue}
+        slices={Object.fromEntries(
+          // What is still to make, so a badge counts down as the toast comes
+          // out and is gone once that person has theirs.
+          orders.lines.map((line) => [
+            line.person.id,
+            outstanding(line.order, orders.madeFor(line.person.id)),
+          ]),
+        )}
+        askingId={membership.me?.id}
+        orderLabel={en.orders.wants}
+        askLabel={en.orders.askYours}
         onPick={isOwner || membership.me?.id === current?.id ? () => setSheet('swap') : undefined}
         swapLabel={en.swap.title}
         nowLabel={done ? en.home.upNext : en.home.upNow}

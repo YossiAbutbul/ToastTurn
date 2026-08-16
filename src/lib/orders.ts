@@ -15,6 +15,34 @@ export type Topping = (typeof TOPPINGS)[number];
 /** One slice, dressed however its owner wants it. */
 export type Slice = { toppings: Topping[] };
 
+/**
+ * Which slices have been made, by person.
+ *
+ * Kept apart from the orders on purpose. An order belongs to the person who
+ * asked for it and nobody else may write it, but whoever is making the toast
+ * has to tick off everyone's, and they are not always the one who runs the
+ * rotation. So the ticks live on a board of their own that anybody in the
+ * family may write, the way the swap board does.
+ */
+export type MadeBoard = Record<string, number[]>;
+
+export function madeFor(board: MadeBoard, personId: string): number[] {
+  const made = (board ?? {})[personId];
+  return Array.isArray(made) ? made.filter((n) => Number.isInteger(n) && n >= 0) : [];
+}
+
+export function isMade(board: MadeBoard, personId: string, index: number): boolean {
+  return madeFor(board, personId).includes(index);
+}
+
+/** Tick one slice off, or put it back. */
+export function toggleMade(board: MadeBoard, personId: string, index: number): number[] {
+  const made = madeFor(board, personId);
+  return made.includes(index)
+    ? made.filter((n) => n !== index)
+    : [...made, index].sort((a, b) => a - b);
+}
+
 export type Order = {
   personId: string;
   /** One entry per slice, so two slices can be two different things. */
@@ -85,8 +113,14 @@ export function listForFamily(board: OrderBoard, family: Family): OrderLine[] {
     .map((person) => ({ person, order: orderFor(board, person.id) }));
 }
 
+/** What is still to be made, which is all the maker cares about. */
+export function outstanding(order: Order | null, made: number[] = []): number {
+  if (!order) return 0;
+  return order.slices.filter((_, index) => !made.includes(index)).length;
+}
+
 export type OrderTally = {
-  /** Slices in total, which is what decides how many rounds it takes. */
+  /** Slices still to make, which is what decides how many rounds are left. */
   slices: number;
   /** How many of each thing to get out of the fridge. */
   toppings: Record<Topping, number>;
@@ -95,19 +129,23 @@ export type OrderTally = {
   people: number;
 };
 
-export function tally(lines: OrderLine[]): OrderTally {
+export function tally(lines: OrderLine[], board: MadeBoard = {}): OrderTally {
   const toppings = Object.fromEntries(TOPPINGS.map((t) => [t, 0])) as Record<Topping, number>;
   const counted: OrderTally = { slices: 0, toppings, said: 0, people: lines.length };
 
   for (const line of lines) {
     if (!line.order) continue;
     counted.said += 1;
-    counted.slices += line.order.slices.length;
-    // A thing is counted once for every slice it goes on: two slices with
-    // cheese means getting the cheese out for two.
-    for (const slice of line.order.slices) {
+
+    // Only what is still to come: a slice already made needs nothing more out
+    // of the fridge, and counting it would send the maker back for cheese
+    // they have already used.
+    const made = madeFor(board, line.person.id);
+    line.order.slices.forEach((slice, index) => {
+      if (made.includes(index)) return;
+      counted.slices += 1;
       for (const topping of slice.toppings) counted.toppings[topping] += 1;
-    }
+    });
   }
 
   return counted;

@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { Sheet } from './Sheet';
-import { OrderRow } from './OrderRow';
 import { SliceEditor } from './SliceEditor';
+import { WhoseOrder } from './WhoseOrder';
 import { en } from '../i18n/en';
 import { NOTE_MAX, SLICE_MAX, TOPPINGS, cleanNote } from '../lib/orders';
-import type { Order, OrderLine, OrderTally, Slice, Topping } from '../lib/orders';
+import type { Order, OrderLine, Slice, Topping } from '../lib/orders';
 import type { Person } from '../lib/types';
 import './OrdersSheet.css';
 
@@ -14,10 +14,13 @@ type OrdersSheetProps = {
   open: boolean;
   onClose: () => void;
   lines: OrderLine[];
-  tally: OrderTally;
+  /** Which of a person's slices are already made, and ticking one off. */
+  madeFor: (personId: string) => number[];
+  onTick: (personId: string, index: number) => void;
   /** Which person this phone is, if it is anybody. */
   me: Person | null;
-  mine: Order | null;
+  /** Whose order this phone may write: your own, and everyone's if you run it. */
+  canOrderFor: (personId: string) => boolean;
   onSet: (personId: string, choice: Choice) => void;
   covered?: boolean;
 };
@@ -25,18 +28,43 @@ type OrdersSheetProps = {
 const ONE_PLAIN: Slice[] = [{ toppings: [] }];
 
 /** What everyone wants: yours at the top, the whole list underneath. */
-export function OrdersSheet({ open, onClose, lines, tally, me, mine, onSet, covered }: OrdersSheetProps) {
-  const [note, setNote] = useState(mine?.note ?? '');
+export function OrdersSheet({
+  open,
+  onClose,
+  lines,
+  madeFor,
+  onTick,
+  me,
+  canOrderFor,
+  onSet,
+  covered,
+}: OrdersSheetProps) {
+  // Everyone, because whoever is making the toast has to read the lot. What
+  // this phone may change is a separate question, asked per person below.
+  const first = lines.find((line) => line.person.id === me?.id) ?? lines[0];
+
+  const [who, setWho] = useState<string | undefined>(first?.person.id);
   const [tab, setTab] = useState(0);
-  const slices = mine?.slices ?? ONE_PLAIN;
+
+  const chosen = lines.find((line) => line.person.id === who) ?? first;
+  const mine = chosen ? canOrderFor(chosen.person.id) : false;
+  const slices = chosen?.order?.slices ?? ONE_PLAIN;
   // Taking a slice off can leave the tab pointing past the end of the list.
   const active = Math.min(tab, slices.length - 1);
 
+  // The note belongs to whoever is being ordered for, so switching people
+  // brings theirs rather than carrying the last one across.
+  const [noted, setNoted] = useState({ id: chosen?.person.id, text: chosen?.order?.note ?? '' });
+  if (noted.id !== chosen?.person.id) {
+    setNoted({ id: chosen?.person.id, text: chosen?.order?.note ?? '' });
+  }
+  const note = noted.text;
+
   const save = (nextSlices: Slice[], nextNote = note) => {
-    if (!me) return;
+    if (!chosen) return;
     const tidied = cleanNote(nextNote);
     const choice: Choice = { slices: nextSlices };
-    onSet(me.id, tidied ? { ...choice, note: tidied } : choice);
+    onSet(chosen.person.id, tidied ? { ...choice, note: tidied } : choice);
   };
 
   // Toppings keep the order of the list rather than the order they were
@@ -54,18 +82,49 @@ export function OrdersSheet({ open, onClose, lines, tally, me, mine, onSet, cove
       }),
     );
 
-  // What to get out of the fridge, for whoever is making it.
-  // "Cheese for 2" rather than "2 cheese": the count belongs to the slices,
-  // not to the thing, and it saves pluralising six nouns.
-  const fridge = TOPPINGS.filter((topping) => tally.toppings[topping] > 0).map(
-    (topping) => `${en.orders.toppings[topping]} for ${tally.toppings[topping]}`,
-  );
+  const done = chosen ? madeFor(chosen.person.id).includes(active) : false;
 
   return (
-    <Sheet open={open} title={en.orders.title} onClose={onClose} covered={covered}>
-      {me && (
+    <Sheet
+      open={open}
+      title={en.orders.title}
+      onClose={onClose}
+      covered={covered}
+      action={
+        chosen && (
+          <button
+            type="button"
+            className={done ? 'sheet-action made' : 'sheet-action'}
+            aria-pressed={done}
+            onClick={() => onTick(chosen.person.id, active)}
+          >
+            {/* The button says where the slice stands, and pressing it moves
+                it: aria-pressed carries the same thing to a screen reader. */}
+            {done
+              ? en.orders.done(en.orders.sliceNo(active + 1))
+              : en.orders.notDoneYet(en.orders.sliceNo(active + 1))}
+          </button>
+        )
+      }
+    >
+      {chosen && (
         <>
-          <div className="fieldlabel">{en.orders.yours}</div>
+          <div className="fieldlabel">
+            {chosen.person.id === me?.id ? en.orders.yours : en.orders.theirs(chosen.person.name)}
+          </div>
+
+          {/* Only worth a switcher when there is somebody to switch to. */}
+          {lines.length > 1 && (
+            <WhoseOrder
+              lines={lines}
+              chosenId={chosen.person.id}
+              madeFor={madeFor}
+              onPick={(id) => {
+                setWho(id);
+                setTab(0);
+              }}
+            />
+          )}
 
           <div className="slice-tabs" role="tablist" aria-label={en.orders.yours}>
             {slices.map((_, index) => (
@@ -82,7 +141,7 @@ export function OrdersSheet({ open, onClose, lines, tally, me, mine, onSet, cove
                   {en.orders.sliceNo(index + 1)}
                 </button>
 
-                {slices.length > 1 && (
+                {mine && slices.length > 1 && (
                   <button
                     type="button"
                     className="tab-x"
@@ -98,7 +157,7 @@ export function OrdersSheet({ open, onClose, lines, tally, me, mine, onSet, cove
               </span>
             ))}
 
-            {slices.length < SLICE_MAX && (
+            {mine && slices.length < SLICE_MAX && (
               <button
                 type="button"
                 className="tab add"
@@ -113,29 +172,27 @@ export function OrdersSheet({ open, onClose, lines, tally, me, mine, onSet, cove
             )}
           </div>
 
-          <SliceEditor slice={slices[active]} onToggle={(topping) => toggle(active, topping)} />
+          <SliceEditor
+            slice={slices[active]}
+            readOnly={!mine}
+            onToggle={(topping) => toggle(active, topping)}
+          />
 
           <input
             type="text"
             className="note-input"
+            readOnly={!mine}
             aria-label={en.orders.noteLabel}
             placeholder={en.orders.notePlaceholder}
             maxLength={NOTE_MAX}
             value={note}
-            onChange={(e) => setNote(e.target.value)}
+            onChange={(e) => setNoted({ id: chosen.person.id, text: e.target.value })}
             onBlur={() => save(slices)}
             onKeyDown={(e) => e.key === 'Enter' && save(slices)}
           />
         </>
       )}
 
-      <div className={me ? 'fieldlabel spaced' : 'fieldlabel'}>{en.orders.everyone}</div>
-      <p className="empty">{en.orders.said(tally.said, tally.people, tally.slices)}</p>
-      {fridge.length > 0 && <p className="fridge">{en.orders.fridge(fridge)}</p>}
-
-      {lines.map((line) => (
-        <OrderRow key={line.person.id} line={line} />
-      ))}
     </Sheet>
   );
 }

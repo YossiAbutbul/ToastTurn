@@ -1,0 +1,39 @@
+/* Small and quiet: what everyone wants is already written on the queue, and
+   the main screen's job is to answer whose turn it is without competing. */
+.orders-btn {
+  flex: 0 0 auto;
+  align-self: center;
+  margin-block: 2px 6px;
+  padding-block: 9px;
+  padding-inline: 18px;
+  min-height: 44px;
+  background: var(--paper);
+  border: 3px solid var(--ink);
+  border-radius: 999px;
+  box-shadow: 0 2px 0 var(--ink);
+  font-family: var(--ui);
+  font-weight: 800;
+  font-size: 12.5px;
+  letter-spacing: 0.02em;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.orders-btn:active {
+  transform: translateY(2px);
+  box-shadow: none;
+}
+
+.orders-btn:focus {
+  outline: none;
+}
+.orders-btn:focus-visible {
+  outline: 3px solid var(--mint);
+  outline-offset: 3px;
+}
+
+/* Before you have said, it asks rather than reports. */
+.orders-btn.asking {
+  background: var(--coral);
+  color: var(--paper);
+}

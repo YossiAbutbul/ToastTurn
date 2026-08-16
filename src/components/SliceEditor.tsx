@@ -4,6 +4,8 @@ import type { Slice, Topping } from '../lib/orders';
 
 type SliceEditorProps = {
   slice: Slice;
+  /** Somebody else's order: it can be read, not rewritten. */
+  readOnly?: boolean;
   onToggle: (topping: Topping) => void;
 };
 
@@ -11,7 +13,7 @@ type SliceEditorProps = {
  * Everything that could go on the slice being looked at, as the same row the
  * rest of the app uses for a thing with a switch beside it.
  */
-export function SliceEditor({ slice, onToggle }: SliceEditorProps) {
+export function SliceEditor({ slice, readOnly, onToggle }: SliceEditorProps) {
   return (
     <>
       {TOPPINGS.map((topping: Topping) => {
@@ -26,6 +28,7 @@ export function SliceEditor({ slice, onToggle }: SliceEditorProps) {
               role="switch"
               aria-checked={on}
               aria-label={en.orders.toppings[topping]}
+              disabled={readOnly}
               onClick={() => onToggle(topping)}
             >
               <i />

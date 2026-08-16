@@ -78,6 +78,32 @@ service cloud.firestore {
         allow delete: if isOwner();
       }
 
+      // Which slices have been made: { personId: [0, 2] }.
+      //
+      // Whoever is making the toast ticks off everyone's, and the maker is
+      // whoever's turn it is rather than whoever runs the rotation. So this
+      // board is open to the whole family, unlike the orders themselves,
+      // which stay each person's own.
+      match /prefs/made {
+        function familyOwner() {
+          return request.auth != null
+            && get(/databases/$(database)/documents/families/$(familyId)).data.ownerUid == request.auth.uid;
+        }
+
+        function approvedMember() {
+          return request.auth != null
+            && exists(/databases/$(database)/documents/families/$(familyId)/prefs/members)
+            && get(/databases/$(database)/documents/families/$(familyId)/prefs/members)
+                 .data.keys().hasAny([request.auth.uid])
+            && get(/databases/$(database)/documents/families/$(familyId)/prefs/members)
+                 .data[request.auth.uid].status == 'approved';
+        }
+
+        allow get, list: if true;
+        allow create, update: if familyOwner() || approvedMember();
+        allow delete: if familyOwner();
+      }
+
       // What everyone wants, by person: { personId: { toastiness, butter } }.
       //
       // Keyed by person rather than by account, because half a family has no

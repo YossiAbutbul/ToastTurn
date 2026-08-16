@@ -14,11 +14,13 @@ type SheetProps = {
   onTop?: boolean;
   /** Something opened over this one: soften it and take it out of reach. */
   covered?: boolean;
+  /** One button that stays put at the bottom, above Close. */
+  action?: ReactNode;
   children: ReactNode;
 };
 
 /** The bottom sheet everything that isn't the answer lives behind. */
-export function Sheet({ open, title, onClose, fixedHeight, onTop, covered, children }: SheetProps) {
+export function Sheet({ open, title, onClose, fixedHeight, onTop, covered, action, children }: SheetProps) {
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
@@ -63,6 +65,7 @@ export function Sheet({ open, title, onClose, fixedHeight, onTop, covered, child
         <span className="sheet-grip" {...drag.handlers} />
         <h2>{title}</h2>
         <div className="sheet-body">{children}</div>
+        {action}
         <button className="close" type="button" onClick={onClose}>
           {en.close}
         </button>

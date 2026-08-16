@@ -35,6 +35,9 @@ type HomeSheetsProps = {
     lines: OrderLine[];
     tally: OrderTally;
     mine: Order | null;
+    canOrderFor: (personId: string) => boolean;
+    madeFor: (personId: string) => number[];
+    setMade: (personId: string, index: number) => void;
     set: (personId: string, choice: Omit<Order, 'personId' | 'updatedAt'>) => void;
   };
   onSwap: (personId: string) => void;
@@ -97,9 +100,10 @@ export function HomeSheets(props: HomeSheetsProps) {
         open={sheet === 'orders'}
         onClose={onClose}
         lines={props.orders.lines}
-        tally={props.orders.tally}
         me={props.me}
-        mine={props.orders.mine}
+        canOrderFor={props.orders.canOrderFor}
+        madeFor={props.orders.madeFor}
+        onTick={props.orders.setMade}
         onSet={props.orders.set}
       />
 

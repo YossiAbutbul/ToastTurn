@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { syncConfigured } from '../lib/firebase';
-import { pushOrder, subscribeOrders } from '../lib/remote';
-import { listForFamily, orderFor, tally } from '../lib/orders';
-import type { Order, OrderBoard } from '../lib/orders';
-import { loadOrders, saveOrders } from '../lib/storage';
+import { pushMade, pushOrder, subscribeMade, subscribeOrders } from '../lib/remote';
+import { listForFamily, madeFor, orderFor, tally, toggleMade } from '../lib/orders';
+import type { MadeBoard, Order, OrderBoard } from '../lib/orders';
+import { loadMade, loadOrders, saveMade, saveOrders } from '../lib/storage';
 import { nowISO } from '../lib/clock';
 import type { Family } from '../lib/types';
 
@@ -40,6 +40,35 @@ export function useOrders(family: Family, myPersonId: string | undefined, isOwne
     return subscribeOrders(family.id, (raw) => setHeld({ id: family.id, board: raw as OrderBoard }));
   }, [family.id]);
 
+  // What has been made is a second board, open to whoever is making it.
+  const [ticks, setTicks] = useState<{ id: string; board: MadeBoard }>(() => ({
+    id: family.id,
+    board: syncConfigured ? {} : (loadMade(family.id) as MadeBoard),
+  }));
+  if (ticks.id !== family.id) {
+    setTicks({ id: family.id, board: syncConfigured ? {} : (loadMade(family.id) as MadeBoard) });
+  }
+
+  useEffect(() => {
+    if (!syncConfigured) return;
+    return subscribeMade(family.id, (raw) => setTicks({ id: family.id, board: raw as MadeBoard }));
+  }, [family.id]);
+
+  const made = ticks.board;
+
+  /** Tick one of somebody's slices off, or put it back. */
+  const setMade = useCallback(
+    (personId: string, index: number) => {
+      setTicks((current) => {
+        const next = { ...current.board, [personId]: toggleMade(current.board, personId, index) };
+        if (!syncConfigured) saveMade(current.id, next);
+        else void pushMade(current.id, personId, next[personId]);
+        return { id: current.id, board: next };
+      });
+    },
+    [],
+  );
+
   const set = useCallback(
     (personId: string, choice: Omit<Order, 'personId' | 'updatedAt'>) => {
       const order: Order = { ...choice, personId, updatedAt: nowISO() };
@@ -59,8 +88,11 @@ export function useOrders(family: Family, myPersonId: string | undefined, isOwne
 
   return {
     lines,
-    tally: useMemo(() => tally(lines), [lines]),
+    tally: useMemo(() => tally(lines, made), [lines, made]),
     mine: orderFor(board, myPersonId),
+    /** Which of a person's slices are already made. */
+    madeFor: (personId: string) => madeFor(made, personId),
+    setMade,
     /**
      * Whose order this phone may write. Everyone has their own; the owner
      * also speaks for the people who have no phone of their own.

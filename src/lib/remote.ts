@@ -194,6 +194,38 @@ export async function pushOrder(
   await fs.setDoc(fs.doc(db, 'families', familyId, 'prefs', 'orders'), { [personId]: order }, { merge: true });
 }
 
+/** Which slices have been made, by person. Anybody in the family may tick. */
+export function subscribeMade(
+  familyId: string,
+  onChange: (board: Record<string, unknown>) => void,
+): () => void {
+  let stop: (() => void) | null = null;
+  let cancelled = false;
+
+  void (async () => {
+    const remote = await firestore();
+    if (!remote || cancelled) return;
+    const { db, fs } = remote;
+
+    stop = fs.onSnapshot(fs.doc(db, 'families', familyId, 'prefs', 'made'), (snap) => {
+      onChange(snap.exists() ? (snap.data() as Record<string, unknown>) : {});
+    });
+    if (cancelled) stop();
+  })();
+
+  return () => {
+    cancelled = true;
+    stop?.();
+  };
+}
+
+export async function pushMade(familyId: string, personId: string, made: number[]): Promise<void> {
+  const remote = await firestore();
+  if (!remote) return;
+  const { db, fs } = remote;
+  await fs.setDoc(fs.doc(db, 'families', familyId, 'prefs', 'made'), { [personId]: made }, { merge: true });
+}
+
 /** The swap board: who has asked whom, and what they said back. */
 export function subscribeSwaps(
   familyId: string,

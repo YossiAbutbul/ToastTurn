@@ -47,6 +47,40 @@
   box-shadow: none;
 }
 
+/* The badge rides on the corner of the toast, outside its box, which is why
+   the toast itself has to stop clipping at its own edge. */
+.qtoast {
+  position: relative;
+  overflow: visible;
+}
+
+.qbadge {
+  position: absolute;
+  inset-block-start: -9px;
+  inset-inline-end: -9px;
+  min-width: 21px;
+  height: 21px;
+  padding-inline: 4px;
+  border: 2.5px solid var(--ink);
+  border-radius: 999px;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 12px;
+  font-style: normal;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Yours, before you have said: an invitation rather than a count. */
+.qbadge.asking {
+  background: var(--coral);
+  color: var(--paper);
+}
+
 .qname {
   font-size: 10px;
   font-weight: 800;
