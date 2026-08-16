@@ -121,6 +121,8 @@ export function useSync() {
     configured: syncConfigured,
     joining,
     account,
+    /** The rotation the address bar names, if it names one. */
+    linkId,
     /** The link points at a rotation that isn't there. */
     missing: Boolean(joining) && checked && remote === null,
     /** True once the family has been seen from the other side. */

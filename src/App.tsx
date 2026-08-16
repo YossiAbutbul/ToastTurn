@@ -2,16 +2,18 @@ import { useState } from 'react';
 import { Home } from './screens/Home';
 import { Setup } from './screens/Setup';
 import { Welcome } from './screens/Welcome';
+import { Invite } from './screens/Invite';
 import { useSync } from './hooks/useSync';
 import { useFamily } from './store/useFamily';
+import { replacePath } from './lib/history';
 import { syncConfigured } from './lib/firebase';
 
 /**
- * Three screens, no router. A share link goes straight to the rotation; a phone
- * with nothing open starts at the welcome.
+ * Four screens, no router. A share link asks for a sign-in and names the
+ * rotation it is for; a phone with nothing open starts at the welcome.
  */
 export function App() {
-  const { state } = useFamily();
+  const { state, dispatch } = useFamily();
   const sync = useSync();
   /** 'auto' means: the rotation if there is one, otherwise the welcome. */
   const [screen, setScreen] = useState<'auto' | 'welcome' | 'setup' | 'new'>('auto');
@@ -31,6 +33,23 @@ export function App() {
     return <Setup fresh={screen === 'new'} onDone={() => setScreen('auto')} />;
   }
 
+  // A link, and nobody signed in: the invitation itself, which says which
+  // rotation it is for and asks for a sign-in. Only its name is shown.
+  if (sync.linkId && lockedOut && !sync.missing) {
+    return (
+      <Invite
+        familyName={state.family?.id === sync.linkId ? state.family.name : undefined}
+        onLeave={() => {
+          // Turning the invitation down gives the rotation back: it was never
+          // this phone's, it only came down to put a name on the screen.
+          if (state.family?.id === sync.linkId) dispatch({ type: 'reset' });
+          replacePath('/');
+          setScreen('welcome');
+        }}
+      />
+    );
+  }
+
   if (state.family && screen === 'auto' && !lockedOut) {
     return (
       <Home
@@ -38,7 +57,7 @@ export function App() {
         onNewFamily={() => setScreen('new')}
         onLeave={() => {
           // Drop the link from the address bar too, or it would let them back in.
-          window.history.replaceState(null, '', '/');
+          replacePath('/');
           setScreen('welcome');
         }}
       />

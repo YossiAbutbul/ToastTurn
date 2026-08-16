@@ -1,0 +1,169 @@
+/* The door: the rotation's name on the wall, the slice on the counter, and
+   whatever there is to do about it under that. Nothing of the rotation shows
+   here, so this screen is all name and waiting. */
+.gate-body {
+  position: relative;
+  z-index: 1;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: max(20px, env(safe-area-inset-top)) 24px 0;
+  text-align: center;
+}
+
+.gate-kicker {
+  margin-block-start: auto;
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.gate-title {
+  margin-block-start: 6px;
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: clamp(32px, 11vw, 46px);
+  line-height: 1.02;
+  letter-spacing: -0.015em;
+  color: var(--coral);
+  /* A long family name wraps rather than pushing the phone wider, and wraps
+     into even lines rather than leaving one word stranded. */
+  max-width: 16ch;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+
+.gate-sub {
+  margin-block-start: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--ink-soft);
+  max-width: 26ch;
+}
+
+/* Standing on the counter's edge, the way the welcome's slice does. */
+.gate-art {
+  position: relative;
+  width: min(58%, 215px);
+  margin-block: auto -6px;
+  animation: gate-bob 4.5s ease-in-out infinite;
+}
+
+@keyframes gate-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-7px);
+  }
+}
+
+/* Someone else has to act, so the slice sits there thinking about it. */
+/* A thought bubble over the slice, not on it. */
+.gate-dots {
+  position: absolute;
+  inset-block-start: -6%;
+  inset-inline-start: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 7px;
+  padding: 7px 10px;
+  border: 3px solid var(--ink);
+  border-radius: 999px;
+  background: var(--paper);
+  box-shadow: 0 2px 0 var(--ink);
+}
+.gate-dots i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--coral);
+  animation: gate-think 1.2s ease-in-out infinite;
+}
+.gate-dots i:nth-child(2) {
+  animation-delay: 0.15s;
+}
+.gate-dots i:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes gate-think {
+  0%,
+  60%,
+  100% {
+    opacity: 0.28;
+    transform: translateY(0);
+  }
+  30% {
+    opacity: 1;
+    transform: translateY(-3px);
+  }
+}
+
+/* The steam reads as fresh toast, which this one is not: it is waiting. */
+.gate-art.waiting .ts-steam {
+  opacity: 0.35;
+}
+
+.gate-foot {
+  position: relative;
+  z-index: 1;
+  flex: 0 0 auto;
+  padding: 14px 20px max(18px, env(safe-area-inset-bottom));
+  background: var(--counter);
+}
+
+.gate-foot .empty {
+  text-align: center;
+  padding-block-end: 4px;
+}
+
+.gate-foot .close {
+  margin-block-start: 12px;
+  background: var(--coral);
+  border: 3px solid var(--ink);
+  box-shadow: 0 3px 0 var(--ink);
+  font-size: 14px;
+  letter-spacing: 0.02em;
+}
+.gate-foot .close:active {
+  transform: translateY(3px);
+  box-shadow: none;
+}
+/* Once the reminder has gone there is nothing left to press. */
+.gate-foot .close:disabled {
+  background: var(--paper);
+  color: var(--ink-soft);
+  box-shadow: none;
+  transform: none;
+}
+
+.gate-plain {
+  display: block;
+  width: 100%;
+  margin-block-start: 10px;
+  padding: 6px;
+  border: none;
+  background: none;
+  font-family: var(--ui);
+  font-weight: 800;
+  font-size: 13px;
+  color: var(--ink-soft);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  min-height: 36px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gate-art,
+  .gate-dots i {
+    animation: none;
+  }
+}

@@ -112,15 +112,22 @@ export const en = {
     approved: (who: string) => `${who} is in.`,
     nobodyWaiting: 'Nobody is waiting.',
 
-    invitedTo: (family: string) => `You've been invited to ${family}.`,
-    invitedToRotation: "You've been invited to a rotation.",
     askAction: 'Ask to be let in',
     waitTitle: 'Waiting to be let in',
-    waitBlurb: 'Whoever runs the rotation has your name. The toast shows up here once they let you in.',
+    waitBlurb: 'Whoever runs it has your name. The toast turns up here the moment they let you in.',
+    nudgeHint: 'Been a while? Give them a nudge.',
     nudge: 'Remind them',
     nudgeSent: 'Reminder sent',
-    nudgeBlurb: "They'll get a nudge the next time they open the app.",
+    nudgeBlurb: "They'll see it the next time they open the app.",
     notYou: 'Sign out',
+  },
+
+  invite: {
+    kicker: "You've been invited to",
+    unnamed: 'a toast rotation',
+    blurb: 'Sign in first, then whoever runs the rotation can let you in.',
+    action: 'Sign in to join',
+    notNow: 'Not now',
   },
 
   day: {
