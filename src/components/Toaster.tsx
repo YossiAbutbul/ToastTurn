@@ -20,7 +20,7 @@ type ToasterProps = {
 
 export function Toaster({ initial, locked, onPop, onStatus, leverLabel }: ToasterProps) {
   const svgRef = useRef<SVGSVGElement>(null);
-  const { phase, sliceY, snap, baked, needle, steamKey, start, busy } = useToastCycle({ onPop });
+  const { phase, sliceY, snap, hop, baked, needle, steamKey, start, busy } = useToastCycle({ onPop });
   const lever = useLeverDrag({ svgRef, disabled: busy || locked, onCommit: start });
 
   // The slice holds the current letter through the bake and the pop, then takes
@@ -71,17 +71,20 @@ export function Toaster({ initial, locked, onPop, onStatus, leverLabel }: Toaste
 
       {/* ===== slice (behind body) ===== */}
       <g
-        className={snap ? 'tt-slice tt-slice-snap' : 'tt-slice'}
+        className={`tt-slice${snap ? ' tt-slice-snap' : ''}${hop ? ' tt-slice-hop' : ''}`}
         transform={`translate(0,${sliceY})`}
       >
+        {/* A whole slice, not one cut off at the slot: the bottom is hidden
+            behind the chrome cap at rest and has to still be there when the
+            slice jumps. */}
         <path
-          d="M102 120 V72 c0-19 11-31 28-33 4-13 21-17 31-8 10-9 27-5 29 8 19 2 28 14 28 33 v48 z"
+          d="M102 140 V72 c0-19 11-31 28-33 4-13 21-17 31-8 10-9 27-5 29 8 19 2 28 14 28 33 v68 c0 7-5 12-12 12 H114 c-7 0-12-5-12-12 z"
           className={baked ? 'tt-crust tt-baked tt-ink' : 'tt-crust tt-ink'}
           strokeWidth="5"
           strokeLinejoin="round"
         />
         <path
-          d="M111 120 V78 c0-15 9-25 23-27 3-10 17-14 26-6 8-7 21-3 26 6 14 2 23 12 23 27 v42 z"
+          d="M111 132 V78 c0-15 9-25 23-27 3-10 17-14 26-6 8-7 21-3 26 6 14 2 23 12 23 27 v54 c0 6-4 10-10 10 H121 c-6 0-10-4-10-10 z"
           className={baked ? 'tt-crumb tt-baked' : 'tt-crumb'}
         />
         <text x="160" y="90" textAnchor="middle" className="tt-initial">

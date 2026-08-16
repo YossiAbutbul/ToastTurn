@@ -160,10 +160,13 @@ the slice look inserted, so do not reorder):
 | Drag | live | Knob follows the pointer, clamped 0–46 SVG units |
 | Release ≥ 65% | — | Commit. Below that, spring back |
 | Toasting | 1050ms | Slice drops to `+78`, crust → `--toasted`, coils glow, dial needle spins |
-| Pop | 300ms | Slice flies to `-56`, steam runs, confirmation note appears |
-| Reset | 650ms later | Slice jumps to `+140` (no transition), recolours, next person's initial, then springs to `0` |
+| Pop | 200ms up, then it settles | Slice is thrown to `-30`, drops back to `0`, steam runs, confirmation note appears |
+| Reset | 650ms later | Slice jumps to `+92` (no transition), recolours, next person's initial, then springs to `0` |
 
-Slice positions: `REST = 0`, `DEEP = 78`, `POP = -56`.
+Slice positions: `REST = 0`, `DEEP = 78`, `HOP = -30`, and the slice comes to
+rest back at `REST` — the jump does the popping. The slice is a whole piece of
+bread: its bottom is hidden behind the chrome cap rather than cut off at it, so
+every position has to keep that bottom out of sight.
 
 **Accessibility.** The lever group needs `role="button"`, `tabIndex={0}`, an
 `aria-label`, and Enter/Space handling that runs the same cycle. Show a

@@ -5,16 +5,28 @@ import { usePrefersReducedMotion } from './usePrefersReducedMotion';
 export const SLICE_REST = 0;
 export const SLICE_DEEP = 78;
 /**
- * The prototype pops to -56, which throws the slice clear of the toaster and
- * leaves it floating with a gap under it. -16 keeps the bottom of the slice
- * behind the chrome cap (y 102), so it still reads as seated in the slot.
+ * Where the slice comes to rest after the pop: back where it started. The
+ * prototype's -56 throws it clear of the toaster and leaves it floating with a
+ * gap under it, so the jump does the popping and the slice settles home.
  */
-export const SLICE_POP = -16;
-/** Off the bottom of the slot, where the fresh slice jumps to before springing up. */
-const SLICE_BELOW = 140;
+export const SLICE_POP = SLICE_REST;
+/**
+ * The top of the jump. The slice is knocked up out of the slot for a moment
+ * and drops back to where it started, the way toast actually comes out of a
+ * toaster. Any higher and it leaves the toaster behind and floats.
+ */
+const SLICE_HOP = -30;
+/**
+ * Where the fresh slice waits before springing up: low enough that its top is
+ * under the chrome cap, high enough that its bottom does not appear under the
+ * toaster's feet on the way back.
+ */
+const SLICE_BELOW = 92;
 
 const TOASTING_MS = 1050;
 const RESET_MS = 650;
+/** How long the slice spends in the air before it falls back into the slot. */
+const HOP_MS = 200;
 /** Long enough for one paint at the reload position, short enough to be unseen. */
 const SNAP_MS = 20;
 const NEEDLE_MS = 55;
@@ -37,6 +49,7 @@ export function useToastCycle({ onPop }: Options) {
   const [phase, setPhase] = useState<CyclePhase>('idle');
   const [sliceY, setSliceY] = useState(SLICE_REST);
   const [snap, setSnap] = useState(false); // slice moves with no transition
+  const [hop, setHop] = useState(false); // slice is in the air, on its way up
   const [baked, setBaked] = useState(false);
   const [needle, setNeedle] = useState(0);
   const [steamKey, setSteamKey] = useState(0);
@@ -86,9 +99,20 @@ export function useToastCycle({ onPop }: Options) {
       spin.current = undefined;
       setNeedle(0);
       setPhase('popped');
-      setSliceY(SLICE_POP);
       setSteamKey((k) => k + 1);
       onPopRef.current();
+
+      if (reduced) {
+        setSliceY(SLICE_POP);
+      } else {
+        // Up hard, then let it drop back and settle into the slot.
+        setHop(true);
+        setSliceY(SLICE_HOP);
+        after(HOP_MS, () => {
+          setHop(false);
+          setSliceY(SLICE_POP);
+        });
+      }
 
       after(resetMs, () => {
         setSnap(true);
@@ -99,6 +123,7 @@ export function useToastCycle({ onPop }: Options) {
         // the slot with the lever disabled for good.
         after(SNAP_MS, () => {
           setSnap(false);
+          setHop(false);
           setSliceY(SLICE_REST);
           setPhase('idle');
         });
@@ -106,5 +131,5 @@ export function useToastCycle({ onPop }: Options) {
     });
   }, [after, phase, reduced]);
 
-  return { phase, sliceY, snap, baked, needle, steamKey, start, busy: phase !== 'idle' };
+  return { phase, sliceY, snap, hop, baked, needle, steamKey, start, busy: phase !== 'idle' };
 }

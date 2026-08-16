@@ -49,6 +49,9 @@
 /* ---------- slice ---------- */
 .tt-slice { transition: transform 0.3s cubic-bezier(0.15, 1.1, 0.3, 1); }
 .tt-slice-snap { transition: none; }
+/* The throw out of the slot: quick and all in one go. The drop back is the
+   spring above, so the slice lands and settles rather than stopping dead. */
+.tt-slice-hop { transition: transform 0.17s cubic-bezier(0.1, 0.85, 0.3, 1); }
 .tt-crust { fill: url(#gCrust); transition: fill 0.95s linear; }
 .tt-crumb { fill: url(#gCrumb); transition: fill 0.95s linear; }
 .tt-crust.tt-baked { fill: var(--toasted); }
