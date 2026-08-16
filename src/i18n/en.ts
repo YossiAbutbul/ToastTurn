@@ -174,6 +174,12 @@ export const en = {
   },
 
 
+  update: {
+    /** Follows the app's own name, which is set in brand type. */
+    ready: 'has a new version.',
+    action: 'Get it',
+  },
+
   install: {
     prompt: 'Keep ToastTurn on your home screen.',
     ios: 'Keep ToastTurn on your home screen: tap Share, then Add to Home Screen.',

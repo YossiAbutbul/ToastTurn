@@ -1,0 +1,66 @@
+/* Along the top, over whatever screen is up: a new build is worth saying
+   wherever someone happens to be. */
+.update-note {
+  position: fixed;
+  z-index: 60;
+  inset-block-start: max(10px, env(safe-area-inset-top));
+  inset-inline: 0;
+  width: min(366px, calc(100% - 24px));
+  margin-inline: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 8px 7px 14px;
+  background: var(--paper);
+  border: 3px solid var(--ink);
+  border-radius: 18px;
+  box-shadow: 0 3px 0 var(--ink);
+  animation: update-drop 0.34s cubic-bezier(0.15, 1.1, 0.3, 1);
+}
+
+.update-note p {
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--ink-soft);
+}
+/* The app's own name, in the colours it wears in the bar. */
+.update-note .mark {
+  font-size: 14px;
+  color: var(--ink);
+}
+
+.update-action {
+  margin-inline-start: auto;
+  flex: 0 0 auto;
+  min-height: 34px;
+  padding: 0 14px;
+  border-radius: 11px;
+  border: 2.5px solid var(--ink);
+  background: var(--mint);
+  box-shadow: 0 2px 0 var(--ink);
+  color: var(--paper);
+  font-family: var(--ui);
+  font-weight: 800;
+  font-size: 12.5px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.update-action:active {
+  transform: translateY(2px);
+  box-shadow: none;
+}
+
+@keyframes update-drop {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .update-note {
+    animation: none;
+  }
+}
