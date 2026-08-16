@@ -3,9 +3,9 @@ import { Sheet } from './Sheet';
 import { SettingsYou } from './SettingsYou';
 import { RotationList } from './RotationList';
 import { Confirm } from './Confirm';
+import { ShareCode } from './ShareCode';
 import { en } from '../i18n/en';
 import { initialOf } from '../lib/format';
-import { linkForFamily } from '../lib/url';
 import type { Account } from '../lib/auth';
 import type { MembershipState } from '../hooks/useMembership';
 import type { Family, Person } from '../lib/types';
@@ -36,15 +36,9 @@ type SettingsSheetProps = {
 /** Everything adjustable, in one place: you first, then the rotation. */
 export function SettingsSheet(props: SettingsSheetProps) {
   const { family, isOwner, onClose, open } = props;
-  const [copied, setCopied] = useState(false);
   // Clearing the rotation cannot be undone, so it is asked over the sheet.
   const [clearing, setClearing] = useState(false);
   const people = [...family.people].sort((a, b) => a.order - b.order);
-
-  const copyLink = async () => {
-    await navigator.clipboard.writeText(linkForFamily(window.location.origin, family.id));
-    setCopied(true);
-  };
 
   return (
     <Sheet open={open} title={en.settings.title} onClose={onClose}>
@@ -67,9 +61,7 @@ export function SettingsSheet(props: SettingsSheetProps) {
       />
 
       <div className="fieldlabel spaced">{en.settings.rotationSection}</div>
-      <button className="ghost primary" type="button" onClick={() => void copyLink()}>
-        {copied ? en.settings.shared : en.settings.share}
-      </button>
+      <ShareCode familyId={family.id} />
 
       {!isOwner && <p className="empty">{en.settings.guest}</p>}
 

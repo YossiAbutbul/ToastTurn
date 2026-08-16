@@ -210,6 +210,15 @@ describe('the family link', () => {
   it('builds a link worth sending', () => {
     expect(linkForFamily('https://toastturn.app', 'abc12345')).toBe('https://toastturn.app/f/abc12345');
   });
+
+  // Settings shows the code so it can be read out. Whatever it shows has to be
+  // something the join field will take back, or the two halves do not meet.
+  it('takes back the code settings puts on screen', () => {
+    const id = 'abc12345';
+    expect(familyIdFromInput(id)).toBe(id);
+    expect(familyIdFromInput(` ${id} `)).toBe(id);
+    expect(familyIdFromInput(linkForFamily('https://toastturn.app', id))).toBe(id);
+  });
 });
 
 describe('turns logged on the same day', () => {

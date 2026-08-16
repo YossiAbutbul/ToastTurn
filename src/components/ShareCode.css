@@ -1,0 +1,52 @@
+.share-or {
+  padding-block: 10px 6px;
+}
+
+/* The code sits on a card of its own: it is the thing being handed over, not
+   a label on a button. */
+.codebtn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-block: 12px;
+  padding-inline: 16px;
+  background: var(--paper);
+  border: 3.5px solid var(--ink);
+  border-radius: 18px;
+  box-shadow: 0 2px 0 var(--ink);
+  cursor: pointer;
+  min-height: 56px;
+}
+
+.codebtn:active {
+  transform: translateY(2px);
+  box-shadow: none;
+}
+
+.codebtn:focus {
+  outline: none;
+}
+.codebtn:focus-visible {
+  outline: 3px solid var(--mint);
+  outline-offset: 3px;
+}
+
+.code {
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 22px;
+  letter-spacing: 2px;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+  text-align: start;
+}
+
+.code-do {
+  flex: 0 0 auto;
+  font-family: var(--ui);
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--ink-soft);
+}
