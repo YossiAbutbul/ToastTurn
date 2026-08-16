@@ -10,6 +10,9 @@ import type { SheetName } from '../components/HomeSheets';
 import { useIsOwner } from '../hooks/useIsOwner';
 import { useAccount } from '../hooks/useAccount';
 import { useMembership } from '../hooks/useMembership';
+import { useSwaps } from '../hooks/useSwaps';
+import { SwapAsk } from '../components/SwapAsk';
+import { Notice } from '../components/Notice';
 import { SignInSheet } from '../components/SignInSheet';
 import { Waiting } from './Waiting';
 import { signOut } from '../lib/auth';
@@ -70,7 +73,18 @@ export function Home({ onEditPeople, onLeave, onNewFamily }: HomeProps) {
   const [note, setNote] = useState({ key: 0, text: '' });
   const [signingIn, setSigningIn] = useState(false);
   const [day, setDay] = useState<Date | null>(null);
+  /** Who the ask just went to, so it can be said plainly rather than in passing. */
+  const [asked, setAsked] = useState<string | null>(null);
   const flashTimer = useRef<number | undefined>(undefined);
+
+  /** A line along the bottom, the way the app talks after something happens. */
+  const say = useCallback((text: string) => setNote((n) => ({ key: n.key + 1, text })), []);
+
+  const applySwap = useCallback(
+    (aId: string, bId: string) => dispatch({ type: 'swap', aId, bId }),
+    [dispatch],
+  );
+  const swaps = useSwaps({ family: stored, me: membership.me, isOwner, onApply: applySwap });
 
   useEffect(() => () => window.clearTimeout(flashTimer.current), []);
 
@@ -105,6 +119,19 @@ export function Home({ onEditPeople, onLeave, onNewFamily }: HomeProps) {
     window.clearTimeout(flashTimer.current);
     flashTimer.current = window.setTimeout(() => setFlash(null), FLASH_MS);
   }, [dispatch, family]);
+
+  // A no comes back to whoever asked, once, and then comes off the board.
+  const answer = swaps.answered;
+  const { close } = swaps;
+  useEffect(() => {
+    if (!answer) return;
+    const timer = window.setTimeout(() => {
+      const them = stored.people.find((p) => p.id === answer.toPersonId);
+      say(en.swap.declined(them?.name ?? ''));
+      close(answer);
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [answer, close, say, stored.people]);
 
   // Someone who followed an invite gets the waiting room, not the rotation:
   // the toast is nobody's business until the owner lets them in.
@@ -171,8 +198,25 @@ export function Home({ onEditPeople, onLeave, onNewFamily }: HomeProps) {
           setDay(null);
         }}
         onSwap={(personId) => {
-          if (current) dispatch({ type: 'swap', aId: current.id, bId: personId });
+          if (!current) return;
           closeSheet();
+
+          const them = family.people.find((p) => p.id === personId);
+          const canBeAsked = membership.answerablePersonIds.has(personId);
+
+          // Nobody to ask: a name the owner typed in has no phone behind it, and
+          // with no sync there is only this one. The owner moves the two people
+          // themselves, which is what the app always did.
+          if (!syncConfigured || !canBeAsked) {
+            if (isOwner) {
+              dispatch({ type: 'swap', aId: current.id, bId: personId });
+              if (them && syncConfigured) say(en.swap.noAccount(them.name));
+            }
+            return;
+          }
+
+          swaps.ask(personId, nextDue(family, now()).toISOString());
+          if (them) setAsked(them.name);
         }}
         onSetColor={(color) => {
           const mine = membership.me;
@@ -296,10 +340,29 @@ export function Home({ onEditPeople, onLeave, onNewFamily }: HomeProps) {
         </button>
       )}
 
+      <Notice
+        open={asked !== null}
+        title={en.swap.sentTitle(asked ?? '')}
+        note={en.swap.sentNote(asked ?? '')}
+        closeLabel={en.swap.sentClose}
+        onClose={() => setAsked(null)}
+      />
+
+      <SwapAsk
+        swap={swaps.incoming}
+        family={family}
+        onAccept={(swap) => {
+          swaps.accept(swap);
+          const from = family.people.find((p) => p.id === swap.fromPersonId);
+          if (from) say(isOwner ? en.swap.accepted(from.name) : en.swap.waiting);
+        }}
+        onDecline={swaps.decline}
+      />
+
       <InstallHint />
       <QueueBar
         people={queue}
-        onPick={isOwner ? () => setSheet('swap') : undefined}
+        onPick={isOwner || membership.me?.id === current?.id ? () => setSheet('swap') : undefined}
         swapLabel={en.swap.title}
         nowLabel={done ? en.home.upNext : en.home.upNow}
       />

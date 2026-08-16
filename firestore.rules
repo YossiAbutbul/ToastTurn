@@ -78,6 +78,36 @@ service cloud.firestore {
         allow delete: if isOwner();
       }
 
+      // Asking someone to take your turn: { id: { from, to, date, status } }.
+      //
+      // The board is a place to leave a note, not a way around the owner. It
+      // cannot move the rotation by itself: an accepted ask is still applied
+      // by the owner's phone, writing the family document as it always did.
+      match /prefs/swaps {
+        function familyOwner() {
+          return request.auth != null
+            && get(/databases/$(database)/documents/families/$(familyId)).data.ownerUid == request.auth.uid;
+        }
+
+        function approvedMember() {
+          return request.auth != null
+            && exists(/databases/$(database)/documents/families/$(familyId)/prefs/members)
+            && get(/databases/$(database)/documents/families/$(familyId)/prefs/members)
+                 .data.keys().hasAny([request.auth.uid])
+            && get(/databases/$(database)/documents/families/$(familyId)/prefs/members)
+                 .data[request.auth.uid].status == 'approved';
+        }
+
+        // A board nobody could read would be a board nobody could answer.
+        allow get, list: if true;
+
+        // Only people who are actually in the rotation may ask or answer.
+        allow create, update: if familyOwner() || approvedMember();
+
+        // Only as part of the owner clearing the whole family.
+        allow delete: if familyOwner();
+      }
+
       match /turns/{turnId} {
         function saneTurn() {
           return request.resource.data.personId is string

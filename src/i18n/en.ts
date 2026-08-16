@@ -53,6 +53,21 @@ export const en = {
     turns: (n: number) => `${n} ${n === 1 ? 'turn' : 'turns'}`,
     onHoliday: 'on holiday',
     alone: 'Add someone else to swap with.',
+
+    // Asking, and being asked.
+    sentTitle: (name: string) => `Sent to ${name}`,
+    sentNote: (name: string) =>
+      `${name} will see the ask next time they open ToastTurn, and can take it or leave it.`,
+    sentClose: 'Right you are',
+    askTitle: (name: string) => `${name} would like you to take the toast`,
+    askNote: (date: string) => `It falls on ${date}.`,
+    accept: 'I will take it',
+    decline: 'Not this week',
+    declined: (name: string) => `${name} can't this week`,
+    accepted: (name: string) => `${name} is taking it`,
+    waiting: 'Waiting for the rotation to catch up',
+    // Someone the owner typed in, who has never opened the app.
+    noAccount: (name: string) => `${name} has no account yet, so only you can move the turn`,
   },
 
   schedule: {

@@ -157,6 +157,39 @@ export async function pushMember(familyId: string, uid: string, entry: unknown):
   await fs.setDoc(fs.doc(db, 'families', familyId, 'prefs', 'members'), { [uid]: entry }, { merge: true });
 }
 
+/** The swap board: who has asked whom, and what they said back. */
+export function subscribeSwaps(
+  familyId: string,
+  onChange: (board: Record<string, unknown>) => void,
+): () => void {
+  let stop: (() => void) | null = null;
+  let cancelled = false;
+
+  void (async () => {
+    const remote = await firestore();
+    if (!remote || cancelled) return;
+    const { db, fs } = remote;
+
+    stop = fs.onSnapshot(fs.doc(db, 'families', familyId, 'prefs', 'swaps'), (snap) => {
+      onChange(snap.exists() ? (snap.data() as Record<string, unknown>) : {});
+    });
+    if (cancelled) stop();
+  })();
+
+  return () => {
+    cancelled = true;
+    stop?.();
+  };
+}
+
+/** Leave an ask, or an answer to one, under its own key. */
+export async function pushSwap(familyId: string, swap: { id: string }): Promise<void> {
+  const remote = await firestore();
+  if (!remote) return;
+  const { db, fs } = remote;
+  await fs.setDoc(fs.doc(db, 'families', familyId, 'prefs', 'swaps'), { [swap.id]: swap }, { merge: true });
+}
+
 /** Say what you thought of a turn. The rules only let you write your own key. */
 export async function pushRating(
   familyId: string,
@@ -187,6 +220,7 @@ export async function deleteFamily(familyId: string): Promise<void> {
   const batch = fs.writeBatch(db);
   turns.forEach((turn) => batch.delete(turn.ref));
   batch.delete(fs.doc(db, 'families', familyId, 'prefs', 'members'));
+  batch.delete(fs.doc(db, 'families', familyId, 'prefs', 'swaps'));
   batch.delete(fs.doc(db, 'families', familyId));
   await batch.commit();
 }
