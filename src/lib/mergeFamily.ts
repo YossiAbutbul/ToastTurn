@@ -79,13 +79,38 @@ export function unsentRatings(
     .map((turn) => ({ turnId: turn.id, rating: turn.ratings![uid] }));
 }
 
+/**
+ * The comparable shape of the family's metadata.
+ *
+ * A round trip through Firestore is not value-preserving: a field left unset
+ * here is written as null and comes back as null, and object keys come back in
+ * whatever order they were stored in. Comparing the raw values therefore
+ * reported a difference that no edit could ever resolve, so the phone
+ * republished the family on every snapshot, and every write produced the next
+ * snapshot. Two phones in that loop each kept reasserting their own toast
+ * night, which is what made the time flip between AM and PM on its own.
+ */
+function metaShape(family: Family): string {
+  return JSON.stringify({
+    name: family.name ?? '',
+    ownerPersonId: family.ownerPersonId ?? null,
+    schedule: {
+      weekday: family.schedule.weekday,
+      time: family.schedule.time,
+      remind: family.schedule.remind,
+    },
+    people: family.people.map((person) => ({
+      id: person.id,
+      name: person.name,
+      color: person.color,
+      order: person.order,
+      active: person.active,
+    })),
+  });
+}
+
 /** True when name, people or schedule differ from what is published. */
 export function metaChanged(local: Family, remote: Family | null): boolean {
   if (!remote) return true;
-  return (
-    local.name !== remote.name ||
-    local.ownerPersonId !== remote.ownerPersonId ||
-    JSON.stringify(local.schedule) !== JSON.stringify(remote.schedule) ||
-    JSON.stringify(local.people) !== JSON.stringify(remote.people)
-  );
+  return metaShape(local) !== metaShape(remote);
 }

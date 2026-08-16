@@ -141,6 +141,28 @@ describe('metaChanged', () => {
   it('ignores turns, those go up on their own', () => {
     expect(metaChanged(family({ turns: [turn('t1', 'a', '2026-08-09')] }), family())).toBe(false);
   });
+
+  // Firestore writes an unset field as null and hands it back as null, so a
+  // local undefined and a published null describe the same family. Reading
+  // them as a difference put the phone in a write loop it could never leave.
+  it('treats an unset owner the same as a published null one', () => {
+    const local = family();
+    delete (local as { ownerPersonId?: string }).ownerPersonId;
+    const remote = { ...family(), ownerPersonId: null as unknown as undefined };
+    expect(metaChanged(local, remote)).toBe(false);
+  });
+
+  // Nor does the round trip promise to keep the keys in the order they went up.
+  it('does not mind the field order coming back rearranged', () => {
+    const remote = family();
+    remote.schedule = { time: remote.schedule.time, remind: remote.schedule.remind, weekday: remote.schedule.weekday };
+    remote.people = remote.people.map((p) => ({ active: p.active, order: p.order, color: p.color, name: p.name, id: p.id }));
+    expect(metaChanged(family(), remote)).toBe(false);
+  });
+
+  it('still notices a real change to the owner', () => {
+    expect(metaChanged(family({ ownerPersonId: 'a' }), family())).toBe(true);
+  });
 });
 
 describe('the family link', () => {
