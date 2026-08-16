@@ -67,7 +67,7 @@ export function OrdersSheet({ open, onClose, lines, tally, me, mine, onSet, cove
         <>
           <div className="fieldlabel">{en.orders.yours}</div>
 
-          <div className="tabs slice-tabs" role="tablist" aria-label={en.orders.yours}>
+          <div className="slice-tabs" role="tablist" aria-label={en.orders.yours}>
             {slices.map((_, index) => (
               <button
                 key={index}

@@ -1,3 +1,4 @@
+import { SliceDots } from './SliceDots';
 import { en } from '../i18n/en';
 import { initialOf } from '../lib/format';
 import type { OrderLine } from '../lib/orders';
@@ -18,7 +19,7 @@ export function OrderRow({ line }: { line: OrderLine }) {
           <span className="order-line">
             {order.slices.map((slice, i) => (
               <span className="order-slice" key={i}>
-                {order.slices.length > 1 ? `${i + 1}. ` : ''}
+                <SliceDots toppings={slice.toppings} />
                 {slice.toppings.length > 0
                   ? slice.toppings.map((topping) => en.orders.toppings[topping].toLowerCase()).join(', ')
                   : en.orders.plainSlice}

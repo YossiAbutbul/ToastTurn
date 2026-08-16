@@ -7,24 +7,32 @@ type SliceEditorProps = {
   onToggle: (topping: Topping) => void;
 };
 
-/** Everything that could go on the slice being looked at. */
+/**
+ * Everything that could go on the slice being looked at, as the same row the
+ * rest of the app uses for a thing with a switch beside it.
+ */
 export function SliceEditor({ slice, onToggle }: SliceEditorProps) {
   return (
-    <div className="toppings" role="group" aria-label={en.orders.onTop}>
+    <>
       {TOPPINGS.map((topping: Topping) => {
         const on = slice.toppings.includes(topping);
         return (
-          <button
-            key={topping}
-            type="button"
-            className={on ? 'topping on' : 'topping'}
-            aria-pressed={on}
-            onClick={() => onToggle(topping)}
-          >
-            {en.orders.toppings[topping]}
-          </button>
+          <div className="row" key={topping}>
+            <span className={`mini chip-${topping}`} aria-hidden="true" />
+            <b>{en.orders.toppings[topping]}</b>
+            <button
+              type="button"
+              className={on ? 'tog on' : 'tog'}
+              role="switch"
+              aria-checked={on}
+              aria-label={en.orders.toppings[topping]}
+              onClick={() => onToggle(topping)}
+            >
+              <i />
+            </button>
+          </div>
         );
       })}
-    </div>
+    </>
   );
 }
