@@ -3,6 +3,7 @@ import { SignInSheet } from '../components/SignInSheet';
 import { JoinSheet } from '../components/JoinSheet';
 import { ToastSlice } from '../components/ToastSlice';
 import { useAccount } from '../hooks/useAccount';
+import { signOut } from '../lib/auth';
 import { syncConfigured } from '../lib/firebase';
 import { en } from '../i18n/en';
 import './Welcome.css';
@@ -62,7 +63,16 @@ export function Welcome({ onStart, onOpen, notFound }: WelcomeProps) {
 
       <div className="welcome-foot">
         {notFound && <p className="problem">{en.join.notFound}</p>}
-        {account && <p className="empty">{en.signIn.signedInAs(account.email ?? '')}</p>}
+        {account && (
+          <p className="empty">
+            {en.signIn.signedInAs(account.email ?? '')}{' '}
+            {/* Said where being signed in is said: anywhere else and somebody
+                is stuck as the wrong person with no way out. */}
+            <button className="linkish" type="button" onClick={() => void signOut()}>
+              {en.signIn.signOut}
+            </button>
+          </p>
+        )}
 
         {onOpen ? (
           <>

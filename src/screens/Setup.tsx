@@ -20,11 +20,13 @@ const blankFamily = (): Family => ({
 
 type SetupProps = {
   onDone: () => void;
+  /** Leaving without starting anything: back where you came from. */
+  onBack: () => void;
   /** Start another rotation rather than edit the open one. */
   fresh?: boolean;
 };
 
-export function Setup({ onDone, fresh }: SetupProps) {
+export function Setup({ onDone, onBack, fresh }: SetupProps) {
   const { state, dispatch } = useFamily();
   const existing = fresh ? null : state.family;
   // Starting a rotation only asks who you are. Everyone else arrives by asking
@@ -95,6 +97,12 @@ export function Setup({ onDone, fresh }: SetupProps) {
   return (
     <div className="device setup">
       <div className="bar">
+        <button className="back" type="button" aria-label={en.setup.back} onClick={onBack}>
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M15 4 L7 12 L15 20" />
+          </svg>
+        </button>
+
         <div className="mark">
           {en.brand.first}
           <span>{en.brand.second}</span>

@@ -156,3 +156,48 @@
   cursor: pointer;
   min-height: 36px;
 }
+
+/* The way back out, level with the wordmark. */
+.setup .bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.back {
+  flex: 0 0 auto;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  background: var(--paper);
+  border: 3px solid var(--ink);
+  border-radius: 999px;
+  box-shadow: 0 2px 0 var(--ink);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.back svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.back:active {
+  transform: translateY(2px);
+  box-shadow: none;
+}
+
+.back:focus {
+  outline: none;
+}
+.back:focus-visible {
+  outline: 3px solid var(--mint);
+  outline-offset: 3px;
+}

@@ -30,7 +30,15 @@ export function App() {
   // 'new' is the same screen with nothing filled in: a second rotation, kept
   // alongside the ones this phone already has.
   if (screen === 'setup' || screen === 'new') {
-    return <Setup fresh={screen === 'new'} onDone={() => setScreen('auto')} />;
+    return (
+      <Setup
+        fresh={screen === 'new'}
+        onDone={() => setScreen('auto')}
+        // Back to the rotation if there is one to go back to, and to the
+        // welcome if this phone has nothing yet.
+        onBack={() => setScreen(state.family ? 'auto' : 'welcome')}
+      />
+    );
   }
 
   // A link, and nobody signed in: the invitation itself, which says which

@@ -85,6 +85,7 @@ export const en = {
   },
 
   setup: {
+    back: 'Back',
     title: 'Start a rotation',
     yourName: 'Your name',
     yourNameHint: 'Everyone else asks to join, or you add them later from settings.',
