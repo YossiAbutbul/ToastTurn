@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { syncConfigured } from '../lib/firebase';
 import { pushOrder, subscribeOrders } from '../lib/remote';
 import { listForFamily, orderFor, tally } from '../lib/orders';
-import type { Order, OrderBoard, Toastiness } from '../lib/orders';
+import type { Order, OrderBoard } from '../lib/orders';
 import { loadOrders, saveOrders } from '../lib/storage';
 import { nowISO } from '../lib/clock';
 import type { Family } from '../lib/types';
@@ -69,5 +69,3 @@ export function useOrders(family: Family, myPersonId: string | undefined, isOwne
     set,
   };
 }
-
-export type { Toastiness };

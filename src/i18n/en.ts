@@ -229,8 +229,10 @@ export const en = {
     openCount: (n: number) => `Orders (${n})`,
     yours: 'Yours',
     everyone: 'The whole list',
-    howToasted: 'How toasted',
-    toastiness: { light: 'Light', medium: 'Medium', dark: 'Dark' },
+    sliceNo: (n: number) => `Slice ${n}`,
+    dropSlice: (n: number) => `Take slice ${n} off`,
+    addSlice: 'Add another slice',
+    slices: (n: number) => `${n} ${n === 1 ? 'slice' : 'slices'}`,
     onTop: 'On top',
     toppings: {
       cheese: 'Cheese',
@@ -240,12 +242,14 @@ export const en = {
       ketchup: 'Ketchup',
       sriracha: 'Sriracha',
     },
-    plain: ', plain',
+    plainSlice: 'plain',
     noteLabel: 'Anything else',
     notePlaceholder: 'No crusts, cut in triangles…',
     nothingYet: "Hasn't said yet",
-    said: (said: number, people: number) =>
-      said === 0 ? 'Nobody has said yet.' : `${said} of ${people} have said.`,
+    said: (said: number, people: number, slices: number) =>
+      said === 0
+        ? 'Nobody has said yet.'
+        : `${said} of ${people} have said, ${slices} ${slices === 1 ? 'slice' : 'slices'} in all.`,
     /** What to get out of the fridge, counted up. */
     fridge: (parts: string[]) => parts.join(' · '),
   },

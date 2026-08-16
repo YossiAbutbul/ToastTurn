@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { NOTE_MAX, cleanNote, cleanToppings, listForFamily, orderFor, tally } from './orders';
+import { NOTE_MAX, SLICE_MAX, cleanNote, cleanSlices, cleanToppings, listForFamily, orderFor, tally } from './orders';
 import type { Order, OrderBoard } from './orders';
 import type { Family, Person } from './types';
 
@@ -21,8 +21,7 @@ const family = (people: Person[]): Family => ({
 
 const order = (over: Partial<Order> = {}): Order => ({
   personId: 'a',
-  toastiness: 'dark',
-  toppings: ['cheese'],
+  slices: [{ toppings: ['cheese'] }, { toppings: [] }],
   updatedAt: '2026-08-16T09:00:00.000Z',
   ...over,
 });
@@ -32,15 +31,28 @@ const board = (...orders: Order[]): OrderBoard =>
 
 describe('what everyone wants', () => {
   it('finds what one person asked for', () => {
-    expect(orderFor(board(order()), 'a')?.toastiness).toBe('dark');
+    expect(orderFor(board(order()), 'a')?.slices).toHaveLength(2);
     expect(orderFor(board(order()), 'b')).toBeNull();
     expect(orderFor(board(order()), undefined)).toBeNull();
   });
 
   it('ignores a half written order rather than showing nonsense', () => {
-    const rubbish = { personId: 'a', toastiness: 'burnt' } as unknown as Order;
-    expect(orderFor({ a: rubbish }, 'a')).toBeNull();
+    expect(orderFor({ a: null as unknown as Order }, 'a')).toBeNull();
+    expect(orderFor({ a: { slices: [] } as unknown as Order }, 'a')).toBeNull();
     expect(orderFor({} as OrderBoard, 'a')).toBeNull();
+  });
+
+  it('keeps slices between one and what the toaster will manage', () => {
+    expect(cleanSlices([])).toEqual([{ toppings: [] }]);
+    expect(cleanSlices(undefined)).toEqual([{ toppings: [] }]);
+    expect(cleanSlices('two')).toEqual([{ toppings: [] }]);
+    expect(cleanSlices(Array.from({ length: 9 }, () => ({ toppings: [] })))).toHaveLength(SLICE_MAX);
+  });
+
+  it('lets one person want two different things', () => {
+    const two = cleanSlices([{ toppings: ['cheese'] }, { toppings: ['olives', 'ketchup'] }]);
+    expect(two[0].toppings).toEqual(['cheese']);
+    expect(two[1].toppings).toEqual(['olives', 'ketchup']);
   });
 
   it('lists the rotation in its own order, with the choices beside it', () => {
@@ -59,14 +71,16 @@ describe('what everyone wants', () => {
   it('counts up what the maker actually has to do', () => {
     const lines = listForFamily(
       board(
-        order({ personId: 'a', toastiness: 'dark', toppings: ['cheese', 'olives'] }),
-        order({ personId: 'b', toastiness: 'light', toppings: ['cheese'] }),
+        order({ personId: 'a', slices: [{ toppings: ['cheese', 'olives'] }, { toppings: ['cheese'] }] }),
+        order({ personId: 'b', slices: [{ toppings: [] }] }),
       ),
       family([person('a', 0), person('b', 1), person('c', 2)]),
     );
     const counted = tally(lines);
-    expect({ light: counted.light, medium: counted.medium, dark: counted.dark, said: counted.said, people: counted.people })
-      .toEqual({ light: 1, medium: 0, dark: 1, said: 2, people: 3 });
+    expect(counted.slices).toBe(3);
+    expect(counted.said).toBe(2);
+    expect(counted.people).toBe(3);
+    // Cheese on two slices means getting the cheese out for two.
     expect(counted.toppings.cheese).toBe(2);
     expect(counted.toppings.olives).toBe(1);
     expect(counted.toppings.sriracha).toBe(0);
@@ -79,10 +93,10 @@ describe('what everyone wants', () => {
     expect(cleanToppings(undefined)).toEqual([]);
   });
 
-  // An order written before toppings existed still has to read as an order.
-  it('reads an order with no toppings on it as plain', () => {
-    const older = { personId: 'a', toastiness: 'medium', updatedAt: '2026-08-16T09:00:00.000Z' } as unknown as Order;
-    expect(orderFor({ a: older }, 'a')?.toppings).toEqual([]);
+  // An order from before slices existed still has to read as an order.
+  it('reads a bare order as one plain slice', () => {
+    const older = { personId: 'a', updatedAt: '2026-08-16T09:00:00.000Z' } as unknown as Order;
+    expect(orderFor({ a: older }, 'a')?.slices).toEqual([{ toppings: [] }]);
   });
 
   it('tidies a note down to something readable', () => {

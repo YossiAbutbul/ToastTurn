@@ -16,11 +16,15 @@ export function OrderRow({ line }: { line: OrderLine }) {
         <b>{person.name}</b>
         {order ? (
           <span className="order-line">
-            {en.orders.toastiness[order.toastiness]}
-            {order.toppings.length > 0
-              ? `, ${order.toppings.map((topping) => en.orders.toppings[topping].toLowerCase()).join(', ')}`
-              : en.orders.plain}
-            {order.note ? ` · ${order.note}` : ''}
+            {order.slices.map((slice, i) => (
+              <span className="order-slice" key={i}>
+                {order.slices.length > 1 ? `${i + 1}. ` : ''}
+                {slice.toppings.length > 0
+                  ? slice.toppings.map((topping) => en.orders.toppings[topping].toLowerCase()).join(', ')
+                  : en.orders.plainSlice}
+              </span>
+            ))}
+            {order.note ? <span className="order-slice">{order.note}</span> : null}
           </span>
         ) : (
           <span className="order-line quiet">{en.orders.nothingYet}</span>
