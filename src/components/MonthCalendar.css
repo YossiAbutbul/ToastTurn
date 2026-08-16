@@ -21,7 +21,7 @@
   padding-block-end: 2px;
 }
 
-/* Date on top, what happened that day underneath — the chip used to sit over
+/* Date on top, what happened that day underneath, the chip used to sit over
    the number, which cost you the date you came to read. */
 .calendar-day {
   position: relative;

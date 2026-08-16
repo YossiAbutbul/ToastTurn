@@ -4,7 +4,7 @@ rules_version = '2';
 //
 // 1. The family code is the key. You have to know a family id to read it, and
 //    nothing can list families, so a code that is never shared is never found.
-//    Anyone with the link can read the family and say the toast got made — no
+//    Anyone with the link can read the family and say the toast got made, no
 //    sign-in, nothing typed. That is the whole point of the app.
 // 2. One account runs the family. Only the signed-in owner can change the
 //    people, the schedule or the rotation, or clear the family.
@@ -64,7 +64,7 @@ service cloud.firestore {
 
         allow get, list: if true;
 
-        // The owner writes this doc freely — it is how they let people in.
+        // The owner writes this doc freely, it is how they let people in.
         allow create: if isOwner()
           || (request.auth != null
               && request.resource.data.keys().hasOnly([request.auth.uid])

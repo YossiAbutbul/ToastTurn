@@ -18,10 +18,10 @@ export function App() {
 
   if (!state.ready) return null;
   // Someone opened a share link: wait for that rotation rather than offering to
-  // set up a new one — unless the server says there is no such rotation.
+  // set up a new one, unless the server says there is no such rotation.
   if (sync.joining && !state.family && !sync.missing) return null;
 
-  // Nothing shows before a sign-in — a link is an invitation to ask, not a
+  // Nothing shows before a sign-in, a link is an invitation to ask, not a
   // window into the rotation.
   const lockedOut = syncConfigured && !sync.account;
 

@@ -18,7 +18,7 @@ export const en = {
   lever: {
     label: "Pull the lever down to log this week's toast",
     idle: 'Pull the lever down when the toast is made',
-    idleYou: "You're up — pull the lever down when it's made",
+    idleYou: "You're up. Pull the lever down when it's made",
     pulling: 'Keep pulling…',
     ready: 'Let go!',
     toasting: 'Toasting…',
@@ -35,7 +35,7 @@ export const en = {
     rate: (name: string) => `Rate the toast ${name} made`,
     empty: 'No toast yet. Pull the lever when someone makes it.',
     notRated: 'not rated yet',
-    skipped: 'Okay — next time 👍',
+    skipped: 'Okay, next time 👍',
     skippedRow: 'nobody made it',
     skippedHint: "Noted. Nobody's turn moved.",
     logSkip: 'Nobody made it this week',

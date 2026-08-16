@@ -1,4 +1,4 @@
-/* Latin only — Hebrew arrives with its own face in phase 4. */
+/* Latin only, Hebrew arrives with its own face in phase 4. */
 @import '@fontsource/baloo-2/latin-600.css';
 @import '@fontsource/baloo-2/latin-700.css';
 @import '@fontsource/baloo-2/latin-800.css';
@@ -21,7 +21,7 @@ body,
   height: 100%;
 }
 
-/* body centres #root, but #root still fills the width — without this the phone
+/* body centres #root, but #root still fills the width, without this the phone
    frame sits against the left edge on a desktop. */
 #root {
   display: flex;

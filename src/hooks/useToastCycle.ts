@@ -10,7 +10,7 @@ export const SLICE_DEEP = 78;
  * behind the chrome cap (y 102), so it still reads as seated in the slot.
  */
 export const SLICE_POP = -16;
-/** Off the bottom of the slot — where the fresh slice jumps to before springing up. */
+/** Off the bottom of the slot, where the fresh slice jumps to before springing up. */
 const SLICE_BELOW = 140;
 
 const TOASTING_MS = 1050;

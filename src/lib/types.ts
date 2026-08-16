@@ -23,7 +23,7 @@ export type Turn = {
   ratings?: Record<string, number>;
   /** A single rating from before ratings were per person. Counts as one vote. */
   rating?: number;
-  /** Logged without credit — does not move the rotation on. */
+  /** Logged without credit, does not move the rotation on. */
   skipped: boolean;
 };
 
@@ -40,7 +40,7 @@ export type Family = {
   id: string;
   /**
    * The device that started the family. It is the only one the server lets
-   * change people, the schedule or the rotation — everyone else can log toast.
+   * change people, the schedule or the rotation, everyone else can log toast.
    * Absent on families made before sync, and on local-only phones.
    */
   ownerUid?: string;

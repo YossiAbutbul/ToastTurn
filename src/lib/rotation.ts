@@ -10,13 +10,13 @@ export function getPerson(family: Family, id: string): Person | undefined {
   return family.people.find((p) => p.id === id);
 }
 
-/** Turns that count, newest first. Sorted defensively — a synced turn may arrive late. */
+/** Turns that count, newest first. Sorted defensively, a synced turn may arrive late. */
 function credited(family: Family): Turn[] {
   return family.turns.filter((t) => !t.skipped).sort((a, b) => b.madeAt.localeCompare(a.madeAt));
 }
 
 /**
- * Whose turn it is. Derived every time from the turn log — never stored, so two
+ * Whose turn it is. Derived every time from the turn log, never stored, so two
  * phones writing at once can't drift apart.
  */
 export function getCurrentPerson(family: Family): Person | null {
@@ -45,7 +45,7 @@ export function getUpcoming(family: Family, n: number): Person[] {
 /**
  * Everyone active, in order, starting with whoever is up. Logging a turn moves
  * the rotation on, so the person who just made toast falls to the end by
- * itself — no reordering anywhere.
+ * itself, no reordering anywhere.
  */
 export function rotationOrder(family: Family): Person[] {
   const roster = activePeople(family);
@@ -127,7 +127,7 @@ export function swapPeople(family: Family, aId: string, bId: string): Family {
   };
 }
 
-/** Credited turns per person, optionally inside an ISO range — end exclusive. */
+/** Credited turns per person, optionally inside an ISO range, end exclusive. */
 export function turnCounts(family: Family, range?: { from?: string; to?: string }): Record<string, number> {
   const counts: Record<string, number> = {};
   for (const person of family.people) counts[person.id] = 0;
@@ -143,7 +143,7 @@ export function turnCounts(family: Family, range?: { from?: string; to?: string 
 /**
  * The ISO range covering the month a date falls in, for counting turns. The
  * end is the first moment of the next month, so a turn logged at 23:59 on the
- * last day still counts — comparisons on ISO strings are exclusive of it.
+ * last day still counts, comparisons on ISO strings are exclusive of it.
  */
 export function monthRange(date: Date): { from: string; to: string } {
   const pad = (n: number) => String(n).padStart(2, '0');

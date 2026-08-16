@@ -24,7 +24,7 @@ export function QueueBar({ people, onPick, swapLabel, nowLabel }: QueueBarProps)
         const label = index === 0 ? nowLabel(person.name) : swapLabel(person.name);
         const inside = (
           <>
-            {/* Everyone keeps their own colour, up or not — being up is said
+            {/* Everyone keeps their own colour, up or not, being up is said
                 with height and a heavier outline instead. */}
             <span className="qtoast" style={{ background: person.color }}>
               {initialOf(person.name)}

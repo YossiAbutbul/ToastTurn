@@ -1,6 +1,6 @@
 /* Wall above, counter below. The counter's edge is a wave rather than the flat
    line the rest of the app uses, and the slice stands on it. */
-/* Wall above, counter below — the straight split comes from .device, and the
+/* Wall above, counter below, the straight split comes from .device, and the
    foot carries the counter on down. */
 .welcome-body {
   position: relative;
@@ -84,7 +84,7 @@
   margin-block-start: 10px;
 }
 
-/* The last option is a quieter one — a line of text, not a third slab. */
+/* The last option is a quieter one, a line of text, not a third slab. */
 .welcome-plain {
   display: block;
   width: 100%;

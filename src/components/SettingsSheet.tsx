@@ -87,7 +87,7 @@ export function SettingsSheet(props: SettingsSheetProps) {
                 className={person.active ? 'tog' : 'tog on'}
                 role="switch"
                 aria-checked={!person.active}
-                aria-label={`${en.settings.holiday} — ${person.name}`}
+                aria-label={`${en.settings.holiday}, ${person.name}`}
                 onClick={() => props.onToggleHoliday(person.id, !person.active)}
               >
                 <i />

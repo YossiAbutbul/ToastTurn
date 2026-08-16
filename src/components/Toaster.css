@@ -1,5 +1,5 @@
 /*
- * Shades that exist only inside the toaster illustration — the gradient stops
+ * Shades that exist only inside the toaster illustration, the gradient stops
  * and shadow tints taken verbatim from docs/prototype.html. They are scoped
  * here on purpose: nothing outside this SVG may use them.
  */

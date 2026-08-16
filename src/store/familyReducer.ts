@@ -4,7 +4,7 @@ import type { Family, Person, Schedule } from '../lib/types';
 
 export type State = {
   family: Family | null;
-  /** False until storage has been read once — stops the setup screen flashing. */
+  /** False until storage has been read once, stops the setup screen flashing. */
   ready: boolean;
 };
 

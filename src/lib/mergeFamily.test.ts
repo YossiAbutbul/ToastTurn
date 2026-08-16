@@ -34,7 +34,7 @@ describe('mergeFamily', () => {
     expect(mergeFamily(null, remote)).toEqual(remote);
   });
 
-  it('replaces a different family outright — that is what joining a link means', () => {
+  it('replaces a different family outright, that is what joining a link means', () => {
     const local = family({ id: 'old' });
     const remote = family({ id: 'new', name: 'Other' });
     expect(mergeFamily(local, remote).id).toBe('new');
@@ -138,7 +138,7 @@ describe('metaChanged', () => {
     expect(metaChanged(family({ schedule: { weekday: 5, time: '20:00', remind: true } }), family())).toBe(true);
   });
 
-  it('ignores turns — those go up on their own', () => {
+  it('ignores turns, those go up on their own', () => {
     expect(metaChanged(family({ turns: [turn('t1', 'a', '2026-08-09')] }), family())).toBe(false);
   });
 });

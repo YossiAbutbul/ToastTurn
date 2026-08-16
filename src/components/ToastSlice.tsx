@@ -5,12 +5,12 @@ import './ToastSlice.css';
  * domed top of three humps sitting on the same width.
  *
  * The humps are arcs whose radius is well over half their chord, so they stay
- * shallow and even — hand-drawn curves came out lopsided, and semicircles came
+ * shallow and even, hand-drawn curves came out lopsided, and semicircles came
  * out looking like a crown.
  */
 export function ToastSlice() {
   // The corners where the sides meet the dome are quarter-turns, so the side
-  // arrives vertical and leaves horizontal — a hump run straight off a straight
+  // arrives vertical and leaves horizontal, a hump run straight off a straight
   // side leaves a point.
   const outline =
     'M46 274 V166 A16 16 0 0 1 62 150 A32 32 0 0 1 103 150 A34 34 0 0 1 145 150 ' +

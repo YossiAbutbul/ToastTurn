@@ -52,6 +52,6 @@ export function clearFamily(): void {
   try {
     window.localStorage.removeItem(FAMILY_KEY);
   } catch {
-    // Nothing to do — there was nothing to clear.
+    // Nothing to do, there was nothing to clear.
   }
 }

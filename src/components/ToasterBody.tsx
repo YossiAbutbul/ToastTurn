@@ -7,7 +7,7 @@ type ToasterBodyProps = {
 
 /**
  * The static half of the toaster: chrome cap, slot, coils, body, dial, badge,
- * plinth, feet. Geometry ported from docs/prototype.html — do not redraw, and
+ * plinth, feet. Geometry ported from docs/prototype.html, do not redraw, and
  * do not reorder: the slice is painted before this group so it reads as
  * inserted into the slot.
  */

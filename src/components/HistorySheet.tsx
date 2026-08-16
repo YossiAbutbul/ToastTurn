@@ -32,7 +32,7 @@ export function HistorySheet({ open, family, onClose, onPickDay, onRate, uid, co
       {family.turns.length === 0 && <p className="empty">{en.history.empty}</p>}
 
       {family.turns.map((turn) => {
-        const who = getPerson(family, turn.personId)?.name ?? '—';
+        const who = getPerson(family, turn.personId)?.name ?? '?';
         return (
           <div className="turn-row" key={turn.id}>
             <div className="turn-head">

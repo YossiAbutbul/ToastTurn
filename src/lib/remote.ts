@@ -60,7 +60,7 @@ export function subscribeFamily(id: string, onChange: (family: RemoteFamily) => 
     const stopTurns = fs.onSnapshot(fs.collection(db, 'families', id, 'turns'), (snap) => {
       turns = snap.docs
         .map((d) => ({ id: d.id, ...(d.data() as Omit<Turn, 'id'>) }))
-        // A half-written turn — ratings that landed before the turn itself —
+        // A half-written turn, ratings that landed before the turn itself -
         // is not a turn yet, and would crash anything that reads its date.
         .filter((turn) => typeof turn.madeAt === 'string' && typeof turn.personId === 'string');
       emit();
@@ -80,7 +80,7 @@ export function subscribeFamily(id: string, onChange: (family: RemoteFamily) => 
 }
 
 /**
- * Publish the family itself — name, people, schedule. Turns go separately.
+ * Publish the family itself, name, people, schedule. Turns go separately.
  * Only the owner's account may do this; the server refuses anyone else.
  */
 export async function pushFamily(family: Family, ownerUid?: string): Promise<void> {

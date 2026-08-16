@@ -39,7 +39,7 @@ export function myRating(turn: Turn, uid: string | undefined): number | undefine
   return turn.ratings?.[uid];
 }
 
-/** One decimal, and no trailing ".0" — 4 rather than 4.0. */
+/** One decimal, and no trailing ".0", 4 rather than 4.0. */
 export function formatAverage(average: number): string {
   return String(Math.round(average * 10) / 10);
 }

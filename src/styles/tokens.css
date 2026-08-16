@@ -22,7 +22,7 @@
   --ink:      #2B2420;  /* every outline and all body text */
   --ink-soft: #6E635C;  /* secondary text only */
   --mint:     #5FB99E;  /* success, toggles, focus rings */
-  --coil:     #FF5C22;  /* the heating element glow — nothing else */
+  --coil:     #FF5C22;  /* the heating element glow, nothing else */
 
   /* type */
   --display: 'Baloo 2', system-ui, sans-serif;

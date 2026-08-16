@@ -2,7 +2,7 @@ const shortDate = new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric'
 
 /** "2026-08-09" → "Aug 9" */
 export function formatShortDate(iso: string | undefined): string {
-  if (!iso) return '—';
+  if (!iso) return '';
   const d = new Date(iso.length <= 10 ? `${iso}T00:00:00` : iso);
   if (Number.isNaN(d.getTime())) return iso;
   return shortDate.format(d);

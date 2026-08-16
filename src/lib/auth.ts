@@ -4,7 +4,7 @@ export type Account = { uid: string; email: string | null };
 
 /**
  * The family's owner signs in with an email and a password. Everyone else uses
- * the app without signing in at all — the link is enough to read the family and
+ * the app without signing in at all, the link is enough to read the family and
  * to say the toast got made.
  */
 export async function signIn(email: string, password: string): Promise<Account> {

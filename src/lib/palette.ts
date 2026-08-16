@@ -1,4 +1,4 @@
-/** The fixed palette people are picked from — every value is an existing token. */
+/** The fixed palette people are picked from, every value is an existing token. */
 export const PALETTE = [
   '#E9553D', // coral
   '#F7C548', // butter

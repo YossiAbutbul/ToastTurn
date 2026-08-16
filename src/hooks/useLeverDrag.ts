@@ -12,7 +12,7 @@ const VIEWBOX_HEIGHT = 350;
 export type LeverState = 'idle' | 'pulling' | 'ready';
 
 type Options = {
-  /** The <svg> the lever lives in — supplies the rect for the pixel → unit conversion. */
+  /** The <svg> the lever lives in, supplies the rect for the pixel → unit conversion. */
   svgRef: RefObject<SVGSVGElement | null>;
   disabled?: boolean;
   onCommit: () => void;

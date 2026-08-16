@@ -4,7 +4,7 @@ import { dismissInstallHint, installHintDismissed } from '../lib/storage';
 import { en } from '../i18n/en';
 import './InstallHint.css';
 
-/** Offered once. Dismissed is dismissed — it never comes back. */
+/** Offered once. Dismissed is dismissed, it never comes back. */
 export function InstallHint() {
   const { canPrompt, promptInstall, installed, ios } = useInstallPrompt();
   const [gone, setGone] = useState(installHintDismissed);

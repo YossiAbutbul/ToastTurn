@@ -10,7 +10,7 @@ type JoinRequestSheetProps = {
 
 /**
  * What a newcomer fills in: their name. It goes to whoever runs the rotation,
- * who adds them to it when they let them in — so nobody picks themselves off a
+ * who adds them to it when they let them in, so nobody picks themselves off a
  * list, and nobody joins as somebody else.
  */
 export function JoinRequestSheet({ open, onClose, onAsk }: JoinRequestSheetProps) {

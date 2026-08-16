@@ -7,7 +7,7 @@ import './Toaster.css';
 export type ToasterStatus = 'idle' | 'pulling' | 'ready' | 'toasting' | 'popped';
 
 type ToasterProps = {
-  /** Initial letter on the slice — the person whose turn it is. */
+  /** Initial letter on the slice, the person whose turn it is. */
   initial: string;
   /** Fires once per cycle, the moment the slice pops. */
   onPop: () => void;
@@ -109,7 +109,7 @@ export function Toaster({ initial, locked, onPop, onStatus, leverLabel }: Toaste
         aria-disabled={busy || locked}
         {...lever.handlers}
       >
-        {/* invisible grab area — the knob itself is smaller than a thumb */}
+        {/* invisible grab area, the knob itself is smaller than a thumb */}
         <rect x="266" y="126" width="60" height="58" fill="transparent" />
         <rect x="278" y="138" width="36" height="34" rx="13" className="tt-knob tt-chrome tt-ink" strokeWidth="5" />
         <rect x="287" y="148" width="18" height="3.5" rx="1.75" className="tt-grip" />

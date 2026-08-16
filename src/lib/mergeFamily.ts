@@ -4,7 +4,7 @@ import type { Family, Turn } from './types';
 /**
  * Fold what the other phones say into what this one holds.
  *
- * Turns are append-only, so the union of both logs is always right — a turn
+ * Turns are append-only, so the union of both logs is always right, a turn
  * logged offline here survives, and one logged on another phone arrives.
  * Name, people and schedule are single values, so the remote copy wins: every
  * local edit is pushed the moment it happens, which makes the server the one

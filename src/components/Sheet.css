@@ -35,7 +35,7 @@
   overflow: hidden;
   visibility: hidden;
 }
-/* One height, whatever is in it — the list scrolls, the sheet doesn't move.
+/* One height, whatever is in it, the list scrolls, the sheet doesn't move.
    Half the screen keeps the toaster in view behind it. */
 .sheet.tall {
   height: 52%;
@@ -69,7 +69,7 @@
     visibility 0s;
 }
 
-/* The handle you drag down to close, and the only place a drag starts — a drag
+/* The handle you drag down to close, and the only place a drag starts, a drag
    anywhere else would fight with scrolling a long history. */
 .sheet-grip {
   display: block;

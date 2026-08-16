@@ -31,7 +31,7 @@ export function useSync() {
   // Opening /f/{id} for a family this phone doesn't have means joining it.
   const joining = linkId && linkId !== localId ? linkId : null;
 
-  // Keep the address bar on the family, so the link is always shareable — but
+  // Keep the address bar on the family, so the link is always shareable, but
   // only once someone is signed in, or the rewritten address would outlive the
   // sign-out that was meant to close it.
   useEffect(() => {
@@ -62,7 +62,7 @@ export function useSync() {
     });
   }, [dispatch, familyId, state.ready]);
 
-  // Anything this phone changed goes up. Turns first — they are what people
+  // Anything this phone changed goes up. Turns first, they are what people
   // are waiting to see.
   useEffect(() => {
     const family = state.family;

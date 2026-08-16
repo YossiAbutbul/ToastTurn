@@ -30,7 +30,7 @@ export function DaySheet({ open, family, date, turns, uid, onClose, onRate }: Da
 
       {turns.map((turn) => {
         const person = getPerson(family, turn.personId);
-        const name = person?.name ?? '—';
+        const name = person?.name ?? '?';
         const mine = myRating(turn, uid);
 
         return (
@@ -47,7 +47,7 @@ export function DaySheet({ open, family, date, turns, uid, onClose, onRate }: Da
             ) : (
               <>
                 <div className="fieldlabel spaced">{en.day.yours}</div>
-                {/* your own block shows your own score, not the family's —
+                {/* your own block shows your own score, not the family's -
                     borrowing the average made it look like you had rated */}
                 <Stars
                   verdict={mine ? { average: mine, votes: 1 } : null}
