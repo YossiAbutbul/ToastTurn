@@ -40,3 +40,11 @@
 .day-entry .stars-score {
   font-size: 13px;
 }
+
+/* Undoing a pull is the owner's, and quiet: it is a correction, not an offer. */
+.day-remove {
+  margin-block-start: 14px;
+  min-height: 42px;
+  font-size: 12px;
+  color: var(--ink-soft);
+}

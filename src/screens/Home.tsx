@@ -17,12 +17,20 @@ import { syncConfigured } from '../lib/firebase';
 import { useFamily } from '../store/useFamily';
 import { allFamilies } from '../store/familyReducer';
 import { en } from '../i18n/en';
-import { formatShortDate, initialOf } from '../lib/format';
-import { getCurrentPerson, getUpcoming, lastTurnFor, rotationOrder, turnCounts } from '../lib/rotation';
-import { nowISO } from '../lib/clock';
+import { formatDayDate, formatShortDate, initialOf, isoForDay } from '../lib/format';
+import {
+  getCurrentPerson,
+  getUpcoming,
+  lastTurnFor,
+  nextDue,
+  rotationOrder,
+  turnCounts,
+  weekDone,
+} from '../lib/rotation';
+import { now, nowISO } from '../lib/clock';
 import { newId } from '../lib/id';
 import { colorForIndex } from '../lib/palette';
-import { deleteFamily } from '../lib/remote';
+import { deleteFamily, deleteTurn } from '../lib/remote';
 import type { Family } from '../lib/types';
 import './Home.css';
 
@@ -141,6 +149,17 @@ export function Home({ onEditPeople, onLeave, onNewFamily }: HomeProps) {
         onRate={(turnId, rating) =>
           ratingUid && dispatch({ type: 'rateTurn', turnId, uid: ratingUid, rating })
         }
+        onRemoveTurn={(turnId) => {
+          // Off this phone and off the server, or the next snapshot puts it back.
+          dispatch({ type: 'removeTurn', turnId });
+          void deleteTurn(family.id, turnId);
+        }}
+        today={now()}
+        onLogDay={(personId) => {
+          if (!day) return;
+          dispatch({ type: 'logTurn', id: newId(), madeAt: isoForDay(day), personId });
+          setDay(null);
+        }}
         onSwap={(personId) => {
           if (current) dispatch({ type: 'swap', aId: current.id, bId: personId });
           closeSheet();
@@ -206,6 +225,9 @@ export function Home({ onEditPeople, onLeave, onNewFamily }: HomeProps) {
   }
 
   const last = lastTurnFor(family, current.id);
+  // Once this week's toast is made the person on screen is next week's, so the
+  // screen says so. The lever stays live: pulling it is half the point.
+  const done = weekDone(family, now());
   const idle = current.id === me?.id ? en.lever.idleYou : en.lever.idle;
   const hint = flash ?? (status === 'idle' || status === 'popped' ? idle : en.lever[status]);
 
@@ -214,12 +236,16 @@ export function Home({ onEditPeople, onLeave, onNewFamily }: HomeProps) {
       {bar}
 
       <div className="head">
-        <div className="kicker">{en.home.kicker}</div>
+        <div className="kicker">{done ? en.home.nextUp : en.home.kicker}</div>
         <div className="big">{current.name}</div>
         <div className="sub">
-          {last
-            ? en.home.turnsSoFar(turnCounts(family)[current.id] ?? 0, formatShortDate(last.madeAt))
-            : en.home.firstTurn}
+          {done ? (
+            en.home.dueOn(formatDayDate(nextDue(family, now())))
+          ) : last ? (
+            en.home.turnsSoFar(turnCounts(family)[current.id] ?? 0, formatShortDate(last.madeAt))
+          ) : (
+            en.home.firstTurn
+          )}
         </div>
       </div>
 
@@ -235,7 +261,8 @@ export function Home({ onEditPeople, onLeave, onNewFamily }: HomeProps) {
 
       <div className="hint">{canLog ? hint : en.member.leverLocked}</div>
 
-      {canLog && (
+      {/* Nothing to skip once someone has made it: the week is settled. */}
+      {canLog && !done && (
         <button
           className="skip-week"
           type="button"
@@ -256,7 +283,7 @@ export function Home({ onEditPeople, onLeave, onNewFamily }: HomeProps) {
         people={queue}
         onPick={isOwner ? () => setSheet('swap') : undefined}
         swapLabel={en.swap.title}
-        nowLabel={en.home.upNow}
+        nowLabel={done ? en.home.upNext : en.home.upNow}
       />
       <Note playKey={note.key} text={note.text} />
 

@@ -16,6 +16,11 @@ type HomeSheetsProps = {
   account: Account | null;
   onClose: () => void;
   onRate: (turnId: string, rating: number) => void;
+  /** Owner only: take a turn back off the board. */
+  onRemoveTurn: (turnId: string) => void;
+  /** Owner only: log a day the family forgot at the time. */
+  onLogDay: (personId: string) => void;
+  today: Date;
   onPickDay: (date: Date) => void;
   onCloseDay: () => void;
   day: { date: Date | null; turns: Turn[] };
@@ -62,6 +67,10 @@ export function HomeSheets(props: HomeSheetsProps) {
         uid={props.uid}
         onClose={props.onCloseDay}
         onRate={props.onRate}
+        isOwner={isOwner}
+        onRemove={props.onRemoveTurn}
+        onLog={props.onLogDay}
+        today={props.today}
       />
 
       {isOwner && (

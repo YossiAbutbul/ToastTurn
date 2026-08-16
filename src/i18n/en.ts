@@ -6,6 +6,9 @@ export const en = {
 
   home: {
     kicker: "This week it's",
+    /** Once this week's toast is made, the name on the screen is next week's. */
+    nextUp: 'Next up',
+    dueOn: (day: string) => `Toast is on ${day}`,
     history: 'History',
     turnsSoFar: (turns: number, last: string) =>
       `${turns} ${turns === 1 ? 'turn' : 'turns'} so far · last made ${last}`,
@@ -13,6 +16,8 @@ export const en = {
     nobodyYet: "No one's in the rotation yet. Add the first person.",
     addPeople: 'Add people',
     upNow: (name: string) => `${name} is up`,
+    /** Same place in the queue, but nobody is on the hook until the next one. */
+    upNext: (name: string) => `${name} is next`,
   },
 
   lever: {
@@ -140,6 +145,11 @@ export const en = {
     others: 'Everyone else',
     othersLabel: (name: string) => `What everyone else made of the toast ${name} made`,
     othersEmpty: 'nobody else yet',
+    fillIn: 'Forgot to log it? Say who made it:',
+    made: (name: string) => `${name} made it`,
+    notYet: 'That day has not happened yet.',
+    remove: 'Take this turn off the board',
+    removeConfirm: 'Take this turn off the board? Whoever was up before it goes back to being up.',
   },
 
   join: {

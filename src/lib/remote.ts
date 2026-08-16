@@ -185,6 +185,14 @@ export async function deleteFamily(familyId: string): Promise<void> {
   await batch.commit();
 }
 
+/** Take one turn off the board everywhere. The server only lets the owner. */
+export async function deleteTurn(familyId: string, turnId: string): Promise<void> {
+  const remote = await firestore();
+  if (!remote) return;
+  const { db, fs } = remote;
+  await fs.deleteDoc(fs.doc(db, 'families', familyId, 'turns', turnId));
+}
+
 /** Turns are append-only, so each one is written under its own id. */
 export async function pushTurns(familyId: string, turns: Turn[]): Promise<void> {
   if (turns.length === 0) return;

@@ -1,5 +1,5 @@
 import { mergeFamily } from '../lib/mergeFamily';
-import { logTurn, skipWeek, swapPeople } from '../lib/rotation';
+import { logTurn, removeTurn, skipWeek, swapPeople } from '../lib/rotation';
 import type { Family, Person, Schedule } from '../lib/types';
 
 export type State = {
@@ -17,9 +17,10 @@ export type Action =
   | { type: 'createFamily'; family: Family }
   | { type: 'switchFamily'; id: string }
   | { type: 'renameFamily'; name: string }
-  | { type: 'logTurn'; id: string; madeAt: string }
+  | { type: 'logTurn'; id: string; madeAt: string; personId?: string }
   | { type: 'skipWeek'; id: string; madeAt: string }
   | { type: 'rateTurn'; turnId: string; uid: string; rating: number }
+  | { type: 'removeTurn'; turnId: string }
   | { type: 'swap'; aId: string; bId: string }
   | { type: 'setSchedule'; schedule: Partial<Schedule> }
   | { type: 'addPerson'; person: Person }
@@ -88,7 +89,12 @@ export function familyReducer(state: State, action: Action): State {
       return { ...state, family: { ...family, name: action.name } };
 
     case 'logTurn':
-      return { ...state, family: logTurn(family, { id: action.id, madeAt: action.madeAt }) };
+      return {
+        ...state,
+        // With no person named it credits whoever is up, which is what the
+        // lever does. The owner filling in a day gone by names one.
+        family: logTurn(family, { id: action.id, madeAt: action.madeAt, personId: action.personId }),
+      };
 
     case 'skipWeek':
       return { ...state, family: skipWeek(family, { id: action.id, madeAt: action.madeAt }) };
@@ -105,6 +111,9 @@ export function familyReducer(state: State, action: Action): State {
           ),
         },
       };
+
+    case 'removeTurn':
+      return { ...state, family: removeTurn(family, action.turnId) };
 
     case 'swap':
       return { ...state, family: swapPeople(family, action.aId, action.bId) };

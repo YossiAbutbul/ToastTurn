@@ -16,17 +16,61 @@ type DaySheetProps = {
   uid?: string;
   onClose: () => void;
   onRate: (turnId: string, rating: number) => void;
+  /** Owner only: a turn logged by mistake can be taken back off the board. */
+  isOwner: boolean;
+  onRemove: (turnId: string) => void;
+  /** Owner only: fill in a day everyone forgot to log at the time. */
+  onLog: (personId: string) => void;
+  /** Today, so a day still ahead cannot be filled in. */
+  today: Date;
 };
 
 const LONG_DATE = new Intl.DateTimeFormat('en', { weekday: 'long', day: 'numeric', month: 'long' });
 
 /** One day from the calendar: who made it, what the family thought, your say. */
-export function DaySheet({ open, family, date, turns, uid, onClose, onRate }: DaySheetProps) {
+export function DaySheet(props: DaySheetProps) {
+  const { open, family, date, turns, uid, onClose, onRate, isOwner } = props;
   const title = date ? LONG_DATE.format(date) : en.history.title;
+
+  const remove = (turnId: string) => {
+    if (!window.confirm(en.day.removeConfirm)) return;
+    props.onRemove(turnId);
+  };
+
+  // A day gone by with nothing on it is one the family forgot to log, and the
+  // owner is the one who can say who made it after the fact.
+  const day = date ? new Date(date) : null;
+  day?.setHours(0, 0, 0, 0);
+  const start = new Date(props.today);
+  start.setHours(0, 0, 0, 0);
+  const ahead = day !== null && day.getTime() > start.getTime();
+  const fillIn = isOwner && turns.length === 0 && date !== null;
+  const roster = [...family.people].filter((p) => p.active).sort((a, b) => a.order - b.order);
 
   return (
     <Sheet open={open} title={title} onClose={onClose} onTop>
       {turns.length === 0 && <p className="empty">{en.day.nothing}</p>}
+
+      {fillIn && (ahead ? (
+        <p className="empty">{en.day.notYet}</p>
+      ) : (
+        <>
+          <div className="fieldlabel spaced">{en.day.fillIn}</div>
+          {roster.map((person) => (
+            <button
+              key={person.id}
+              type="button"
+              className="pickbtn"
+              onClick={() => props.onLog(person.id)}
+            >
+              <span className="mini" style={{ background: person.color }}>
+                {initialOf(person.name)}
+              </span>
+              <b>{en.day.made(person.name)}</b>
+            </button>
+          ))}
+        </>
+      ))}
 
       {turns.map((turn) => {
         const person = getPerson(family, turn.personId);
@@ -64,6 +108,12 @@ export function DaySheet({ open, family, date, turns, uid, onClose, onRate }: Da
                   emptyText={en.day.othersEmpty}
                 />
               </>
+            )}
+
+            {isOwner && (
+              <button className="ghost day-remove" type="button" onClick={() => remove(turn.id)}>
+                {en.day.remove}
+              </button>
             )}
           </div>
         );
