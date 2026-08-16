@@ -69,16 +69,33 @@ export function OrdersSheet({ open, onClose, lines, tally, me, mine, onSet, cove
 
           <div className="slice-tabs" role="tablist" aria-label={en.orders.yours}>
             {slices.map((_, index) => (
-              <button
-                key={index}
-                type="button"
-                role="tab"
-                className={index === active ? 'tab on' : 'tab'}
-                aria-selected={index === active}
-                onClick={() => setTab(index)}
-              >
-                {en.orders.sliceNo(index + 1)}
-              </button>
+              // A tab and its own × are two controls, so they are two buttons
+              // in a box dressed as one tab rather than one nested in another.
+              <span className={index === active ? 'tab tab-box on' : 'tab tab-box'} key={index}>
+                <button
+                  type="button"
+                  role="tab"
+                  className="tab-pick"
+                  aria-selected={index === active}
+                  onClick={() => setTab(index)}
+                >
+                  {en.orders.sliceNo(index + 1)}
+                </button>
+
+                {slices.length > 1 && (
+                  <button
+                    type="button"
+                    className="tab-x"
+                    aria-label={en.orders.dropSlice(index + 1)}
+                    onClick={() => {
+                      save(slices.filter((_, i) => i !== index));
+                      setTab(index > 0 ? index - 1 : 0);
+                    }}
+                  >
+                    ×
+                  </button>
+                )}
+              </span>
             ))}
 
             {slices.length < SLICE_MAX && (
@@ -98,21 +115,9 @@ export function OrdersSheet({ open, onClose, lines, tally, me, mine, onSet, cove
 
           <SliceEditor slice={slices[active]} onToggle={(topping) => toggle(active, topping)} />
 
-          {slices.length > 1 && (
-            <button
-              type="button"
-              className="skip-week drop-slice"
-              onClick={() => {
-                save(slices.filter((_, i) => i !== active));
-                setTab(Math.max(0, active - 1));
-              }}
-            >
-              {en.orders.dropSlice(active + 1)}
-            </button>
-          )}
-
           <input
             type="text"
+            className="note-input"
             aria-label={en.orders.noteLabel}
             placeholder={en.orders.notePlaceholder}
             maxLength={NOTE_MAX}

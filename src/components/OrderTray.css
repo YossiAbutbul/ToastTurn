@@ -1,0 +1,93 @@
+/* A shelf of what has been asked for, sitting on the counter under the
+   toaster. It is a button, but it reads as a tray rather than a control. */
+.tray {
+  flex: 0 0 auto;
+  align-self: center;
+  max-width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-block: 2px 4px;
+  padding-block: 7px;
+  padding-inline: 12px;
+  background: var(--paper);
+  border: 3px solid var(--ink);
+  border-radius: 999px;
+  box-shadow: 0 2px 0 var(--ink);
+  cursor: pointer;
+  min-height: 44px;
+  overflow: hidden;
+}
+
+/* Before you have said, it is an invitation rather than a shelf. */
+.tray.asking {
+  background: var(--coral);
+}
+
+.tray.asking .tray-label {
+  color: var(--paper);
+}
+
+.tray:active {
+  transform: translateY(2px);
+  box-shadow: none;
+}
+
+.tray:focus {
+  outline: none;
+}
+.tray:focus-visible {
+  outline: 3px solid var(--mint);
+  outline-offset: 3px;
+}
+
+.tray-label {
+  font-family: var(--ui);
+  font-weight: 800;
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+.tray-slices {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+}
+
+/* One slice per slice, in the colour of whoever asked for it. */
+.tray-slice {
+  width: 30px;
+  height: 27px;
+  flex: 0 0 auto;
+  border: 2.5px solid var(--ink);
+  border-radius: 12px 12px 5px 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-inline: 2px;
+}
+
+/* The marks sit on the bread, so they are small and tight in here. */
+.tray-slice .dot {
+  width: 8px;
+  height: 8px;
+  border-width: 1.5px;
+}
+.tray-slice .dots {
+  gap: 2px;
+}
+.tray-slice .empty-dots {
+  width: 12px;
+  height: 2.5px;
+}
+
+.tray-more {
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 13px;
+  color: var(--ink-soft);
+  flex: 0 0 auto;
+}

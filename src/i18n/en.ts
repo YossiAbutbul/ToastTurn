@@ -226,7 +226,10 @@ export const en = {
   orders: {
     title: 'What everyone wants',
     open: 'Orders',
-    openCount: (n: number) => `Orders (${n})`,
+    orderNow: 'Order now',
+    trayEmpty: 'Nobody has said what they want',
+    trayYours: (n: number) => `You're making ${n}`,
+    trayOthers: (n: number) => `${n} on the list`,
     yours: 'Yours',
     everyone: 'The whole list',
     sliceNo: (n: number) => `Slice ${n}`,

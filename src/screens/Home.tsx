@@ -13,6 +13,7 @@ import { useMembership } from '../hooks/useMembership';
 import { useSwaps } from '../hooks/useSwaps';
 import { useOrders } from '../hooks/useOrders';
 import { SwapAsk } from '../components/SwapAsk';
+import { OrderTray } from '../components/OrderTray';
 import { Notice } from '../components/Notice';
 import { SignInSheet } from '../components/SignInSheet';
 import { Waiting } from './Waiting';
@@ -326,9 +327,12 @@ export function Home({ onEditPeople, onLeave, onNewFamily }: HomeProps) {
 
       <div className="hint">{canLog ? hint : en.member.leverLocked}</div>
 
-      <button className="skip-week" type="button" onClick={() => setSheet('orders')}>
-        {orders.tally.said > 0 ? en.orders.openCount(orders.tally.said) : en.orders.open}
-      </button>
+      <OrderTray
+        lines={orders.lines}
+        making={Boolean(current) && current!.id === membership.me?.id}
+        ordered={orders.mine !== null}
+        onOpen={() => setSheet('orders')}
+      />
 
       {/* Nothing to skip once someone has made it: the week is settled. */}
       {canLog && !done && (

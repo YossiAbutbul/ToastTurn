@@ -12,6 +12,57 @@
   min-width: 0;
 }
 
+/* The tab is a box holding two controls: the name, which selects it, and a
+   × which takes the slice off. It is painted as one thing. */
+.tab-box {
+  display: flex;
+  align-items: stretch;
+  overflow: hidden;
+  padding: 0;
+}
+
+.tab-pick {
+  flex: 1 1 auto;
+  min-width: 0;
+  background: none;
+  border: none;
+  font-family: var(--ui);
+  font-weight: 800;
+  font-size: 13px;
+  color: inherit;
+  cursor: pointer;
+  padding-inline: 8px;
+}
+
+.tab-x {
+  flex: 0 0 auto;
+  width: 30px;
+  background: none;
+  border: none;
+  border-inline-start: 2px dashed rgba(43, 36, 32, 0.25);
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 17px;
+  line-height: 1;
+  color: inherit;
+  cursor: pointer;
+}
+
+.tab-pick:focus,
+.tab-x:focus {
+  outline: none;
+}
+.tab-pick:focus-visible,
+.tab-x:focus-visible {
+  outline: 3px solid var(--mint);
+  outline-offset: -3px;
+  border-radius: 10px;
+}
+
+.tab-x:active {
+  transform: translateY(1px);
+}
+
 .slice-tabs .tab.add {
   flex: 0 0 56px;
   border-style: dashed;
@@ -29,11 +80,6 @@
 .mini.chip-olives { background: var(--toasted); }
 .mini.chip-ketchup { background: var(--coral-dk); }
 .mini.chip-sriracha { background: var(--coil); }
-
-.drop-slice {
-  display: block;
-  margin-block: 6px 4px;
-}
 
 /* The marks that say what is on a slice, in the colours of the things, so an
    order can be recognised in the list without being read. */
@@ -65,6 +111,20 @@
 .dot.olives { background: var(--toasted); }
 .dot.ketchup { background: var(--coral-dk); }
 .dot.sriracha { background: var(--coil); }
+
+/* The shared field is Baloo at 24px, which is right for naming a family and
+   far too loud for "no crusts". This one talks at the same volume as the rows
+   above it. */
+.note-input[type='text'] {
+  font-family: var(--ui);
+  font-weight: 700;
+  font-size: 14.5px;
+  min-height: 44px;
+  padding-block: 8px;
+  padding-inline: 14px;
+  border-radius: 12px;
+  margin-block: 10px 2px;
+}
 
 /* What to get out of the fridge, for whoever is making it. */
 .fridge {
