@@ -105,18 +105,40 @@ export function watchAccount(
       return;
     }
 
-    // Not onAuthStateChanged: linking Google onto the anonymous account keeps
-    // the same user, so that one never fires and the app would go on believing
-    // this phone was still anonymous. The token does change, and this hears it.
-    stop = ready.fns.onIdTokenChanged(ready.auth, (user) => {
-      if (user) return onChange(asAccount(user));
-      // Nobody yet. Fetching one is silent, and lands back here as a user.
-      void ready.fns.signInAnonymously(ready.auth).catch((error) => {
+    /** Nobody yet. Fetching one is silent, and lands back here as a user. */
+    const beAnonymous = () =>
+      ready.fns.signInAnonymously(ready.auth).catch((error) => {
         reportSignInError('giving this phone an account', error);
         onChange(null);
         onProblem?.(signInProblem(error));
       });
-    });
+
+    // Not onAuthStateChanged: linking Google onto the anonymous account keeps
+    // the same user, so that one never fires and the app would go on believing
+    // this phone was still anonymous. The token does change, and this hears it.
+    stop = ready.fns.onIdTokenChanged(
+      ready.auth,
+      (user) => {
+        if (user) return onChange(asAccount(user));
+        void beAnonymous();
+      },
+      // The account this phone was holding cannot be refreshed: deleted from
+      // the project, or disabled. Firebase goes on asking for a token it will
+      // never get, so the app sits there with no account and no way to a new
+      // one. Letting the dead one go and taking a fresh anonymous account is
+      // the only way out, and costs nothing: turns and orders are keyed by
+      // person, so re-tapping a name gets everything back.
+      (error) => {
+        reportSignInError('refreshing the account this phone was holding', error);
+        void ready.fns
+          .signOut(ready.auth)
+          .then(beAnonymous)
+          .catch(() => {
+            onChange(null);
+            onProblem?.(signInProblem(error));
+          });
+      },
+    );
     if (cancelled) stop();
   })();
 
