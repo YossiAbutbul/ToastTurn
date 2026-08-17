@@ -1,8 +1,21 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { syncConfigured } from '../lib/firebase';
-import { pushFamily, pushRating, pushTurns, subscribeFamily } from '../lib/remote';
+import {
+  deletePerson,
+  pushFamily,
+  pushPeople,
+  pushRating,
+  pushTurns,
+  subscribeFamily,
+} from '../lib/remote';
 import type { RemoteFamily } from '../lib/remote';
-import { metaChanged, unsentRatings, unsentTurns } from '../lib/mergeFamily';
+import {
+  goneFromRotation,
+  metaChanged,
+  unsentPeople,
+  unsentRatings,
+  unsentTurns,
+} from '../lib/mergeFamily';
 import { currentPath, replacePath, subscribePath } from '../lib/history';
 import { familyIdFromPath, pathForFamily } from '../lib/url';
 import { useAccount } from './useAccount';
@@ -122,7 +135,19 @@ export function useSync() {
     // Only the signed-in owner publishes the family itself. A family with no
     // owner yet is claimed by the first account that signs in on it.
     const owned = family.ownerUid ? family.ownerUid === account?.uid : Boolean(account);
-    if (owned && metaChanged(family, remote)) void pushFamily(family, account?.uid);
+    if (!owned) return;
+
+    if (metaChanged(family, remote)) void pushFamily(family, account?.uid);
+
+    const people = unsentPeople(family, remote);
+    if (people.length > 0) void pushPeople(family.id, people);
+
+    // A person taken out of the rotation has to go from the others too. Their
+    // document is not overwritten by anything now that each one stands alone,
+    // so without this the next snapshot hands them straight back.
+    for (const personId of goneFromRotation(family, remote)) {
+      void deletePerson(family.id, personId);
+    }
   }, [account, remote, state.family, state.ready]);
 
   return {

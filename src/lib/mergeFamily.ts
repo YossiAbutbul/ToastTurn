@@ -118,18 +118,44 @@ function metaShape(family: Family): string {
       time: family.schedule.time,
       remind: family.schedule.remind,
     },
-    people: family.people.map((person) => ({
-      id: person.id,
-      name: person.name,
-      color: person.color,
-      order: person.order,
-      active: person.active,
-    })),
   });
 }
 
-/** True when name, people or schedule differ from what is published. */
+/** True when the name, the schedule or the removals differ from what is up. */
 export function metaChanged(local: Family, remote: Family | null): boolean {
   if (!remote) return true;
   return metaShape(local) !== metaShape(remote);
+}
+
+/**
+ * The rotation, in a comparable shape. People live in their own documents now,
+ * so they are compared and published apart from the rest of the family.
+ */
+function peopleShape(people: Family['people']): string {
+  return JSON.stringify(
+    [...people]
+      .sort((a, b) => a.id.localeCompare(b.id))
+      .map((person) => ({
+        id: person.id,
+        name: person.name,
+        color: person.color,
+        order: person.order,
+        active: person.active,
+      })),
+  );
+}
+
+/** Everyone whose document is not up yet, or says something different. */
+export function unsentPeople(local: Family, remote: Family | null): Family['people'] {
+  const published = new Map((remote?.people ?? []).map((person) => [person.id, person]));
+  return local.people.filter((person) => {
+    const theirs = published.get(person.id);
+    return !theirs || peopleShape([theirs]) !== peopleShape([person]);
+  });
+}
+
+/** Everyone the others still have who is no longer in the rotation here. */
+export function goneFromRotation(local: Family, remote: Family | null): string[] {
+  const here = new Set(local.people.map((person) => person.id));
+  return (remote?.people ?? []).filter((person) => !here.has(person.id)).map((person) => person.id);
 }

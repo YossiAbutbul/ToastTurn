@@ -15,6 +15,10 @@ export type RemoteFamily = {
 
 type FamilyDoc = {
   name?: string;
+  /**
+   * Where the rotation used to live, before each person became a document.
+   * Read as a fallback so a family written by an older phone still opens.
+   */
   people?: Person[];
   schedule?: Schedule;
   ownerUid?: string;
@@ -36,8 +40,13 @@ function written<T extends object>(value: T): Partial<T> {
 }
 
 /**
- * Watches one family and its turns. Fires on every change from any phone, and
- * immediately with whatever the offline cache already holds.
+ * Watches one family, its people and its turns. Fires on every change from any
+ * phone, and immediately with whatever the offline cache already holds.
+ *
+ * The people are a collection rather than a field on the family, because they
+ * are the one part of the rotation somebody other than the owner may add to:
+ * putting yourself in it is how you join. A rule can say that about a document
+ * of its own; it cannot say it about one entry in a list.
  */
 export function subscribeFamily(id: string, onChange: (family: RemoteFamily) => void): () => void {
   let stop: (() => void) | null = null;
@@ -49,6 +58,7 @@ export function subscribeFamily(id: string, onChange: (family: RemoteFamily) => 
     const { db, fs } = remote;
 
     let meta: FamilyDoc | null = null;
+    let people: Person[] | null = null;
     let turns: Turn[] = [];
     let sawMeta = false;
 
@@ -60,7 +70,10 @@ export function subscribeFamily(id: string, onChange: (family: RemoteFamily) => 
         ownerUid: meta.ownerUid,
         ownerPersonId: meta.ownerPersonId,
         name: meta.name ?? '',
-        people: meta.people ?? [],
+        // An empty collection and a family written before people moved out of
+        // the document look the same from here, so the old field is the
+        // fallback rather than the other way round.
+        people: people && people.length > 0 ? people : (meta.people ?? []),
         schedule: meta.schedule ?? { weekday: 0, time: '20:00', remind: true },
         turns,
         removed: meta.removed ?? [],
@@ -70,6 +83,14 @@ export function subscribeFamily(id: string, onChange: (family: RemoteFamily) => 
     const stopMeta = fs.onSnapshot(fs.doc(db, 'families', id), (snap) => {
       sawMeta = true;
       meta = snap.exists() ? (snap.data() as FamilyDoc) : null;
+      emit();
+    });
+
+    const stopPeople = fs.onSnapshot(fs.collection(db, 'families', id, 'people'), (snap) => {
+      people = snap.docs
+        .map((d) => ({ id: d.id, ...(d.data() as Omit<Person, 'id'>) }))
+        .filter((person) => typeof person.name === 'string')
+        .sort((a, b) => a.order - b.order);
       emit();
     });
 
@@ -84,6 +105,7 @@ export function subscribeFamily(id: string, onChange: (family: RemoteFamily) => 
 
     stop = () => {
       stopMeta();
+      stopPeople();
       stopTurns();
     };
     if (cancelled) stop();
@@ -96,8 +118,9 @@ export function subscribeFamily(id: string, onChange: (family: RemoteFamily) => 
 }
 
 /**
- * Publish the family itself, name, people, schedule. Turns go separately.
- * Only the owner's account may do this; the server refuses anyone else.
+ * Publish the family itself: name, schedule, who owns it. People and turns go
+ * separately, each as documents of their own. Only the owner's account may do
+ * this; the server refuses anyone else.
  */
 export async function pushFamily(family: Family, ownerUid?: string): Promise<void> {
   const remote = await firestore();
@@ -111,7 +134,6 @@ export async function pushFamily(family: Family, ownerUid?: string): Promise<voi
       ownerUid: family.ownerUid ?? ownerUid,
       ownerPersonId: family.ownerPersonId ?? null,
       name: family.name,
-      people: family.people,
       schedule: family.schedule,
       // Every phone needs these, or it hands back the turns the owner removed.
       removed: family.removed ?? [],
@@ -119,6 +141,32 @@ export async function pushFamily(family: Family, ownerUid?: string): Promise<voi
     }),
     { merge: true },
   );
+}
+
+/**
+ * Publish the rotation, one document per person. Anyone in the family may add
+ * themselves; changing somebody else is the owner's, which the server checks.
+ */
+export async function pushPeople(familyId: string, people: Person[]): Promise<void> {
+  if (people.length === 0) return;
+  const remote = await firestore();
+  if (!remote) return;
+  const { db, fs } = remote;
+
+  const batch = fs.writeBatch(db);
+  for (const person of people) {
+    const { id, ...rest } = person;
+    batch.set(fs.doc(db, 'families', familyId, 'people', id), written(rest), { merge: true });
+  }
+  await batch.commit();
+}
+
+/** Take someone out of the rotation everywhere. */
+export async function deletePerson(familyId: string, personId: string): Promise<void> {
+  const remote = await firestore();
+  if (!remote) return;
+  const { db, fs } = remote;
+  await fs.deleteDoc(fs.doc(db, 'families', familyId, 'people', personId));
 }
 
 /** Who is in the rotation, by account id. */
@@ -302,10 +350,14 @@ export async function deleteFamily(familyId: string): Promise<void> {
   if (!remote) return;
   const { db, fs } = remote;
 
-  const turns = await fs.getDocs(fs.collection(db, 'families', familyId, 'turns'));
+  const [turns, people] = await Promise.all([
+    fs.getDocs(fs.collection(db, 'families', familyId, 'turns')),
+    fs.getDocs(fs.collection(db, 'families', familyId, 'people')),
+  ]);
 
   const batch = fs.writeBatch(db);
   turns.forEach((turn) => batch.delete(turn.ref));
+  people.forEach((person) => batch.delete(person.ref));
   batch.delete(fs.doc(db, 'families', familyId, 'prefs', 'members'));
   batch.delete(fs.doc(db, 'families', familyId, 'prefs', 'orders'));
   batch.delete(fs.doc(db, 'families', familyId, 'prefs', 'made'));

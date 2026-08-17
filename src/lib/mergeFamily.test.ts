@@ -161,14 +161,14 @@ describe('metaChanged', () => {
     expect(metaChanged(family(), family())).toBe(false);
   });
 
-  it('notices a renamed family, a new person and a moved toast night', () => {
+  it('notices a renamed family and a moved toast night', () => {
     expect(metaChanged(family({ name: 'New' }), family())).toBe(true);
-    expect(metaChanged(family({ people: [person('a', 0)] }), family())).toBe(true);
     expect(metaChanged(family({ schedule: { weekday: 5, time: '20:00', remind: true } }), family())).toBe(true);
   });
 
-  it('ignores turns, those go up on their own', () => {
+  it('ignores turns and people, those go up on their own', () => {
     expect(metaChanged(family({ turns: [turn('t1', 'a', '2026-08-09')] }), family())).toBe(false);
+    expect(metaChanged(family({ people: [person('a', 0)] }), family())).toBe(false);
   });
 
   // Firestore writes an unset field as null and hands it back as null, so a
