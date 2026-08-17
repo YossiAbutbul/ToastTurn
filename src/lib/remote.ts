@@ -48,7 +48,16 @@ function written<T extends object>(value: T): Partial<T> {
  * putting yourself in it is how you join. A rule can say that about a document
  * of its own; it cannot say it about one entry in a list.
  */
-export function subscribeFamily(id: string, onChange: (family: RemoteFamily) => void): () => void {
+export function subscribeFamily(
+  id: string,
+  /**
+   * `fromServer` says whether this is the server talking or the offline cache
+   * answering from memory. It only matters when the family is null: not
+   * finding it in the cache means nothing, and the server saying it is not
+   * there means it is gone.
+   */
+  onChange: (family: RemoteFamily, fromServer: boolean) => void,
+): () => void {
   let stop: (() => void) | null = null;
   let cancelled = false;
 
@@ -61,10 +70,11 @@ export function subscribeFamily(id: string, onChange: (family: RemoteFamily) => 
     let people: Person[] | null = null;
     let turns: Turn[] = [];
     let sawMeta = false;
+    let fromServer = false;
 
     const emit = () => {
       if (!sawMeta) return;
-      if (!meta) return onChange(null);
+      if (!meta) return onChange(null, fromServer);
       onChange({
         id,
         ownerUid: meta.ownerUid,
@@ -77,11 +87,12 @@ export function subscribeFamily(id: string, onChange: (family: RemoteFamily) => 
         schedule: meta.schedule ?? { weekday: 0, time: '20:00', remind: true },
         turns,
         removed: meta.removed ?? [],
-      });
+      }, fromServer);
     };
 
     const stopMeta = fs.onSnapshot(fs.doc(db, 'families', id), (snap) => {
       sawMeta = true;
+      fromServer = !snap.metadata.fromCache;
       meta = snap.exists() ? (snap.data() as FamilyDoc) : null;
       emit();
     });

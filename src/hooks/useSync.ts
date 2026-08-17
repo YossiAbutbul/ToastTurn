@@ -102,12 +102,18 @@ export function useSync() {
     // Nothing has been seen of this rotation yet, whatever was seen of the last.
     sawRemote.current = false;
 
-    return subscribeFamily(familyId, (incoming: RemoteFamily) => {
+    return subscribeFamily(familyId, (incoming: RemoteFamily, fromServer: boolean) => {
       if (!incoming) {
         setSeen({ id: familyId, family: null });
-        // It was there and now it isn't: someone cleared the family. Let it go
-        // rather than republishing it from this phone's copy.
-        if (sawRemote.current) {
+        // Someone cleared the family. Let it go rather than republishing it
+        // from this phone's copy.
+        //
+        // Either the server says so outright, or this phone was watching when
+        // it went. The first covers a phone that was shut at the time and
+        // opens later, which is most of them: it used to have nothing to
+        // compare against, so it kept a rotation that no longer existed and
+        // held on to the account that went with it.
+        if (fromServer || sawRemote.current) {
           sawRemote.current = false;
           dispatch({ type: 'reset' });
           replacePath('/');
