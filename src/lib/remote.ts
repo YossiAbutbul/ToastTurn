@@ -163,6 +163,38 @@ export async function pushMember(familyId: string, uid: string, entry: object): 
   );
 }
 
+/**
+ * Hand the rotation to somebody else's account.
+ *
+ * The outgoing owner is written into the membership list first, as an ordinary
+ * approved member. They were never in it - running the rotation is not
+ * something anyone asks to do - and a moment after the second write they no
+ * longer have the standing to add themselves, so it has to happen while they
+ * still do. Otherwise handing the rotation on would be a way of walking out of
+ * it.
+ */
+export async function handOver(
+  familyId: string,
+  from: { uid: string; personId?: string; email?: string | null },
+  to: { uid: string; personId: string },
+): Promise<void> {
+  const remote = await firestore();
+  if (!remote) return;
+  const { db, fs } = remote;
+
+  await pushMember(familyId, from.uid, {
+    status: 'approved',
+    personId: from.personId,
+    email: from.email ?? undefined,
+  });
+
+  await fs.setDoc(
+    fs.doc(db, 'families', familyId),
+    { ownerUid: to.uid, ownerPersonId: to.personId, updatedAt: fs.serverTimestamp() },
+    { merge: true },
+  );
+}
+
 /** What everyone wants, by person. */
 export function subscribeOrders(
   familyId: string,

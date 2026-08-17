@@ -55,6 +55,13 @@ service cloud.firestore {
         return membership().get('personId', '');
       }
 
+      /** Whether some other account has been let into this rotation. */
+      function approvedUid(uid) {
+        return exists(/databases/$(database)/documents/families/$(familyId)/prefs/members)
+          && members().keys().hasAny([uid])
+          && members()[uid].get('status', '') == 'approved';
+      }
+
       // ---- the family itself ---------------------------------------------
 
       function sane() {
@@ -80,10 +87,12 @@ service cloud.firestore {
         && request.resource.data.ownerUid == request.auth.uid
         && sane();
 
-      // The owner stays the owner: a write that moves ownerUid is refused.
-      allow update: if isOwner()
-        && request.resource.data.ownerUid == resource.data.ownerUid
-        && sane();
+      // The owner may hand the rotation on, and only they may: it moves by
+      // their own write or not at all, and only to somebody already let in.
+      // Anything else leaves ownerUid exactly where it was.
+      allow update: if isOwner() && sane()
+        && (request.resource.data.ownerUid == resource.data.ownerUid
+            || approvedUid(request.resource.data.ownerUid));
 
       allow delete: if isOwner();
 

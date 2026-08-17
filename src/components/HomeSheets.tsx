@@ -46,6 +46,7 @@ type HomeSheetsProps = {
   onEditPeople: () => void;
   onStartOver: () => void;
   onApprove: (uid: string, name: string) => void;
+  onHandOver: (uid: string, personId: string) => void;
   /** Every rotation this phone is in, the open one first. */
   families: Family[];
   onSwitchFamily: (id: string) => void;
@@ -123,6 +124,7 @@ export function HomeSheets(props: HomeSheetsProps) {
         onEditPeople={props.onEditPeople}
         onStartOver={props.onStartOver}
         onApprove={props.onApprove}
+        onHandOver={props.onHandOver}
         families={props.families}
         onSwitchFamily={props.onSwitchFamily}
         onNewFamily={props.onNewFamily}

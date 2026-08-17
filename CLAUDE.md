@@ -263,6 +263,10 @@ Commit at the end of each.
       account, a scheduler, and on the free plan a single daily cron that
       cannot fire at the family's own hour. The work lives on the `feat/push`
       branch, unmerged, if it is ever wanted.
+- [x] Hand the rotation over: the owner passes it to someone already let in,
+      and is written into the membership list on the way out so they keep
+      their turn. Without it, losing the owning account left the people, the
+      schedule and the toast night beyond anyone's reach for good.
 - [ ] Rate the toast 1–5, shown in history
 - [ ] Fairness stats — turns per person this month
 - [ ] Holiday mode toggle per person

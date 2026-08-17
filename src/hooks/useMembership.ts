@@ -110,10 +110,20 @@ export function useMembership(family: Family, account: Account | null, isOwner: 
     .filter(([, entry]) => entry.status === 'pending')
     .map(([uid, entry]) => ({ uid, name: entry.name ?? '', email: entry.email ?? uid }));
 
+  // Everyone who has been let in and is somebody in the rotation, which is the
+  // same as saying: everyone the rotation could be handed to. Yourself apart,
+  // you cannot hand it to the account already holding it.
+  const approved = Object.entries(members)
+    .filter(
+      ([uid, entry]) => entry.status === 'approved' && entry.personId && uid !== account?.uid,
+    )
+    .map(([uid, entry]) => ({ uid, personId: entry.personId!, email: entry.email ?? uid }));
+
   return {
     state,
     me,
     waiting,
+    approved,
     askToJoin,
     approve,
     setColor,

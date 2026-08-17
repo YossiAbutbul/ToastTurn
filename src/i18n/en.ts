@@ -279,6 +279,17 @@ export const en = {
       'Everyone in the rotation goes, and so does every turn ever logged, on every phone that has the link. There is no getting it back.',
     startOverYes: 'Clear it all',
     startOverNo: 'Keep the rotation',
+
+    handOver: 'Who looks after it',
+    handOverNote: 'Hand the rotation to someone else. You keep your turn in it.',
+    handOverNobody: 'Nobody else has been let in yet, so there is nobody to hand it to.',
+    handOverPick: (name: string) => `Hand the rotation to ${name}`,
+    handOverAsk: (name: string) => `Let ${name} look after the rotation?`,
+    handOverAskNote: (name: string) =>
+      `${name} decides the people, the toast night and the order from then on. You stay in the rotation and can still pull the lever, but only ${name} can hand it back.`,
+    handOverYes: 'Hand it over',
+    handOverNo: 'Keep looking after it',
+    handedOver: (name: string) => `${name} looks after it now`,
   },
 
   close: 'Close',

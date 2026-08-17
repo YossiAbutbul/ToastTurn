@@ -34,7 +34,7 @@ import { newId } from '../lib/id';
 import { colorForIndex } from '../lib/palette';
 import { withMemberColors } from '../lib/people';
 import { outstanding } from '../lib/orders';
-import { deleteFamily, deleteTurn } from '../lib/remote';
+import { deleteFamily, deleteTurn, handOver } from '../lib/remote';
 import { replacePath } from '../lib/history';
 import type { Family } from '../lib/types';
 import './Home.css';
@@ -199,6 +199,22 @@ export function Home({ onEditPeople, onLeave, onNewFamily, onHome }: HomeProps) 
         onToggleHoliday={(id, active) => dispatch({ type: 'setActive', id, active })}
         onEditPeople={onEditPeople}
         onApprove={approve}
+        onHandOver={(uid, personId) => {
+          const them = family.people.find((p) => p.id === personId);
+          closeSheet();
+          // Straight up, and not through the local copy. The moment the
+          // rotation changes hands this phone may no longer publish it, so the
+          // usual "push whatever changed" path cannot carry this one; and
+          // turning owner into member here rather than on the way back would
+          // show the outgoing owner the waiting room for a frame, before their
+          // own membership had landed.
+          void handOver(
+            family.id,
+            { uid: account!.uid, personId: family.ownerPersonId, email: account!.email },
+            { uid, personId },
+          );
+          if (them) setNote((n) => ({ key: n.key + 1, text: en.settings.handedOver(them.name) }));
+        }}
         families={allFamilies(state)}
         onSwitchFamily={(id) => {
           dispatch({ type: 'switchFamily', id });
