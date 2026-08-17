@@ -46,11 +46,22 @@ export async function signInWithGoogle(): Promise<Account | 'redirecting'> {
     const code = (error as { code?: string })?.code ?? '';
 
     // That Google account is already somebody here. Signing in as them is the
-    // right answer: the anonymous account was never anything to lose.
+    // right answer - the anonymous account was never anything to lose - but it
+    // has to be done with the credential the failure carried. Opening a second
+    // popup is outside the tap that opened the first, and the browser blocks
+    // it, which looked from the outside like the button doing nothing at all.
     if (/credential-already-in-use|email-already-in-use/.test(code)) {
-      const credential = await ready.fns.signInWithPopup(ready.auth, provider);
-      return asAccount(credential.user);
+      const held = ready.fns.GoogleAuthProvider.credentialFromError(
+        error as Parameters<typeof ready.fns.GoogleAuthProvider.credentialFromError>[0],
+      );
+      if (held) {
+        const signedIn = await ready.fns.signInWithCredential(ready.auth, held);
+        return asAccount(signedIn.user);
+      }
     }
+
+    // Already signed in as this very account: nothing to do but say so.
+    if (/provider-already-linked/.test(code) && current) return asAccount(current);
 
     if (/popup-closed-by-user/.test(code)) throw error;
     if (!/popup-blocked|operation-not-supported/.test(code)) throw error;
@@ -112,6 +123,8 @@ export function signInProblem(error: unknown): 'credentials' | 'offline' | 'setu
   const message = (error as Error)?.message ?? '';
 
   if (message === 'not-configured') return 'setup';
+  // The provider is switched off in the console. Nothing typed will fix it.
+  if (/admin-restricted-operation/.test(code)) return 'setup';
   if (/invalid-credential|wrong-password|user-not-found|invalid-email/.test(code)) return 'credentials';
   if (/operation-not-allowed|configuration-not-found|api-key-not-valid/.test(code)) return 'setup';
   if (/network-request-failed/.test(code)) return 'offline';
