@@ -18,7 +18,7 @@ import type { Family } from '../lib/types';
  */
 export function useSync() {
   const { state, dispatch } = useFamily();
-  const { account } = useAccount();
+  const { account, ready: authReady } = useAccount();
   /**
    * The last snapshot, tagged with the family it was of: switching rotations
    * must not compare the new one against the old one's snapshot.
@@ -76,8 +76,14 @@ export function useSync() {
     replacePath(pathForFamily(localId));
   }, [account, dispatch, held, joining, linkId, localId]);
 
+  const uid = account?.uid;
+
   useEffect(() => {
     if (!syncConfigured || !familyId || !state.ready) return;
+    // The server tells nobody anything until they are signed in, so there is
+    // nothing to listen for yet. The subscription starts itself the moment an
+    // account turns up, because that is what this effect watches.
+    if (!uid) return;
 
     // Nothing has been seen of this rotation yet, whatever was seen of the last.
     sawRemote.current = false;
@@ -98,7 +104,7 @@ export function useSync() {
       setSeen({ id: familyId, family: incoming });
       dispatch({ type: 'applyRemote', family: incoming });
     });
-  }, [dispatch, familyId, state.ready]);
+  }, [dispatch, familyId, state.ready, uid]);
 
   // Anything this phone changed goes up. Turns first, they are what people
   // are waiting to see.
@@ -123,6 +129,8 @@ export function useSync() {
     configured: syncConfigured,
     joining,
     account,
+    /** False until the sign-in has been asked about, so nothing flashes. */
+    authReady,
     /** The rotation the address bar names, if it names one. */
     linkId,
     /** The link points at a rotation that isn't there. */

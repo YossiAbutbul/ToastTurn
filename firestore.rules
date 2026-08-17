@@ -1,29 +1,78 @@
 rules_version = '2';
 
-// Two ideas, and only two.
+// Three ideas, and only three.
 //
-// 1. The family code is the key. You have to know a family id to read it, and
-//    nothing can list families, so a code that is never shared is never found.
-//    Anyone with the link can read the family and say the toast got made, no
-//    sign-in, nothing typed. That is the whole point of the app.
+// 1. The family code says which rotation. Signing in says whether you are in
+//    it. Nothing can list families, so a code that is never shared is never
+//    found, and a code on its own is an invitation to ask rather than a window
+//    into the family: reading anything at all needs an account.
 // 2. One account runs the family. Only the signed-in owner can change the
 //    people, the schedule or the rotation, or clear the family.
+// 3. Everyone else may only ever act as themselves. The rules look up which
+//    person in the rotation an account is, and hold every write to it: your
+//    order, your colour, your answer to an ask. Being let in is not the same
+//    as being allowed to be somebody else.
 service cloud.firestore {
   match /databases/{database}/documents {
 
     match /families/{familyId} {
+
+      // ---- who is asking -------------------------------------------------
+      //
+      // These read the family and the membership list rather than the document
+      // being written, because a turn or an order says nothing about who owns
+      // the rotation. Repeated lookups of the same path are cached inside one
+      // evaluation, so this costs one read of each, not one per call.
+
+      function family() {
+        return get(/databases/$(database)/documents/families/$(familyId)).data;
+      }
+
+      function familyOwner() {
+        return request.auth != null && family().ownerUid == request.auth.uid;
+      }
+
+      function members() {
+        return get(/databases/$(database)/documents/families/$(familyId)/prefs/members).data;
+      }
+
+      function membership() {
+        return members()[request.auth.uid];
+      }
+
+      function approvedMember() {
+        return request.auth != null
+          && exists(/databases/$(database)/documents/families/$(familyId)/prefs/members)
+          && members().keys().hasAny([request.auth.uid])
+          && membership().status == 'approved';
+      }
+
+      /**
+       * Which person in the rotation the caller is. Only ever read after
+       * approvedMember() has passed, so the entry is known to be there.
+       */
+      function myPersonId() {
+        return membership().get('personId', '');
+      }
+
+      // ---- the family itself ---------------------------------------------
+
       function sane() {
         return request.resource.data.name is string
           && request.resource.data.name.size() < 60
           && request.resource.data.people is list
-          && request.resource.data.people.size() <= 20;
+          && request.resource.data.people.size() <= 20
+          && request.resource.data.get('removed', []).size() <= 100
+          && request.resource.data.keys().hasOnly(
+               ['ownerUid', 'ownerPersonId', 'name', 'people', 'schedule', 'removed', 'updatedAt']);
       }
 
       function isOwner() {
         return request.auth != null && resource.data.ownerUid == request.auth.uid;
       }
 
-      allow get: if true;
+      // The people's names are in here, so a link on its own does not open it.
+      allow get: if request.auth != null;
       allow list: if false;
 
       // Publishing a family claims it for the account doing the publishing.
@@ -42,40 +91,65 @@ service cloud.firestore {
       //
       // Having the link lets you ask. It does not let you in: you may only ever
       // write your own key, and only as "pending". Moving anyone to "approved"
-      // is the owner's alone, and so is choosing a person once approved.
+      // is the owner's alone, and so is choosing which person an account is —
+      // once set, not even that account may move it, or being let in as
+      // yourself would be a way of becoming anybody.
       match /prefs/members {
-        function ownerUid() {
-          return get(/databases/$(database)/documents/families/$(familyId)).data.ownerUid;
-        }
-        function isOwner() {
-          return request.auth != null && ownerUid() == request.auth.uid;
-        }
-
         function mine() {
           return request.resource.data[request.auth.uid];
+        }
+        function myOld() {
+          return resource.data[request.auth.uid];
         }
         function myKeyOnly() {
           return request.resource.data.diff(resource.data).affectedKeys().hasOnly([request.auth.uid]);
         }
         function alreadyApproved() {
           return resource.data.keys().hasAny([request.auth.uid])
-            && resource.data[request.auth.uid].status == 'approved';
+            && myOld().status == 'approved';
         }
 
-        allow get, list: if true;
+        // What you say about yourself is your own name and your own address.
+        // The owner reads both on the approval screen and decides from them, so
+        // an address that is not the one you signed in with is refused.
+        function saneEntry() {
+          return mine().get('name', '') is string
+            && mine().get('name', '').size() < 60
+            && (mine().get('email', null) == null
+                || mine().get('email', null) == request.auth.token.get('email', null));
+        }
+
+        // Asking to join says who you are. It cannot say which person in the
+        // rotation you are: that is the owner's to decide, at approval.
+        function validAsk() {
+          return mine().status == 'pending'
+            && mine().get('personId', null) == null
+            && saneEntry();
+        }
+
+        // Once you are in, your colour is the only thing about yourself you may
+        // change. Moving your own personId would make you somebody else, with
+        // their orders and their answers to give.
+        function validSelfEdit() {
+          return mine().status == 'approved'
+            && mine().get('personId', null) == myOld().get('personId', null)
+            && saneEntry();
+        }
+
+        // Everyone's address is in here, so this needs an account too.
+        allow get, list: if request.auth != null;
 
         // The owner writes this doc freely, it is how they let people in.
-        allow create: if isOwner()
+        allow create: if familyOwner()
           || (request.auth != null
               && request.resource.data.keys().hasOnly([request.auth.uid])
-              && mine().status == 'pending');
+              && validAsk());
 
-        allow update: if isOwner()
+        allow update: if familyOwner()
           || (request.auth != null && myKeyOnly()
-              && ((mine().status == 'pending' && !alreadyApproved())
-                  || (mine().status == 'approved' && alreadyApproved())));
+              && (alreadyApproved() ? validSelfEdit() : validAsk()));
 
-        allow delete: if isOwner();
+        allow delete: if familyOwner();
       }
 
       // Which slices have been made: { personId: [0, 2] }.
@@ -85,21 +159,7 @@ service cloud.firestore {
       // board is open to the whole family, unlike the orders themselves,
       // which stay each person's own.
       match /prefs/made {
-        function familyOwner() {
-          return request.auth != null
-            && get(/databases/$(database)/documents/families/$(familyId)).data.ownerUid == request.auth.uid;
-        }
-
-        function approvedMember() {
-          return request.auth != null
-            && exists(/databases/$(database)/documents/families/$(familyId)/prefs/members)
-            && get(/databases/$(database)/documents/families/$(familyId)/prefs/members)
-                 .data.keys().hasAny([request.auth.uid])
-            && get(/databases/$(database)/documents/families/$(familyId)/prefs/members)
-                 .data[request.auth.uid].status == 'approved';
-        }
-
-        allow get, list: if true;
+        allow get, list: if request.auth != null;
         allow create, update: if familyOwner() || approvedMember();
         allow delete: if familyOwner();
       }
@@ -111,66 +171,93 @@ service cloud.firestore {
       // else is held to the one line that belongs to them, which means looking
       // up which person they are before letting the write through.
       match /prefs/orders {
-        function familyOwner() {
-          return request.auth != null
-            && get(/databases/$(database)/documents/families/$(familyId)).data.ownerUid == request.auth.uid;
-        }
-
-        function membership() {
-          return get(/databases/$(database)/documents/families/$(familyId)/prefs/members)
-                   .data[request.auth.uid];
-        }
-
-        function approvedMember() {
-          return request.auth != null
-            && exists(/databases/$(database)/documents/families/$(familyId)/prefs/members)
-            && get(/databases/$(database)/documents/families/$(familyId)/prefs/members)
-                 .data.keys().hasAny([request.auth.uid])
-            && membership().status == 'approved';
-        }
-
-        // Whoever is making it has to be able to read the lot, signed in or not.
-        allow get, list: if true;
+        // Whoever is making it has to be able to read the lot.
+        allow get, list: if request.auth != null;
 
         allow create: if familyOwner()
           || (approvedMember()
-              && request.resource.data.keys().hasOnly([membership().personId]));
+              && request.resource.data.keys().hasOnly([myPersonId()]));
 
         allow update: if familyOwner()
           || (approvedMember()
               && request.resource.data.diff(resource.data).affectedKeys()
-                   .hasOnly([membership().personId]));
+                   .hasOnly([myPersonId()]));
 
         allow delete: if familyOwner();
       }
 
-      // Asking someone to take your turn: { id: { from, to, date, status } }.
+      // Asking someone to take your turn.
+      //
+      // One document per ask, rather than one document holding them all: the
+      // rules have to name the ask being written to say who may write it, and
+      // a map of asks in a single document gives them nothing to name. So an
+      // ask is a document, its id is in the path, and every rule below is about
+      // that one ask.
       //
       // The board is a place to leave a note, not a way around the owner. It
-      // cannot move the rotation by itself: an accepted ask is still applied
-      // by the owner's phone, writing the family document as it always did.
-      match /prefs/swaps {
-        function familyOwner() {
-          return request.auth != null
-            && get(/databases/$(database)/documents/families/$(familyId)).data.ownerUid == request.auth.uid;
+      // cannot move the rotation by itself: an accepted ask is still applied by
+      // the owner's phone, writing the family document as it always did.
+      match /swaps/{swapId} {
+        function saneSwap() {
+          return request.resource.data.id == swapId
+            && request.resource.data.fromPersonId is string
+            && request.resource.data.toPersonId is string
+            && request.resource.data.fromPersonId != request.resource.data.toPersonId
+            && request.resource.data.date is string
+            && request.resource.data.date.size() < 40
+            && request.resource.data.askedAt is string
+            && request.resource.data.askedAt.size() < 40
+            && request.resource.data.status in ['pending', 'accepted', 'declined', 'done']
+            && request.resource.data.keys().hasOnly(
+                 ['id', 'fromPersonId', 'toPersonId', 'date', 'askedAt', 'status']);
         }
 
-        function approvedMember() {
-          return request.auth != null
-            && exists(/databases/$(database)/documents/families/$(familyId)/prefs/members)
-            && get(/databases/$(database)/documents/families/$(familyId)/prefs/members)
-                 .data.keys().hasAny([request.auth.uid])
-            && get(/databases/$(database)/documents/families/$(familyId)/prefs/members)
-                 .data[request.auth.uid].status == 'approved';
+        // An answer changes the answer and nothing else. What was asked, of
+        // whom, and for which night all stay as they were written.
+        function askKept() {
+          return request.resource.data.fromPersonId == resource.data.fromPersonId
+            && request.resource.data.toPersonId == resource.data.toPersonId
+            && request.resource.data.date == resource.data.date
+            && request.resource.data.askedAt == resource.data.askedAt;
+        }
+
+        // Answering is the business of whoever was asked.
+        function answering() {
+          return resource.data.status == 'pending'
+            && resource.data.toPersonId == myPersonId()
+            && request.resource.data.status in ['accepted', 'declined'];
+        }
+
+        // Taking a spent ask off the board is the business of whoever asked.
+        function closing() {
+          return resource.data.status in ['accepted', 'declined']
+            && resource.data.fromPersonId == myPersonId()
+            && request.resource.data.status == 'done';
         }
 
         // A board nobody could read would be a board nobody could answer.
-        allow get, list: if true;
+        allow get, list: if request.auth != null;
 
-        // Only people who are actually in the rotation may ask or answer.
-        allow create, update: if familyOwner() || approvedMember();
+        // An ask goes out in your own name, and starts unanswered. Asking on
+        // somebody else's behalf is how a member would move the rotation.
+        allow create: if saneSwap()
+          && (familyOwner()
+              || (approvedMember()
+                  && request.resource.data.fromPersonId == myPersonId()
+                  && request.resource.data.status == 'pending'));
+
+        allow update: if saneSwap() && askKept()
+          && (familyOwner() || (approvedMember() && (answering() || closing())));
 
         // Only as part of the owner clearing the whole family.
+        allow delete: if familyOwner();
+      }
+
+      // Where the swap board used to be, before an ask became a document of its
+      // own. Nothing reads it now; the owner may still sweep it away.
+      match /prefs/swaps {
+        allow get, list: if request.auth != null;
+        allow create, update: if false;
         allow delete: if familyOwner();
       }
 
@@ -178,28 +265,20 @@ service cloud.firestore {
         function saneTurn() {
           return request.resource.data.personId is string
             && request.resource.data.madeAt is string
-            && request.resource.data.skipped is bool;
+            && request.resource.data.madeAt.size() < 40
+            && request.resource.data.skipped is bool
+            && request.resource.data.keys().hasOnly(
+                 ['personId', 'madeAt', 'skipped', 'ratings', 'rating']);
         }
 
-        // Listing turns needs the family id in the path, so it stays scoped.
-        allow get, list: if true;
-
-        // Anyone in the family can log toast without signing in.
-        // `resource` here is the turn, not the family, so the owner has to be
-        // looked up rather than read off the document being written.
-        function familyOwner() {
-          return request.auth != null
-            && get(/databases/$(database)/documents/families/$(familyId)).data.ownerUid == request.auth.uid;
-        }
-
-        // Logging toast is for people who were let in.
-        function approvedMember() {
-          return request.auth != null
-            && exists(/databases/$(database)/documents/families/$(familyId)/prefs/members)
-            && get(/databases/$(database)/documents/families/$(familyId)/prefs/members)
-                 .data.keys().hasAny([request.auth.uid])
-            && get(/databases/$(database)/documents/families/$(familyId)/prefs/members)
-                 .data[request.auth.uid].status == 'approved';
+        // Anyone in the rotation may log the toast, because whoever pulls the
+        // lever is rarely the person being credited — that is the whole point
+        // of the lever. What nobody may do is reach back into a turn already
+        // logged and change whose it was, or whether it counted, which would
+        // hand them the rotation.
+        function historyKept() {
+          return request.resource.data.personId == resource.data.personId
+            && request.resource.data.skipped == resource.data.skipped;
         }
 
         // A rating is written under your own account id and nobody else's, so
@@ -212,8 +291,12 @@ service cloud.firestore {
                      .affectedKeys().hasOnly([request.auth.uid]));
         }
 
+        allow get, list: if request.auth != null;
+
         allow create: if saneTurn() && (familyOwner() || approvedMember());
-        allow update: if saneTurn() && (familyOwner() || approvedMember()) && ratingsUntouchedOrMine();
+        allow update: if saneTurn() && historyKept()
+          && (familyOwner() || approvedMember())
+          && ratingsUntouchedOrMine();
 
         // Only as part of the owner clearing the whole family.
         allow delete: if familyOwner();

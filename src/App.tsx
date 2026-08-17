@@ -19,13 +19,18 @@ export function App() {
   const [screen, setScreen] = useState<'auto' | 'welcome' | 'setup' | 'new'>('auto');
 
   if (!state.ready) return null;
-  // Someone opened a share link: wait for that rotation rather than offering to
-  // set up a new one, unless the server says there is no such rotation.
-  if (sync.joining && !state.family && !sync.missing) return null;
+  // Whether anyone is signed in decides which screen this is, so it is worth
+  // the moment it takes to find out rather than showing the wrong one first.
+  if (syncConfigured && !sync.authReady) return null;
 
   // Nothing shows before a sign-in, a link is an invitation to ask, not a
-  // window into the rotation.
+  // window into the rotation. The server holds the same line, which is why
+  // being locked out is not something to wait on below: nothing is coming.
   const lockedOut = syncConfigured && !sync.account;
+
+  // Someone opened a share link: wait for that rotation rather than offering to
+  // set up a new one, unless the server says there is no such rotation.
+  if (sync.joining && !state.family && !sync.missing && !lockedOut) return null;
 
   // 'new' is the same screen with nothing filled in: a second rotation, kept
   // alongside the ones this phone already has.
