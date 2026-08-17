@@ -96,10 +96,17 @@ export function useMembership(family: Family, account: Account | null, isOwner: 
     [mine, write],
   );
 
-  const myPersonId = isOwner ? (family.ownerPersonId ?? mine?.personId) : mine?.personId;
-  const me: Person | null = myPersonId
-    ? (family.people.find((p) => p.id === myPersonId) ?? null)
-    : null;
+  const person = (id: string | undefined) =>
+    id ? (family.people.find((p) => p.id === id) ?? null) : null;
+
+  // The owner is whoever the family says, and failing that whoever this phone
+  // claimed. Naming somebody who is no longer in the rotation counts as
+  // failing: a person taken out and an empty field are the same thing to read,
+  // and treating them differently left the owner as nobody, unable to order
+  // even for themselves, with nothing on screen to put it right.
+  const me: Person | null = isOwner
+    ? (person(family.ownerPersonId) ?? person(mine?.personId))
+    : person(mine?.personId);
 
   // Everyone who has chosen a colour, by the person they are in the rotation.
   const colorsByPerson = useMemo(() => {
