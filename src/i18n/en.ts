@@ -147,6 +147,10 @@ export const en = {
     action: 'Join',
     problem: "That doesn't look like a link or a code. Check it and try again.",
     notFound: "There's no rotation with that code. Ask for the link again.",
+    opening: 'Opening',
+    openingBlurb: 'Fetching the rotation this code belongs to.',
+    backHome: 'Back to the start',
+    stopWaiting: 'Not now',
   },
 
   signIn: {

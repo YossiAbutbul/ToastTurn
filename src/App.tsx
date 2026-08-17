@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Home } from './screens/Home';
 import { Setup } from './screens/Setup';
 import { Welcome } from './screens/Welcome';
+import { Joining } from './screens/Joining';
 import { useSync } from './hooks/useSync';
 import { useFamily } from './store/useFamily';
 import { replacePath } from './lib/history';
@@ -27,9 +28,23 @@ export function App() {
   // still worth waiting on is the rotation a link names.
   const lockedOut = syncConfigured && !sync.account;
 
-  // Someone opened a share link: wait for that rotation rather than offering to
-  // set up a new one, unless the server says there is no such rotation.
-  if (sync.joining && !state.family && !sync.missing && !lockedOut) return null;
+  // Someone opened a share link for a rotation this phone has not got yet.
+  // Whatever it was showing before is not that rotation, so it is put away
+  // until the right one arrives - or until the code turns out to name nothing,
+  // which is said rather than left to be guessed at.
+  if (sync.joining && state.family?.id !== sync.linkId && !lockedOut) {
+    return (
+      <Joining
+        code={sync.joining}
+        notFound={sync.missing}
+        onBack={() => {
+          // The link goes too, or the next render walks straight back in.
+          replacePath('/');
+          setScreen('welcome');
+        }}
+      />
+    );
+  }
 
   // 'new' is the same screen with nothing filled in: a second rotation, kept
   // alongside the ones this phone already has.

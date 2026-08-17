@@ -24,7 +24,13 @@ export function Claim({ family, taken, onClaim, onJoinAs }: ClaimProps) {
   const [adding, setAdding] = useState(false);
   const [name, setName] = useState('');
 
-  const people = [...family.people].sort((a, b) => a.order - b.order);
+  // Whoever runs the rotation is not one of the names to tap. Their account is
+  // how they get back, on any phone, so offering their name here would only
+  // ever be somebody else taking it - and taking their orders and their colour
+  // with it.
+  const people = [...family.people]
+    .filter((person) => person.id !== family.ownerPersonId)
+    .sort((a, b) => a.order - b.order);
   const rotation = family.name.trim() || en.invite.unnamed;
 
   const join = () => {
