@@ -15,6 +15,21 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="ToastTurn" />
 
+    <!-- What a shared link looks like in a chat. The rotation's own name is
+         deliberately not here: the card is built once at deploy, and putting a
+         family in it would mean a server that can read one, and a preview that
+         says who the toast is for to anyone the link is forwarded to. -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="ToastTurn" />
+    <meta property="og:title" content="ToastTurn" />
+    <meta property="og:description" content="Whose turn is it to make toast this week?" />
+    <meta property="og:url" content="https://toast-turn.vercel.app/" />
+    <meta property="og:image" content="https://toast-turn.vercel.app/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="ToastTurn, and a slice of toast on a countertop" />
+    <meta name="twitter:card" content="summary_large_image" />
+
     <title>ToastTurn</title>
   </head>
   <body>

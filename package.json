@@ -11,7 +11,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "icons": "node scripts/make-icons.mjs",
-    "emulator": "firebase emulators:start --only firestore --project toastturn-dev"
+    "emulator": "firebase emulators:start --only firestore --project toastturn-dev",
+    "og": "node scripts/make-og.mjs"
   },
   "dependencies": {
     "@fontsource/baloo-2": "^5.3.0",
