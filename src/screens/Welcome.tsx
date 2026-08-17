@@ -101,9 +101,9 @@ export function Welcome({ onStart, onOpen, notFound }: WelcomeProps) {
       <SignInSheet
         open={signingIn}
         account={account}
-        onClose={() => {
-          setSigningIn(false);
-          if (account && !account.isAnonymous && pending) run(pending);
+        onClose={() => setSigningIn(false)}
+        onSignedIn={(signedIn) => {
+          if (pending && !signedIn.isAnonymous) run(pending);
           setPending(null);
         }}
       />

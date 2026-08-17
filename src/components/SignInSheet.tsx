@@ -9,13 +9,19 @@ type SignInSheetProps = {
   open: boolean;
   account: Account | null;
   onClose: () => void;
+  /**
+   * The account that just signed in, handed over rather than left to be read
+   * off the next render: whoever opened this sheet is usually waiting to carry
+   * on with something, and the account they can see is still the old one.
+   */
+  onSignedIn?: (account: Account) => void;
 };
 
 /**
  * Only whoever runs a rotation ever opens this. Everyone else has an account
  * already, quietly, and was never asked for anything.
  */
-export function SignInSheet({ open, account, onClose }: SignInSheetProps) {
+export function SignInSheet({ open, account, onClose, onSignedIn }: SignInSheetProps) {
   const [problem, setProblem] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -24,7 +30,9 @@ export function SignInSheet({ open, account, onClose }: SignInSheetProps) {
     setProblem(null);
     try {
       const result = await signInWithGoogle();
-      if (result !== 'redirecting') onClose();
+      if (result === 'redirecting') return;
+      onClose();
+      onSignedIn?.(result);
     } catch (error) {
       setProblem(en.signIn.problem[signInProblem(error)]);
     } finally {

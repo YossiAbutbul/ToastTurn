@@ -85,7 +85,10 @@ export function watchAccount(onChange: (account: Account | null) => void): () =>
       return;
     }
 
-    stop = ready.fns.onAuthStateChanged(ready.auth, (user) => {
+    // Not onAuthStateChanged: linking Google onto the anonymous account keeps
+    // the same user, so that one never fires and the app would go on believing
+    // this phone was still anonymous. The token does change, and this hears it.
+    stop = ready.fns.onIdTokenChanged(ready.auth, (user) => {
       if (user) return onChange(asAccount(user));
       // Nobody yet. Fetching one is silent, and lands back here as a user.
       void ready.fns.signInAnonymously(ready.auth).catch(() => onChange(null));
