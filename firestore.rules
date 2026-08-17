@@ -32,6 +32,18 @@ service cloud.firestore {
         return request.auth != null && family().ownerUid == request.auth.uid;
       }
 
+      /**
+       * An account somebody actually signed into, rather than the one every
+       * phone is handed without being asked. Running a rotation has to outlive
+       * a wiped phone, and an anonymous account does not: it goes with the
+       * browser cache, and takes the people and the schedule with it, beyond
+       * anyone's reach. So owning a family is for real accounts only.
+       */
+      function realAccount() {
+        return request.auth != null
+          && request.auth.token.firebase.sign_in_provider != 'anonymous';
+      }
+
       function members() {
         return get(/databases/$(database)/documents/families/$(familyId)/prefs/members).data;
       }
@@ -76,8 +88,9 @@ service cloud.firestore {
       allow get: if request.auth != null;
       allow list: if false;
 
-      // Publishing a family claims it for the account doing the publishing.
-      allow create: if request.auth != null
+      // Publishing a family claims it for the account doing the publishing,
+      // which has to be one that will still be there next month.
+      allow create: if realAccount()
         && request.resource.data.ownerUid == request.auth.uid
         && sane();
 
