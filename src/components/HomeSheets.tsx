@@ -1,5 +1,4 @@
 import { HistorySheet } from './HistorySheet';
-import { SwapSheet } from './SwapSheet';
 import { OrdersSheet } from './OrdersSheet';
 import { SettingsSheet } from './SettingsSheet';
 import { ScheduleSheet } from './ScheduleSheet';
@@ -9,12 +8,11 @@ import type { MembershipState } from '../hooks/useMembership';
 import type { Order, OrderLine, OrderTally } from '../lib/orders';
 import type { Family, Person, Schedule, Turn } from '../lib/types';
 
-export type SheetName = 'history' | 'swap' | 'settings' | 'schedule' | 'orders' | null;
+export type SheetName = 'history' | 'settings' | 'schedule' | 'orders' | null;
 
 type HomeSheetsProps = {
   sheet: SheetName;
   family: Family;
-  current: Person | null;
   account: Account | null;
   onClose: () => void;
   onRate: (turnId: string, rating: number) => void;
@@ -41,7 +39,8 @@ type HomeSheetsProps = {
     clear: (personId: string) => void;
     set: (personId: string, choice: Omit<Order, 'personId' | 'updatedAt'>) => void;
   };
-  onSwap: (personId: string) => void;
+  /** Whose order the orders sheet opens on, when the queue named somebody. */
+  orderFocus?: string;
   onSchedule: (patch: Partial<Schedule>) => void;
   onToggleHoliday: (personId: string, active: boolean) => void;
   onEditPeople: () => void;
@@ -60,7 +59,7 @@ type HomeSheetsProps = {
 
 /** Everything that isn't the answer, gathered in one place. */
 export function HomeSheets(props: HomeSheetsProps) {
-  const { family, sheet, current, isOwner, onClose } = props;
+  const { family, sheet, isOwner, onClose } = props;
 
   return (
     <>
@@ -107,6 +106,7 @@ export function HomeSheets(props: HomeSheetsProps) {
         onTick={props.orders.setMade}
         onClear={props.orders.clear}
         onSet={props.orders.set}
+        focus={props.orderFocus}
       />
 
       <SettingsSheet
@@ -128,16 +128,6 @@ export function HomeSheets(props: HomeSheetsProps) {
         onNewFamily={props.onNewFamily}
         isOwner={isOwner}
       />
-
-      {current && isOwner && (
-        <SwapSheet
-          open={sheet === 'swap'}
-          family={family}
-          current={current}
-            onClose={onClose}
-          onSwap={props.onSwap}
-        />
-      )}
     </>
   );
 }

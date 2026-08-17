@@ -10,11 +10,8 @@ import type { SheetName } from '../components/HomeSheets';
 import { useIsOwner } from '../hooks/useIsOwner';
 import { useAccount } from '../hooks/useAccount';
 import { useMembership } from '../hooks/useMembership';
-import { useSwaps } from '../hooks/useSwaps';
 import { useOrders } from '../hooks/useOrders';
-import { SwapAsk } from '../components/SwapAsk';
 import { OrdersButton } from '../components/OrdersButton';
-import { Notice } from '../components/Notice';
 import { SignInSheet } from '../components/SignInSheet';
 import { Waiting } from './Waiting';
 import { signOut } from '../lib/auth';
@@ -78,18 +75,10 @@ export function Home({ onEditPeople, onLeave, onNewFamily, onHome }: HomeProps) 
   const [note, setNote] = useState({ key: 0, text: '' });
   const [signingIn, setSigningIn] = useState(false);
   const [day, setDay] = useState<Date | null>(null);
-  /** Who the ask just went to, so it can be said plainly rather than in passing. */
-  const [asked, setAsked] = useState<string | null>(null);
+  /** Whose order the sheet opens on, when the queue named somebody. */
+  const [orderFocus, setOrderFocus] = useState<string | undefined>(undefined);
   const flashTimer = useRef<number | undefined>(undefined);
 
-  /** A line along the bottom, the way the app talks after something happens. */
-  const say = useCallback((text: string) => setNote((n) => ({ key: n.key + 1, text })), []);
-
-  const applySwap = useCallback(
-    (aId: string, bId: string) => dispatch({ type: 'swap', aId, bId }),
-    [dispatch],
-  );
-  const swaps = useSwaps({ family: stored, me: membership.me, isOwner, onApply: applySwap });
   const orders = useOrders(family, membership.me?.id);
 
   useEffect(() => () => window.clearTimeout(flashTimer.current), []);
@@ -99,6 +88,13 @@ export function Home({ onEditPeople, onLeave, onNewFamily, onHome }: HomeProps) 
   const closeSheet = () => {
     setSheet(null);
     setDay(null);
+    setOrderFocus(undefined);
+  };
+
+  /** The queue along the bottom: a tap opens what that person wants. */
+  const openOrder = (personId?: string) => {
+    setOrderFocus(personId);
+    setSheet('orders');
   };
 
   // What was logged on the day tapped in the calendar.
@@ -125,19 +121,6 @@ export function Home({ onEditPeople, onLeave, onNewFamily, onHome }: HomeProps) 
     window.clearTimeout(flashTimer.current);
     flashTimer.current = window.setTimeout(() => setFlash(null), FLASH_MS);
   }, [dispatch, family]);
-
-  // A no comes back to whoever asked, once, and then comes off the board.
-  const answer = swaps.answered;
-  const { close } = swaps;
-  useEffect(() => {
-    if (!answer) return;
-    const timer = window.setTimeout(() => {
-      const them = stored.people.find((p) => p.id === answer.toPersonId);
-      say(en.swap.declined(them?.name ?? ''));
-      close(answer);
-    }, 0);
-    return () => window.clearTimeout(timer);
-  }, [answer, close, say, stored.people]);
 
   // Someone who followed an invite gets the waiting room, not the rotation:
   // the toast is nobody's business until the owner lets them in.
@@ -182,7 +165,6 @@ export function Home({ onEditPeople, onLeave, onNewFamily, onHome }: HomeProps) 
       <HomeSheets
         sheet={sheet}
         family={family}
-        current={current}
         account={account}
         onClose={closeSheet}
         uid={ratingUid}
@@ -203,28 +185,8 @@ export function Home({ onEditPeople, onLeave, onNewFamily, onHome }: HomeProps) 
           dispatch({ type: 'logTurn', id: newId(), madeAt: isoForDay(day), personId });
           setDay(null);
         }}
-        onSwap={(personId) => {
-          if (!current) return;
-          closeSheet();
-
-          const them = family.people.find((p) => p.id === personId);
-          const canBeAsked = membership.answerablePersonIds.has(personId);
-
-          // Nobody to ask: a name the owner typed in has no phone behind it, and
-          // with no sync there is only this one. The owner moves the two people
-          // themselves, which is what the app always did.
-          if (!syncConfigured || !canBeAsked) {
-            if (isOwner) {
-              dispatch({ type: 'swap', aId: current.id, bId: personId });
-              if (them && syncConfigured) say(en.swap.noAccount(them.name));
-            }
-            return;
-          }
-
-          swaps.ask(personId, nextDue(family, now()).toISOString());
-          if (them) setAsked(them.name);
-        }}
         orders={orders}
+        orderFocus={orderFocus}
         onSetColor={(color) => {
           const mine = membership.me;
           if (!mine) return;
@@ -335,7 +297,7 @@ export function Home({ onEditPeople, onLeave, onNewFamily, onHome }: HomeProps) 
         slices={orders.tally.slices}
         making={Boolean(current) && current!.id === membership.me?.id}
         ordered={orders.mine !== null}
-        onOpen={() => setSheet('orders')}
+        onOpen={() => openOrder()}
       />
 
       {/* Nothing to skip once someone has made it: the week is settled. */}
@@ -355,25 +317,6 @@ export function Home({ onEditPeople, onLeave, onNewFamily, onHome }: HomeProps) 
         </button>
       )}
 
-      <Notice
-        open={asked !== null}
-        title={en.swap.sentTitle(asked ?? '')}
-        note={en.swap.sentNote(asked ?? '')}
-        closeLabel={en.swap.sentClose}
-        onClose={() => setAsked(null)}
-      />
-
-      <SwapAsk
-        swap={swaps.incoming}
-        family={family}
-        onAccept={(swap) => {
-          swaps.accept(swap);
-          const from = family.people.find((p) => p.id === swap.fromPersonId);
-          if (from) say(isOwner ? en.swap.accepted(from.name) : en.swap.waiting);
-        }}
-        onDecline={swaps.decline}
-      />
-
       <InstallHint />
       <QueueBar
         people={queue}
@@ -386,8 +329,8 @@ export function Home({ onEditPeople, onLeave, onNewFamily, onHome }: HomeProps) 
           ]),
         )}
         orderLabel={en.orders.wants}
-        onPick={isOwner || membership.me?.id === current?.id ? () => setSheet('swap') : undefined}
-        swapLabel={en.swap.title}
+        onPick={openOrder}
+        openLabel={en.orders.openTheirs}
         nowLabel={done ? en.home.upNext : en.home.upNow}
       />
       <Note playKey={note.key} text={note.text} />

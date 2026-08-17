@@ -24,6 +24,8 @@ type OrdersSheetProps = {
   onSet: (personId: string, choice: Choice) => void;
   /** Take the whole order off: somebody wants nothing today. */
   onClear: (personId: string) => void;
+  /** Whose order to open on. Unset means yours, which is the usual way in. */
+  focus?: string;
   covered?: boolean;
 };
 
@@ -40,19 +42,32 @@ export function OrdersSheet({
   canOrderFor,
   onSet,
   onClear,
+  focus,
   covered,
 }: OrdersSheetProps) {
   // Everyone, because whoever is making the toast has to read the lot. What
   // this phone may change is a separate question, asked per person below.
   const first = lines.find((line) => line.person.id === me?.id) ?? lines[0];
+  // Coming in off the queue asks for one person in particular. The button
+  // along the bottom asks for nobody, which means you.
+  const wanted = (focus && lines.some((line) => line.person.id === focus) ? focus : undefined)
+    ?? first?.person.id;
 
-  const [who, setWho] = useState<string | undefined>(first?.person.id);
+  const [who, setWho] = useState<string | undefined>(wanted);
+  const [asked, setAsked] = useState<string | undefined>(wanted);
   const [tab, setTab] = useState(0);
 
+  // A second tap on the queue, on somebody else, while the sheet is still up.
+  if (asked !== wanted) {
+    setAsked(wanted);
+    setWho(wanted);
+    setTab(0);
+  }
+
   // Looking at somebody else lasts as long as the sheet is open. Closing it
-  // puts it back to you, because that is what it is for nine times in ten,
-  // and being shown a sibling's order on opening is a puzzle.
-  if (!open && who !== first?.person.id) setWho(first?.person.id);
+  // puts it back to whoever it opens on, because that is what it is for nine
+  // times in ten, and being shown a sibling's order on opening is a puzzle.
+  if (!open && who !== wanted) setWho(wanted);
 
   const chosen = lines.find((line) => line.person.id === who) ?? first;
   const mine = chosen ? canOrderFor(chosen.person.id) : false;

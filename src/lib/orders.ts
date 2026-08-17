@@ -22,7 +22,7 @@ export type Slice = { toppings: Topping[] };
  * asked for it and nobody else may write it, but whoever is making the toast
  * has to tick off everyone's, and they are not always the one who runs the
  * rotation. So the ticks live on a board of their own that anybody in the
- * family may write, the way the swap board does.
+ * family may write.
  */
 export type MadeBoard = Record<string, number[]>;
 

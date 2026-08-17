@@ -5,9 +5,9 @@ import './QueueBar.css';
 type QueueBarProps = {
   /** The whole rotation, in order, whoever is up first. */
   people: Person[];
-  /** Tapping anyone in the queue opens the swap sheet. Left out for guests. */
-  onPick?: () => void;
-  swapLabel: (name: string) => string;
+  /** Tapping anyone in the queue opens what they want. Left out for guests. */
+  onPick?: (personId: string) => void;
+  openLabel: (name: string) => string;
   nowLabel: (name: string) => string;
   /** How many slices each person still has coming, by person id. */
   slices: Record<string, number>;
@@ -22,7 +22,7 @@ type QueueBarProps = {
 export function QueueBar({
   people,
   onPick,
-  swapLabel,
+  openLabel,
   nowLabel,
   slices,
   orderLabel,
@@ -31,7 +31,7 @@ export function QueueBar({
     <div className="queue">
       {people.map((person, index) => {
         const className = index === 0 ? 'qbtn now' : 'qbtn';
-        const label = index === 0 ? nowLabel(person.name) : swapLabel(person.name);
+        const label = index === 0 ? nowLabel(person.name) : openLabel(person.name);
         const wanted = slices[person.id] ?? 0;
 
         const inside = (
@@ -54,7 +54,13 @@ export function QueueBar({
         );
 
         return onPick ? (
-          <button key={person.id} type="button" className={className} onClick={onPick} aria-label={label}>
+          <button
+            key={person.id}
+            type="button"
+            className={className}
+            onClick={() => onPick(person.id)}
+            aria-label={label}
+          >
             {inside}
           </button>
         ) : (

@@ -9,7 +9,6 @@ import {
   nextToastDate,
   removeTurn,
   skipWeek,
-  swapPeople,
   turnCounts,
   weekDone,
 } from './rotation';
@@ -171,20 +170,6 @@ describe('logTurn and skipWeek', () => {
     const next = logTurn(family(four(), many), { id: 'new', madeAt: '2026-08-16' });
     expect(next.turns).toHaveLength(200);
     expect(next.turns[0].id).toBe('new');
-  });
-});
-
-describe('swapPeople', () => {
-  it('trades rotation positions', () => {
-    const swapped = swapPeople(family(four()), 'a', 'c');
-    expect(getCurrentPerson(swapped)?.id).toBe('c');
-    expect(getUpcoming(swapped, 3).map((p) => p.id)).toEqual(['b', 'a', 'd']);
-  });
-
-  it('ignores unknown people and self-swaps', () => {
-    const base = family(four());
-    expect(swapPeople(base, 'a', 'a')).toBe(base);
-    expect(swapPeople(base, 'a', 'nope')).toBe(base);
   });
 });
 

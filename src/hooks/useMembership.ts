@@ -106,19 +106,6 @@ export function useMembership(family: Family, account: Account | null, isOwner: 
     return byPerson;
   }, [members]);
 
-  // Who could answer an ask: a person with an account behind them. The owner
-  // counts, whether or not they ever wrote themselves a membership entry.
-  const answerablePersonIds = useMemo(() => {
-    const ids = new Set<string>();
-    // The owner never had to ask to be let in, so they are not in the members
-    // document at all, but they are certainly reachable.
-    if (family.ownerPersonId) ids.add(family.ownerPersonId);
-    for (const entry of Object.values(members)) {
-      if (entry.status === 'approved' && entry.personId) ids.add(entry.personId);
-    }
-    return ids;
-  }, [family.ownerPersonId, members]);
-
   const waiting = Object.entries(members)
     .filter(([, entry]) => entry.status === 'pending')
     .map(([uid, entry]) => ({ uid, name: entry.name ?? '', email: entry.email ?? uid }));
@@ -131,7 +118,6 @@ export function useMembership(family: Family, account: Account | null, isOwner: 
     approve,
     setColor,
     colorsByPerson,
-    answerablePersonIds,
     canLog: state === 'owner' || state === 'member',
   };
 }

@@ -1,5 +1,5 @@
 import { mergeFamily } from '../lib/mergeFamily';
-import { logTurn, removeTurn, skipWeek, swapPeople } from '../lib/rotation';
+import { logTurn, removeTurn, skipWeek } from '../lib/rotation';
 import type { Family, Person, Schedule } from '../lib/types';
 
 export type State = {
@@ -21,7 +21,6 @@ export type Action =
   | { type: 'skipWeek'; id: string; madeAt: string }
   | { type: 'rateTurn'; turnId: string; uid: string; rating: number }
   | { type: 'removeTurn'; turnId: string }
-  | { type: 'swap'; aId: string; bId: string }
   | { type: 'setSchedule'; schedule: Partial<Schedule> }
   | { type: 'addPerson'; person: Person }
   | { type: 'removePerson'; id: string }
@@ -115,9 +114,6 @@ export function familyReducer(state: State, action: Action): State {
 
     case 'removeTurn':
       return { ...state, family: removeTurn(family, action.turnId) };
-
-    case 'swap':
-      return { ...state, family: swapPeople(family, action.aId, action.bId) };
 
     case 'setSchedule':
       return { ...state, family: { ...family, schedule: { ...family.schedule, ...action.schedule } } };

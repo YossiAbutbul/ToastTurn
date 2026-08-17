@@ -10,7 +10,7 @@ rules_version = '2';
 //    people, the schedule or the rotation, or clear the family.
 // 3. Everyone else may only ever act as themselves. The rules look up which
 //    person in the rotation an account is, and hold every write to it: your
-//    order, your colour, your answer to an ask. Being let in is not the same
+//    order and your colour. Being let in is not the same
 //    as being allowed to be somebody else.
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -183,81 +183,6 @@ service cloud.firestore {
               && request.resource.data.diff(resource.data).affectedKeys()
                    .hasOnly([myPersonId()]));
 
-        allow delete: if familyOwner();
-      }
-
-      // Asking someone to take your turn.
-      //
-      // One document per ask, rather than one document holding them all: the
-      // rules have to name the ask being written to say who may write it, and
-      // a map of asks in a single document gives them nothing to name. So an
-      // ask is a document, its id is in the path, and every rule below is about
-      // that one ask.
-      //
-      // The board is a place to leave a note, not a way around the owner. It
-      // cannot move the rotation by itself: an accepted ask is still applied by
-      // the owner's phone, writing the family document as it always did.
-      match /swaps/{swapId} {
-        function saneSwap() {
-          return request.resource.data.id == swapId
-            && request.resource.data.fromPersonId is string
-            && request.resource.data.toPersonId is string
-            && request.resource.data.fromPersonId != request.resource.data.toPersonId
-            && request.resource.data.date is string
-            && request.resource.data.date.size() < 40
-            && request.resource.data.askedAt is string
-            && request.resource.data.askedAt.size() < 40
-            && request.resource.data.status in ['pending', 'accepted', 'declined', 'done']
-            && request.resource.data.keys().hasOnly(
-                 ['id', 'fromPersonId', 'toPersonId', 'date', 'askedAt', 'status']);
-        }
-
-        // An answer changes the answer and nothing else. What was asked, of
-        // whom, and for which night all stay as they were written.
-        function askKept() {
-          return request.resource.data.fromPersonId == resource.data.fromPersonId
-            && request.resource.data.toPersonId == resource.data.toPersonId
-            && request.resource.data.date == resource.data.date
-            && request.resource.data.askedAt == resource.data.askedAt;
-        }
-
-        // Answering is the business of whoever was asked.
-        function answering() {
-          return resource.data.status == 'pending'
-            && resource.data.toPersonId == myPersonId()
-            && request.resource.data.status in ['accepted', 'declined'];
-        }
-
-        // Taking a spent ask off the board is the business of whoever asked.
-        function closing() {
-          return resource.data.status in ['accepted', 'declined']
-            && resource.data.fromPersonId == myPersonId()
-            && request.resource.data.status == 'done';
-        }
-
-        // A board nobody could read would be a board nobody could answer.
-        allow get, list: if request.auth != null;
-
-        // An ask goes out in your own name, and starts unanswered. Asking on
-        // somebody else's behalf is how a member would move the rotation.
-        allow create: if saneSwap()
-          && (familyOwner()
-              || (approvedMember()
-                  && request.resource.data.fromPersonId == myPersonId()
-                  && request.resource.data.status == 'pending'));
-
-        allow update: if saneSwap() && askKept()
-          && (familyOwner() || (approvedMember() && (answering() || closing())));
-
-        // Only as part of the owner clearing the whole family.
-        allow delete: if familyOwner();
-      }
-
-      // Where the swap board used to be, before an ask became a document of its
-      // own. Nothing reads it now; the owner may still sweep it away.
-      match /prefs/swaps {
-        allow get, list: if request.auth != null;
-        allow create, update: if false;
         allow delete: if familyOwner();
       }
 

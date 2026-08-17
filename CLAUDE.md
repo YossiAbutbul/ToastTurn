@@ -28,7 +28,7 @@ one of these, the constraint wins.
 3. **Works offline.** Opening the app on the kitchen wifi dead-spot must still
    show whose turn it is. Writes queue and sync when back online.
 4. **The main screen answers the question with zero taps.** Everything else —
-   history, swapping, settings — is behind a control.
+   history, orders, settings — is behind a control.
 5. **English only.** A Hebrew translation and an RTL pass were dropped by the
    owner on 16 Aug 2026: the app ships in English and stays that way. The two
    habits that came from that plan are worth keeping anyway, and the codebase
@@ -215,7 +215,7 @@ drift the moment two phones write at once — do not do it.
 
 Also in `rotation.ts`, all pure and all unit-tested:
 `getCurrentPerson`, `getUpcoming(n)`, `nextToastDate(schedule, from)`,
-`logTurn`, `skipWeek`, `swapPeople(a, b)`, `turnCounts(range)`.
+`logTurn`, `skipWeek`, `turnCounts(range)`.
 
 ---
 
@@ -230,7 +230,7 @@ Commit at the end of each.
       inactive, skipped turns not advancing the rotation
 - [ ] `<Toaster />` ported from the prototype, drag + keyboard both firing the cycle
 - [ ] Home screen wired to the store
-- [ ] History sheet, swap sheet, schedule editor sheet
+- [ ] History sheet, schedule editor sheet
 - [ ] Setup screen, `localStorage` persistence
 - [ ] **Done when:** you can add a family, log four weeks, close the tab, reopen,
       and everything is still there.
@@ -267,6 +267,10 @@ Commit at the end of each.
 - [ ] Fairness stats — turns per person this month
 - [ ] Holiday mode toggle per person
 - [ ] Orders: each person marks what they want, the maker sees one combined list
+- [x] ~~Swapping turns: ask someone to take yours, they accept or decline~~ —
+      dropped by the owner on 17 Aug 2026 as redundant. A tap on the queue
+      along the bottom now opens what that person wants instead. Reordering
+      the rotation by hand is still there, under "Add or remove people".
 
 **Push caveat, kept for the record.** On iOS, web push only works if the PWA is
 installed to the home screen, needs iOS 16.4+, and requires a permission prompt
@@ -294,7 +298,7 @@ unproven.
 Plain, warm, short. The interface talks like a person setting the table, not a
 system reporting status.
 
-- Buttons say what happens: "Pull down", "Swap", "Start the rotation".
+- Buttons say what happens: "Pull down", "Order now", "Start the rotation".
 - Confirmations name the person: "Maya did it!" — not "Turn logged successfully".
 - Empty states invite: "No one's in the rotation yet. Add the first person."
 - Errors say what broke and what to do: "Couldn't sync. Your turn is saved on

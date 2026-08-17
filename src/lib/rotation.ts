@@ -177,20 +177,6 @@ export function skipWeek(family: Family, turn: { id: string; madeAt: string; per
   return withTurn(family, { id: turn.id, personId, madeAt: turn.madeAt, skipped: true });
 }
 
-/** Trade places in the rotation. */
-export function swapPeople(family: Family, aId: string, bId: string): Family {
-  const a = getPerson(family, aId);
-  const b = getPerson(family, bId);
-  if (!a || !b || aId === bId) return family;
-
-  return {
-    ...family,
-    people: family.people.map((p) =>
-      p.id === aId ? { ...p, order: b.order } : p.id === bId ? { ...p, order: a.order } : p,
-    ),
-  };
-}
-
 /** Credited turns per person, optionally inside an ISO range, end exclusive. */
 export function turnCounts(family: Family, range?: { from?: string; to?: string }): Record<string, number> {
   const counts: Record<string, number> = {};

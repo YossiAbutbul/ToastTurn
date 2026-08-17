@@ -244,48 +244,6 @@ export async function dropOrder(familyId: string, personId: string): Promise<voi
   );
 }
 
-/**
- * The swap board: who has asked whom, and what they said back.
- *
- * One document per ask. A map of asks in a single document reads no
- * differently here, but the server cannot tell one ask from another inside it,
- * so it could not say that only the person asked may answer. A document has a
- * path, and a path is something a rule can name.
- */
-export function subscribeSwaps(
-  familyId: string,
-  onChange: (board: Record<string, unknown>) => void,
-): () => void {
-  let stop: (() => void) | null = null;
-  let cancelled = false;
-
-  void (async () => {
-    const remote = await firestore();
-    if (!remote || cancelled) return;
-    const { db, fs } = remote;
-
-    stop = fs.onSnapshot(fs.collection(db, 'families', familyId, 'swaps'), (snap) => {
-      onChange(Object.fromEntries(snap.docs.map((d) => [d.id, { id: d.id, ...d.data() }])));
-    });
-    if (cancelled) stop();
-  })();
-
-  return () => {
-    cancelled = true;
-    stop?.();
-  };
-}
-
-/** Leave an ask, or an answer to one, as its own document. */
-export async function pushSwap(familyId: string, swap: { id: string }): Promise<void> {
-  const remote = await firestore();
-  if (!remote) return;
-  const { db, fs } = remote;
-  // Whole, not merged: an answer replaces the ask it answers, and the server
-  // checks that everything except the answer came back unchanged.
-  await fs.setDoc(fs.doc(db, 'families', familyId, 'swaps', swap.id), written(swap));
-}
-
 /** Say what you thought of a turn. The rules only let you write your own key. */
 export async function pushRating(
   familyId: string,
@@ -312,19 +270,13 @@ export async function deleteFamily(familyId: string): Promise<void> {
   if (!remote) return;
   const { db, fs } = remote;
 
-  const [turns, swaps] = await Promise.all([
-    fs.getDocs(fs.collection(db, 'families', familyId, 'turns')),
-    fs.getDocs(fs.collection(db, 'families', familyId, 'swaps')),
-  ]);
+  const turns = await fs.getDocs(fs.collection(db, 'families', familyId, 'turns'));
 
   const batch = fs.writeBatch(db);
   turns.forEach((turn) => batch.delete(turn.ref));
-  swaps.forEach((swap) => batch.delete(swap.ref));
   batch.delete(fs.doc(db, 'families', familyId, 'prefs', 'members'));
   batch.delete(fs.doc(db, 'families', familyId, 'prefs', 'orders'));
   batch.delete(fs.doc(db, 'families', familyId, 'prefs', 'made'));
-  // Where the swap board used to be, on a family made before it moved.
-  batch.delete(fs.doc(db, 'families', familyId, 'prefs', 'swaps'));
   batch.delete(fs.doc(db, 'families', familyId));
   await batch.commit();
 }
