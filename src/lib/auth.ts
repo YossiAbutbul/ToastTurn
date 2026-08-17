@@ -89,6 +89,33 @@ export async function signInWithGoogle(): Promise<Account | 'redirecting'> {
   }
 }
 
+/**
+ * Give up the account this phone was handed, for good.
+ *
+ * Only ever its own: deleting anybody else's needs the admin key, which is a
+ * server, which this app has not got. So a rotation being cleared cannot reach
+ * out and tidy up after the phones that were in it - each one lets go of its
+ * own account the next time it opens and finds the rotation gone. What that
+ * buys is a bound: one account per phone still in use, rather than another
+ * left behind every time somebody starts over.
+ *
+ * A real sign-in is left alone. That account is the way back into a rotation
+ * and is not this app's to throw away.
+ */
+export async function dropAnonymousAccount(): Promise<void> {
+  const ready = await firebaseAuth();
+  const user = ready?.auth.currentUser;
+  if (!user?.isAnonymous) return;
+
+  try {
+    await user.delete();
+  } catch (error) {
+    // Nothing to do about it, and nothing that needs saying to anyone: a fresh
+    // account arrives by itself either way.
+    reportSignInError('letting go of this phone’s account', error);
+  }
+}
+
 export async function signOut(): Promise<void> {
   const ready = await firebaseAuth();
   if (!ready) return;

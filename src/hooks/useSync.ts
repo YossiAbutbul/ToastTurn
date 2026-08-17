@@ -8,6 +8,7 @@ import {
   pushTurns,
   subscribeFamily,
 } from '../lib/remote';
+import { dropAnonymousAccount } from '../lib/auth';
 import type { RemoteFamily } from '../lib/remote';
 import {
   goneFromRotation,
@@ -110,6 +111,11 @@ export function useSync() {
           sawRemote.current = false;
           dispatch({ type: 'reset' });
           replacePath('/');
+          // And let go of the account this phone was given for it. Nothing
+          // else can: an account is only ever deletable by whoever is holding
+          // it. Doing it here is what keeps a rotation cleared and started
+          // again from leaving a trail of accounts behind it.
+          void dropAnonymousAccount();
         }
         return;
       }
