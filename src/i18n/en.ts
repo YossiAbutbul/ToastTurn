@@ -70,7 +70,7 @@ export const en = {
     back: 'Back',
     title: 'Start a rotation',
     yourName: 'Your name',
-    yourNameHint: 'Everyone else asks to join, or you add them later from settings.',
+    yourNameHint: 'Everyone else opens the link and taps their own name.',
     familyLabel: 'Family name',
     familyPlaceholder: 'The Abutbuls',
     peopleLabel: 'Who makes toast',
@@ -96,41 +96,27 @@ export const en = {
     open: 'Open your rotation',
     join: 'Join a rotation',
     signIn: 'Sign in',
-    signInFirst: 'Sign in to make a toast yours.',
+    signInFirst: 'Starting a rotation needs a Google account. Joining one does not.',
   },
 
   member: {
-    askTitle: 'Ask to join',
-    ask: 'Ask to be let in',
-    askBlurb: 'Whoever runs the rotation adds you to it when they let you in.',
     yourName: 'Your name',
-    joinAs: 'Tell them your name',
-    pending: 'Waiting to be let in.',
-    pendingBlurb: 'You can watch until then. Ask them to check their settings.',
-    signedOut: 'Sign in to join this rotation.',
     leverLocked: 'Only people in the rotation can log the toast',
-    waiting: 'Waiting to be let in',
-    approve: 'Let in',
-    waitingUnnamed: 'Someone',
-    approved: (who: string) => `${who} is in.`,
-    nobodyWaiting: 'Nobody is waiting.',
+  },
 
-    askAction: 'Ask to be let in',
-    waitTitle: 'Waiting to be let in',
-    waitBlurb: 'Whoever runs it has your name. The toast turns up here the moment they let you in.',
-    nudgeHint: 'Been a while? Give them a nudge.',
-    nudge: 'Remind them',
-    nudgeSent: 'Reminder sent',
-    nudgeBlurb: "They'll see it the next time they open the app.",
-    notYou: 'Sign out',
+  claim: {
+    title: 'Who are you?',
+    blurb: 'Tap your name and this phone is yours.',
+    taken: 'on another phone',
+    notListed: "I'm not on the list",
+    newTitle: 'Put yourself in',
+    newBlurb: 'You go to the end of the rotation, after everyone already in it.',
+    newAction: 'Join the rotation',
+    backToList: 'Back to the list',
   },
 
   invite: {
-    kicker: "You've been invited to",
     unnamed: 'a toast rotation',
-    blurb: 'Sign in first, then whoever runs the rotation can let you in.',
-    action: 'Sign in to join',
-    notNow: 'Not now',
   },
 
   day: {
@@ -165,25 +151,20 @@ export const en = {
 
   signIn: {
     title: 'Sign in',
-    blurb: 'So the rotation knows which toast is yours.',
-    email: 'Email',
-    password: 'Password',
-    action: 'Sign in',
+    blurb: 'Only whoever runs a rotation needs this. Everyone else just opens the link.',
     google: 'Continue with Google',
-    or: 'or with an email and password',
     working: 'Signing in…',
     open: 'Sign in to run a rotation',
     signedInTitle: 'Your account',
     signedInAs: (email: string) => `Signed in as ${email}.`,
     signOut: 'Sign out',
     problem: {
-      credentials: "That email and password don't match. Try again.",
+      credentials: "That didn't work. Try again.",
       offline: "Can't reach the sign-in right now. Try when you're back online.",
       setup: "This copy of the app has no sign-in set up. If you're running it yourself, restart it after adding the keys.",
       other: 'Something went wrong signing in. Try again.',
     },
   },
-
 
   update: {
     /** Follows the app's own name, which is set in brand type. */

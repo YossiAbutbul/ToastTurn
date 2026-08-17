@@ -13,7 +13,7 @@ import { useMembership } from '../hooks/useMembership';
 import { useOrders } from '../hooks/useOrders';
 import { OrdersButton } from '../components/OrdersButton';
 import { SignInSheet } from '../components/SignInSheet';
-import { Waiting } from './Waiting';
+import { Claim } from './Claim';
 import { signOut } from '../lib/auth';
 import { syncConfigured } from '../lib/firebase';
 import { useFamily } from '../store/useFamily';
@@ -31,10 +31,9 @@ import {
 } from '../lib/rotation';
 import { now, nowISO } from '../lib/clock';
 import { newId } from '../lib/id';
-import { colorForIndex } from '../lib/palette';
 import { withMemberColors } from '../lib/people';
 import { outstanding } from '../lib/orders';
-import { deleteFamily, deleteTurn, handOver } from '../lib/remote';
+import { deleteFamily, deleteTurn } from '../lib/remote';
 import { replacePath } from '../lib/history';
 import type { Family } from '../lib/types';
 import './Home.css';
@@ -122,43 +121,18 @@ export function Home({ onEditPeople, onLeave, onNewFamily, onHome }: HomeProps) 
     flashTimer.current = window.setTimeout(() => setFlash(null), FLASH_MS);
   }, [dispatch, family]);
 
-  // Someone who followed an invite gets the waiting room, not the rotation:
-  // the toast is nobody's business until the owner lets them in.
-  if (membership.state === 'stranger' || membership.state === 'pending') {
+  // A phone that has not said which person it is says so first. Nobody is
+  // asked and nobody waits: the names are already there to be claimed.
+  if (membership.state === 'unclaimed') {
     return (
-      <Waiting
-        familyName={family.name}
-        state={membership.state}
-        onAsk={membership.askToJoin}
-        onSignOut={() => void signOut().then(onLeave)}
+      <Claim
+        family={family}
+        taken={membership.takenPersonIds}
+        onClaim={membership.claim}
+        onJoinAs={(name) => void membership.joinAs(name)}
       />
     );
   }
-
-  const approve = (uid: string, name: string) => {
-    const wanted = name.trim().toLowerCase();
-    const taken = new Set(
-      membership.waiting.map(() => '').concat(family.people.map((p) => p.id)).filter(Boolean),
-    );
-    const existing = family.people.find(
-      (p) => p.name.trim().toLowerCase() === wanted && taken.has(p.id),
-    );
-
-    if (existing && wanted) {
-      membership.approve(uid, existing.id);
-      return;
-    }
-
-    const person = {
-      id: newId(),
-      name: name.trim() || en.member.waitingUnnamed,
-      color: colorForIndex(family.people.length),
-      order: family.people.length,
-      active: true,
-    };
-    dispatch({ type: 'addPerson', person });
-    membership.approve(uid, person.id);
-  };
 
   const sheets = (
     <>
@@ -198,23 +172,6 @@ export function Home({ onEditPeople, onLeave, onNewFamily, onHome }: HomeProps) 
         onSchedule={(schedule) => dispatch({ type: 'setSchedule', schedule })}
         onToggleHoliday={(id, active) => dispatch({ type: 'setActive', id, active })}
         onEditPeople={onEditPeople}
-        onApprove={approve}
-        onHandOver={(uid, personId) => {
-          const them = family.people.find((p) => p.id === personId);
-          closeSheet();
-          // Straight up, and not through the local copy. The moment the
-          // rotation changes hands this phone may no longer publish it, so the
-          // usual "push whatever changed" path cannot carry this one; and
-          // turning owner into member here rather than on the way back would
-          // show the outgoing owner the waiting room for a frame, before their
-          // own membership had landed.
-          void handOver(
-            family.id,
-            { uid: account!.uid, personId: family.ownerPersonId, email: account!.email },
-            { uid, personId },
-          );
-          if (them) setNote((n) => ({ key: n.key + 1, text: en.settings.handedOver(them.name) }));
-        }}
         families={allFamilies(state)}
         onSwitchFamily={(id) => {
           dispatch({ type: 'switchFamily', id });

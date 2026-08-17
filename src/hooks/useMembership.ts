@@ -1,29 +1,33 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { syncConfigured } from '../lib/firebase';
-import { pushMember, subscribeMembers } from '../lib/remote';
+import { pushMember, pushPeople, subscribeMembers } from '../lib/remote';
+import { newId } from '../lib/id';
+import { colorForIndex } from '../lib/palette';
 import type { Account } from '../lib/auth';
 import type { Family, Person } from '../lib/types';
 
 export type Membership = {
-  status: 'pending' | 'approved';
-  /** Which person in the rotation this account is, once the owner has let them in. */
-  personId?: string;
-  /** What they said their name is when they asked to join. */
+  /** Which person in the rotation this phone said it is. */
+  personId: string;
+  /** What they called themselves, kept for the settings screen. */
   name?: string;
-  email?: string;
   /**
    * Their own choice of colour. It lives here rather than on the person
-   * because only the owner's account may write the people, and everybody gets
-   * to choose their own.
+   * because the rotation is the owner's to arrange, and everybody gets to
+   * choose their own.
    */
   color?: string;
 };
 
-export type MemberState = 'signed-out' | 'stranger' | 'pending' | 'member' | 'owner';
+export type MemberState = 'unclaimed' | 'member' | 'owner';
 
 /**
- * Who is in the rotation, by account. Having the link is enough to ask; only
- * the owner can let anyone in, which is enforced by the rules as well as here.
+ * Which person this phone is.
+ *
+ * Nobody asks to join and nobody approves them. The owner wrote the names when
+ * they made the rotation; opening the link and tapping your own name is the
+ * whole of joining. What the server holds is that claim - this account is that
+ * person - and it holds every write to it.
  */
 export type MembershipState = ReturnType<typeof useMembership>;
 
@@ -36,20 +40,17 @@ export function useMembership(family: Family, account: Account | null, isOwner: 
   }, [family.id]);
 
   const mine = account ? members[account.uid] : undefined;
+  const claimed = mine?.personId && family.people.some((p) => p.id === mine.personId);
 
   // With no keys there is no sync and no accounts: the app is one phone's, and
   // whoever holds it runs the rotation.
   const state: MemberState = !syncConfigured
     ? 'owner'
-    : !account
-    ? 'signed-out'
     : isOwner
       ? 'owner'
-      : mine?.status === 'approved'
+      : claimed
         ? 'member'
-        : mine?.status === 'pending'
-          ? 'pending'
-          : 'stranger';
+        : 'unclaimed';
 
   const write = useCallback(
     (entry: Membership) => {
@@ -60,17 +61,33 @@ export function useMembership(family: Family, account: Account | null, isOwner: 
     [account, family.id],
   );
 
-  /** Ask to be let in, saying who you are. */
-  const askToJoin = useCallback(
-    (name: string) => write({ status: 'pending', name: name.trim(), email: account?.email ?? undefined }),
-    [account, write],
+  /** Say which of the names on the list is you. */
+  const claim = useCallback(
+    (personId: string, name?: string) => write({ ...mine, personId, name }),
+    [mine, write],
   );
 
   /**
-   * Your colour, kept under your own key. The owner does not come through
-   * here: they can write the people themselves, so their choice goes straight
-   * onto the person and reaches phones that never load this document.
+   * Nobody on the list is you. Putting yourself in the rotation is a person of
+   * your own, written by you - which is why they are documents rather than a
+   * list on the family, a list being something only its owner could write.
    */
+  const joinAs = useCallback(
+    async (name: string) => {
+      const person: Person = {
+        id: newId(),
+        name: name.trim(),
+        color: colorForIndex(family.people.length),
+        order: family.people.length,
+        active: true,
+      };
+      await pushPeople(family.id, [person]);
+      claim(person.id, person.name);
+    },
+    [claim, family.id, family.people.length],
+  );
+
+  /** Your colour, kept under your own key rather than on the person. */
   const setColor = useCallback(
     (color: string) => {
       if (!mine) return;
@@ -79,55 +96,40 @@ export function useMembership(family: Family, account: Account | null, isOwner: 
     [mine, write],
   );
 
-  /** Owner only: let someone in as the person they will be in the rotation. */
-  const approve = useCallback(
-    (uid: string, personId: string) => {
-      const next: Membership = { ...members[uid], status: 'approved', personId };
-      setMembers((current) => ({ ...current, [uid]: next }));
-      void pushMember(family.id, uid, next);
-    },
-    [family.id, members],
-  );
-
   const myPersonId = isOwner ? (family.ownerPersonId ?? mine?.personId) : mine?.personId;
-  const me: Person | null =
-    (isOwner || state === 'member') && myPersonId
-      ? (family.people.find((p) => p.id === myPersonId) ?? null)
-      : null;
+  const me: Person | null = myPersonId
+    ? (family.people.find((p) => p.id === myPersonId) ?? null)
+    : null;
 
   // Everyone who has chosen a colour, by the person they are in the rotation.
   const colorsByPerson = useMemo(() => {
     const byPerson: Record<string, string> = {};
     for (const entry of Object.values(members)) {
-      if (entry.status === 'approved' && entry.personId && entry.color) {
-        byPerson[entry.personId] = entry.color;
-      }
+      if (entry?.personId && entry.color) byPerson[entry.personId] = entry.color;
     }
     return byPerson;
   }, [members]);
 
-  const waiting = Object.entries(members)
-    .filter(([, entry]) => entry.status === 'pending')
-    .map(([uid, entry]) => ({ uid, name: entry.name ?? '', email: entry.email ?? uid }));
-
-  // Everyone who has been let in and is somebody in the rotation, which is the
-  // same as saying: everyone the rotation could be handed to. Yourself apart,
-  // you cannot hand it to the account already holding it.
-  const approved = Object.entries(members)
-    .filter(
-      ([uid, entry]) => entry.status === 'approved' && entry.personId && uid !== account?.uid,
-    )
-    .map(([uid, entry]) => ({ uid, personId: entry.personId!, email: entry.email ?? uid }));
+  // Which people already belong to a phone, so the list of names to claim can
+  // say so. It does not stop anyone: a phone that was wiped has to be able to
+  // say who it is again.
+  const takenPersonIds = useMemo(() => {
+    const ids = new Set<string>();
+    if (family.ownerPersonId) ids.add(family.ownerPersonId);
+    for (const [uid, entry] of Object.entries(members)) {
+      if (entry?.personId && uid !== account?.uid) ids.add(entry.personId);
+    }
+    return ids;
+  }, [account?.uid, family.ownerPersonId, members]);
 
   return {
     state,
     me,
-    waiting,
-    approved,
-    askToJoin,
-    approve,
+    claim,
+    joinAs,
     setColor,
     colorsByPerson,
+    takenPersonIds,
     canLog: state === 'owner' || state === 'member',
   };
 }

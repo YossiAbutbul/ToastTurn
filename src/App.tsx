@@ -2,18 +2,18 @@ import { useState } from 'react';
 import { Home } from './screens/Home';
 import { Setup } from './screens/Setup';
 import { Welcome } from './screens/Welcome';
-import { Invite } from './screens/Invite';
 import { useSync } from './hooks/useSync';
 import { useFamily } from './store/useFamily';
 import { replacePath } from './lib/history';
 import { syncConfigured } from './lib/firebase';
 
 /**
- * Four screens, no router. A share link asks for a sign-in and names the
- * rotation it is for; a phone with nothing open starts at the welcome.
+ * Three screens, no router. A share link opens straight into the rotation it
+ * names, where the phone says which person it is; one with nothing open starts
+ * at the welcome.
  */
 export function App() {
-  const { state, dispatch } = useFamily();
+  const { state } = useFamily();
   const sync = useSync();
   /** 'auto' means: the rotation if there is one, otherwise the welcome. */
   const [screen, setScreen] = useState<'auto' | 'welcome' | 'setup' | 'new'>('auto');
@@ -23,9 +23,8 @@ export function App() {
   // the moment it takes to find out rather than showing the wrong one first.
   if (syncConfigured && !sync.authReady) return null;
 
-  // Nothing shows before a sign-in, a link is an invitation to ask, not a
-  // window into the rotation. The server holds the same line, which is why
-  // being locked out is not something to wait on below: nothing is coming.
+  // Every phone has an account by now, its own and quietly: the one thing
+  // still worth waiting on is the rotation a link names.
   const lockedOut = syncConfigured && !sync.account;
 
   // Someone opened a share link: wait for that rotation rather than offering to
@@ -42,23 +41,6 @@ export function App() {
         // Back to the rotation if there is one to go back to, and to the
         // welcome if this phone has nothing yet.
         onBack={() => setScreen(state.family ? 'auto' : 'welcome')}
-      />
-    );
-  }
-
-  // A link, and nobody signed in: the invitation itself, which says which
-  // rotation it is for and asks for a sign-in. Only its name is shown.
-  if (sync.linkId && lockedOut && !sync.missing) {
-    return (
-      <Invite
-        familyName={state.family?.id === sync.linkId ? state.family.name : undefined}
-        onLeave={() => {
-          // Turning the invitation down gives the rotation back: it was never
-          // this phone's, it only came down to put a name on the screen.
-          if (state.family?.id === sync.linkId) dispatch({ type: 'reset' });
-          replacePath('/');
-          setScreen('welcome');
-        }}
       />
     );
   }

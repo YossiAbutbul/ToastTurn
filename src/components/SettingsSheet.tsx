@@ -4,7 +4,6 @@ import { SettingsYou } from './SettingsYou';
 import { RotationList } from './RotationList';
 import { Confirm } from './Confirm';
 import { ShareCode } from './ShareCode';
-import { HandOver } from './HandOver';
 import { en } from '../i18n/en';
 import { initialOf } from '../lib/format';
 import type { Account } from '../lib/auth';
@@ -24,10 +23,6 @@ type SettingsSheetProps = {
   onToggleHoliday: (personId: string, active: boolean) => void;
   onEditPeople: () => void;
   onStartOver: () => void;
-  /** Owner only: let someone in, adding them to the rotation by name. */
-  onApprove: (uid: string, name: string) => void;
-  /** Owner only: pass the rotation to somebody else's account, for good. */
-  onHandOver: (uid: string, personId: string) => void;
   /** Every rotation this phone is in, the open one first. */
   families: Family[];
   onSwitchFamily: (id: string) => void;
@@ -70,24 +65,6 @@ export function SettingsSheet(props: SettingsSheetProps) {
 
       {isOwner && (
         <>
-          <div className="fieldlabel spaced">{en.member.waiting}</div>
-          {props.membership.waiting.length === 0 && <p className="empty">{en.member.nobodyWaiting}</p>}
-          {props.membership.waiting.map((person) => (
-            <div className="row" key={person.uid}>
-              <div className="waiting-who">
-                <b>{person.name || en.member.waitingUnnamed}</b>
-                <span className="waiting-email">{person.email}</span>
-              </div>
-              <button
-                type="button"
-                className="ghost let-in"
-                onClick={() => props.onApprove(person.uid, person.name)}
-              >
-                {en.member.approve}
-              </button>
-            </div>
-          ))}
-
           <div className="fieldlabel spaced">{en.settings.holiday}</div>
           {people.map((person) => (
             <div className="row" key={person.id}>
@@ -112,11 +89,6 @@ export function SettingsSheet(props: SettingsSheetProps) {
             {en.settings.editPeople}
           </button>
 
-          <HandOver
-            family={family}
-            approved={props.membership.approved}
-            onHandOver={props.onHandOver}
-          />
 
           <button className="ghost" type="button" onClick={() => setClearing(true)}>
             {en.settings.startOver}

@@ -18,13 +18,30 @@ one of these, the constraint wins.
    sits in the lower two thirds of the screen.
 2. **Identity, as of phase 3.** The original rule was "no accounts, no
    passwords, no email"; the family code in the URL plus a "who am I" choice on
-   the device was the whole system. That was replaced on the owner's
-   instruction. Logging toast still needs nothing: open the link, pull the
-   lever. Signing in — Google, or an email and password — is what makes a toast
-   yours: the rotation stores each person's email, so a signed-in phone matches
-   itself to a person and their colour follows them to any device. The account
-   that creates a rotation owns it, and is the only one the server lets change
-   people, the schedule or the order.
+   the device was the whole system. Phase 3 replaced that with sign-ins and an
+   owner's approval queue, and on 17 Aug 2026 the owner had most of it taken
+   back out again: approving your own family to use a toast app is the
+   overkill, not the account underneath it. What stands now:
+
+   - **The owner signs in with Google, and nobody else signs in at all.**
+     Running a rotation has to outlive a wiped phone, so it needs an account
+     that can be got back. Starting a rotation is the only thing that asks for
+     one. There is no email-and-password anywhere.
+   - **Every other phone is given an anonymous account, quietly.** No screen,
+     no prompt, nothing typed. It exists so the server has somebody to check.
+   - **Joining is claiming.** Open the link, tap your own name, done. Nobody
+     asks and nobody approves. Anyone the owner never wrote down puts
+     themselves in, which is why the people are documents of their own rather
+     than a list on the family: a list can only be written whole, and that
+     would make it the owner's alone.
+   - **Anyone with the code can claim any name.** That is the accepted trade.
+     The code is the secret; the data is who made toast and who wants cheese.
+   - **What a claim buys you** is that your order and your colour are yours,
+     which the rules hold. Logging the toast is open to everyone in the
+     rotation, because whoever pulls the lever is rarely who gets credited.
+   - **A wiped phone loses its claim, not its history.** Turns and orders are
+     keyed by person, so re-tapping your name gets everything back.
+
 3. **Works offline.** Opening the app on the kitchen wifi dead-spot must still
    show whose turn it is. Writes queue and sync when back online.
 4. **The main screen answers the question with zero taps.** Everything else —
@@ -249,7 +266,7 @@ Commit at the end of each.
 - [ ] Firebase project, `families/{id}` documents with a `turns` subcollection,
       security rules keyed on the family id (`firestore.rules`)
 - [ ] The family id lives in the URL (`/f/{id}`); opening that link joins
-- [ ] "Who am I" picker on first visit, stored per device
+- [x] "Who am I" picker on first visit, stored per device
 - [ ] Realtime subscription so a pop on one phone updates the others
 - [ ] Optimistic writes with an offline queue, replayed on reconnect —
       Firestore's persistent cache does this, so do not hand-roll a queue
@@ -263,10 +280,12 @@ Commit at the end of each.
       account, a scheduler, and on the free plan a single daily cron that
       cannot fire at the family's own hour. The work lives on the `feat/push`
       branch, unmerged, if it is ever wanted.
-- [x] Hand the rotation over: the owner passes it to someone already let in,
-      and is written into the membership list on the way out so they keep
-      their turn. Without it, losing the owning account left the people, the
-      schedule and the toast night beyond anyone's reach for good.
+- [x] ~~Hand the rotation over to someone else's account~~ — built, then
+      dropped by the owner on 17 Aug 2026 along with the approval queue. With
+      everyone but the owner on an anonymous account there is nobody it could
+      safely go to: an account that evaporates with the browser cache cannot
+      be handed a family. Worth revisiting if members are ever offered a
+      "remember me on this phone" that links a Google account to theirs.
 - [ ] Rate the toast 1–5, shown in history
 - [ ] Fairness stats — turns per person this month
 - [ ] Holiday mode toggle per person

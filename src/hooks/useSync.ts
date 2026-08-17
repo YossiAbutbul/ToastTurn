@@ -133,8 +133,12 @@ export function useSync() {
     }
 
     // Only the signed-in owner publishes the family itself. A family with no
-    // owner yet is claimed by the first account that signs in on it.
-    const owned = family.ownerUid ? family.ownerUid === account?.uid : Boolean(account);
+    // owner yet is claimed by the first account behind a real sign-in - never
+    // by the anonymous one every phone gives itself, or the rotation would
+    // belong to whoever opened the link first.
+    const owned = family.ownerUid
+      ? family.ownerUid === account?.uid
+      : Boolean(account) && !account!.isAnonymous;
     if (!owned) return;
 
     if (metaChanged(family, remote)) void pushFamily(family, account?.uid);

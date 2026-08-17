@@ -1,0 +1,10 @@
+/* The list of names to pick from, given room to scroll on a short phone. */
+.claim-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  inline-size: 100%;
+  max-block-size: 42vh;
+  overflow-y: auto;
+  margin-block-end: 4px;
+}

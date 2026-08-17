@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Sheet } from './Sheet';
 import { en } from '../i18n/en';
-import { signIn, signInProblem, signInWithGoogle, signOut } from '../lib/auth';
+import { signInProblem, signInWithGoogle, signOut } from '../lib/auth';
 import type { Account } from '../lib/auth';
 import './SignInSheet.css';
 
@@ -11,26 +11,13 @@ type SignInSheetProps = {
   onClose: () => void;
 };
 
-/** Only the person who runs the family ever opens this. */
+/**
+ * Only whoever runs a rotation ever opens this. Everyone else has an account
+ * already, quietly, and was never asked for anything.
+ */
 export function SignInSheet({ open, account, onClose }: SignInSheetProps) {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [problem, setProblem] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-
-  const submit = async () => {
-    setBusy(true);
-    setProblem(null);
-    try {
-      await signIn(email.trim(), password);
-      setPassword('');
-      onClose();
-    } catch (error) {
-      setProblem(en.signIn.problem[signInProblem(error)]);
-    } finally {
-      setBusy(false);
-    }
-  };
 
   const withGoogle = async () => {
     setBusy(true);
@@ -45,7 +32,7 @@ export function SignInSheet({ open, account, onClose }: SignInSheetProps) {
     }
   };
 
-  if (account) {
+  if (account && !account.isAnonymous) {
     return (
       <Sheet open={open} title={en.signIn.signedInTitle} onClose={onClose}>
         <p className="empty">{en.signIn.signedInAs(account.email ?? '')}</p>
@@ -61,7 +48,7 @@ export function SignInSheet({ open, account, onClose }: SignInSheetProps) {
       <p className="empty">{en.signIn.blurb}</p>
 
       <button
-        className="ghost google"
+        className="ghost google primary"
         type="button"
         disabled={busy}
         onClick={() => void withGoogle()}
@@ -87,38 +74,9 @@ export function SignInSheet({ open, account, onClose }: SignInSheetProps) {
         </svg>
         {en.signIn.google}
       </button>
-      <p className="empty">{en.signIn.or}</p>
-
-      <div className="fieldlabel spaced">{en.signIn.email}</div>
-      <input
-        type="text"
-        inputMode="email"
-        autoComplete="username"
-        aria-label={en.signIn.email}
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-      />
-
-      <div className="fieldlabel spaced">{en.signIn.password}</div>
-      <input
-        type="password"
-        autoComplete="current-password"
-        aria-label={en.signIn.password}
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        onKeyDown={(e) => e.key === 'Enter' && void submit()}
-      />
 
       {problem && <p className="problem">{problem}</p>}
-
-      <button
-        className="ghost primary"
-        type="button"
-        disabled={busy}
-        onClick={() => void submit()}
-      >
-        {busy ? en.signIn.working : en.signIn.action}
-      </button>
+      {busy && <p className="empty">{en.signIn.working}</p>}
     </Sheet>
   );
 }

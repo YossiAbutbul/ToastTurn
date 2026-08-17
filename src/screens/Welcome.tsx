@@ -34,12 +34,12 @@ export function Welcome({ onStart, onOpen, notFound }: WelcomeProps) {
   };
 
   /**
-   * Everything here needs an account. Signing out has to mean something, so
-   * even the rotation this phone already holds asks first. A guest who was sent
-   * the link still opens it straight from the link, lever and all.
+   * Starting a rotation is the one thing that needs a sign-in, because running
+   * one has to outlive a phone being wiped. Opening a rotation this phone
+   * already has, or joining one from a link, asks for nothing.
    */
   const need = (what: Exclude<Pending, null>) => () => {
-    if (syncConfigured && !account) {
+    if (what === 'start' && syncConfigured && (!account || account.isAnonymous)) {
       setPending(what);
       setSigningIn(true);
       return;
@@ -63,7 +63,7 @@ export function Welcome({ onStart, onOpen, notFound }: WelcomeProps) {
 
       <div className="welcome-foot">
         {notFound && <p className="problem">{en.join.notFound}</p>}
-        {account && (
+        {account && !account.isAnonymous && (
           <p className="empty">
             {en.signIn.signedInAs(account.email ?? '')}{' '}
             {/* Said where being signed in is said: anywhere else and somebody
@@ -93,7 +93,9 @@ export function Welcome({ onStart, onOpen, notFound }: WelcomeProps) {
           {en.welcome.join}
         </button>
 
-        {!account && <p className="empty welcome-note">{en.welcome.signInFirst}</p>}
+        {(!account || account.isAnonymous) && (
+          <p className="empty welcome-note">{en.welcome.signInFirst}</p>
+        )}
       </div>
 
       <SignInSheet
@@ -101,7 +103,7 @@ export function Welcome({ onStart, onOpen, notFound }: WelcomeProps) {
         account={account}
         onClose={() => {
           setSigningIn(false);
-          if (account && pending) run(pending);
+          if (account && !account.isAnonymous && pending) run(pending);
           setPending(null);
         }}
       />

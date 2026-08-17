@@ -8,10 +8,10 @@ rules_version = '2';
 //    into the family: reading anything at all needs an account.
 // 2. One account runs the family. Only the signed-in owner can change the
 //    people, the schedule or the rotation, or clear the family.
-// 3. Everyone else may only ever act as themselves. The rules look up which
-//    person in the rotation an account is, and hold every write to it: your
-//    order and your colour. Being let in is not the same
-//    as being allowed to be somebody else.
+// 3. Everyone else may only ever act as themselves. Every phone has an account
+//    of its own, given quietly and never asked for, and it says which person
+//    in the rotation it is. The rules look that claim up and hold every write
+//    to it: your order and your colour are yours.
 service cloud.firestore {
   match /databases/{database}/documents {
 
@@ -40,26 +40,20 @@ service cloud.firestore {
         return members()[request.auth.uid];
       }
 
-      function approvedMember() {
+      /** Whether this phone has said which person in the rotation it is. */
+      function claimed() {
         return request.auth != null
           && exists(/databases/$(database)/documents/families/$(familyId)/prefs/members)
           && members().keys().hasAny([request.auth.uid])
-          && membership().status == 'approved';
+          && membership().get('personId', '') != '';
       }
 
       /**
        * Which person in the rotation the caller is. Only ever read after
-       * approvedMember() has passed, so the entry is known to be there.
+       * claimed() has passed, so the entry is known to be there.
        */
       function myPersonId() {
         return membership().get('personId', '');
-      }
-
-      /** Whether some other account has been let into this rotation. */
-      function approvedUid(uid) {
-        return exists(/databases/$(database)/documents/families/$(familyId)/prefs/members)
-          && members().keys().hasAny([uid])
-          && members()[uid].get('status', '') == 'approved';
       }
 
       // ---- the family itself ---------------------------------------------
@@ -87,76 +81,46 @@ service cloud.firestore {
         && request.resource.data.ownerUid == request.auth.uid
         && sane();
 
-      // The owner may hand the rotation on, and only they may: it moves by
-      // their own write or not at all, and only to somebody already let in.
-      // Anything else leaves ownerUid exactly where it was.
-      allow update: if isOwner() && sane()
-        && (request.resource.data.ownerUid == resource.data.ownerUid
-            || approvedUid(request.resource.data.ownerUid));
+      // The owner stays the owner: a write that moves ownerUid is refused.
+      allow update: if isOwner()
+        && request.resource.data.ownerUid == resource.data.ownerUid
+        && sane();
 
       allow delete: if isOwner();
 
-      // Who is in the rotation, by account: { uid: { status, personId, email } }.
+      // Which person each account is: { uid: { personId, name, color } }.
       //
-      // Having the link lets you ask. It does not let you in: you may only ever
-      // write your own key, and only as "pending". Moving anyone to "approved"
-      // is the owner's alone, and so is choosing which person an account is —
-      // once set, not even that account may move it, or being let in as
-      // yourself would be a way of becoming anybody.
+      // Nobody applies and nobody approves. Opening the link and tapping a name
+      // is the whole of joining, so this is a claim rather than a request, and
+      // the only rule about it is that it is yours: you may write your own key
+      // and no other. Which name you claim is not policed, because a phone that
+      // was wiped has to be able to say who it is again, and because knowing
+      // the code already means being in the family.
       match /prefs/members {
         function mine() {
           return request.resource.data[request.auth.uid];
         }
-        function myOld() {
-          return resource.data[request.auth.uid];
-        }
         function myKeyOnly() {
           return request.resource.data.diff(resource.data).affectedKeys().hasOnly([request.auth.uid]);
         }
-        function alreadyApproved() {
-          return resource.data.keys().hasAny([request.auth.uid])
-            && myOld().status == 'approved';
+        function saneClaim() {
+          return mine().personId is string
+            && mine().personId.size() > 0
+            && mine().personId.size() < 40
+            && mine().get('name', '') is string
+            && mine().get('name', '').size() < 40
+            && mine().keys().hasOnly(['personId', 'name', 'color']);
         }
 
-        // What you say about yourself is your own name and your own address.
-        // The owner reads both on the approval screen and decides from them, so
-        // an address that is not the one you signed in with is refused.
-        function saneEntry() {
-          return mine().get('name', '') is string
-            && mine().get('name', '').size() < 60
-            && (mine().get('email', null) == null
-                || mine().get('email', null) == request.auth.token.get('email', null));
-        }
-
-        // Asking to join says who you are. It cannot say which person in the
-        // rotation you are: that is the owner's to decide, at approval.
-        function validAsk() {
-          return mine().status == 'pending'
-            && mine().get('personId', null) == null
-            && saneEntry();
-        }
-
-        // Once you are in, your colour is the only thing about yourself you may
-        // change. Moving your own personId would make you somebody else, with
-        // their orders and their answers to give.
-        function validSelfEdit() {
-          return mine().status == 'approved'
-            && mine().get('personId', null) == myOld().get('personId', null)
-            && saneEntry();
-        }
-
-        // Everyone's address is in here, so this needs an account too.
         allow get, list: if request.auth != null;
 
-        // The owner writes this doc freely, it is how they let people in.
         allow create: if familyOwner()
           || (request.auth != null
               && request.resource.data.keys().hasOnly([request.auth.uid])
-              && validAsk());
+              && saneClaim());
 
         allow update: if familyOwner()
-          || (request.auth != null && myKeyOnly()
-              && (alreadyApproved() ? validSelfEdit() : validAsk()));
+          || (request.auth != null && myKeyOnly() && saneClaim());
 
         allow delete: if familyOwner();
       }
@@ -169,7 +133,7 @@ service cloud.firestore {
       // which stay each person's own.
       match /prefs/made {
         allow get, list: if request.auth != null;
-        allow create, update: if familyOwner() || approvedMember();
+        allow create, update: if familyOwner() || claimed();
         allow delete: if familyOwner();
       }
 
@@ -184,11 +148,10 @@ service cloud.firestore {
         allow get, list: if request.auth != null;
 
         allow create: if familyOwner()
-          || (approvedMember()
-              && request.resource.data.keys().hasOnly([myPersonId()]));
+          || (claimed() && request.resource.data.keys().hasOnly([myPersonId()]));
 
         allow update: if familyOwner()
-          || (approvedMember()
+          || (claimed()
               && request.resource.data.diff(resource.data).affectedKeys()
                    .hasOnly([myPersonId()]));
 
@@ -216,7 +179,15 @@ service cloud.firestore {
 
         allow get, list: if request.auth != null;
 
-        allow create, update: if sanePerson() && familyOwner();
+        // Putting yourself in the rotation is how somebody the owner never
+        // wrote down joins it, so anyone in the family may add a person.
+        allow create: if sanePerson() && request.auth != null;
+
+        // Changing one is the owner's, or your own: a person nobody has
+        // claimed is nobody's to rename.
+        allow update: if sanePerson()
+          && (familyOwner() || (claimed() && myPersonId() == personId));
+
         allow delete: if familyOwner();
       }
 
@@ -252,9 +223,9 @@ service cloud.firestore {
 
         allow get, list: if request.auth != null;
 
-        allow create: if saneTurn() && (familyOwner() || approvedMember());
+        allow create: if saneTurn() && (familyOwner() || claimed());
         allow update: if saneTurn() && historyKept()
-          && (familyOwner() || approvedMember())
+          && (familyOwner() || claimed())
           && ratingsUntouchedOrMine();
 
         // Only as part of the owner clearing the whole family.
