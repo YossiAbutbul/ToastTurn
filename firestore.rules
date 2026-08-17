@@ -77,11 +77,14 @@ service cloud.firestore {
 
       // ---- the family itself ---------------------------------------------
 
+      // The people moved out into documents of their own, so the family no
+      // longer carries a list of them and demanding one refused every write of
+      // it. A family written before the move still has the field, and is still
+      // held to a rotation of a sensible size.
       function sane() {
         return request.resource.data.name is string
           && request.resource.data.name.size() < 60
-          && request.resource.data.people is list
-          && request.resource.data.people.size() <= 20
+          && request.resource.data.get('people', []).size() <= 20
           && request.resource.data.get('removed', []).size() <= 100
           && request.resource.data.keys().hasOnly(
                ['ownerUid', 'ownerPersonId', 'name', 'people', 'schedule', 'removed', 'updatedAt']);
