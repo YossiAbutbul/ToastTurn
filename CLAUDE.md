@@ -41,6 +41,17 @@ one of these, the constraint wins.
      rotation, because whoever pulls the lever is rarely who gets credited.
    - **A wiped phone loses its claim, not its history.** Turns and orders are
      keyed by person, so re-tapping your name gets everything back.
+   - **Each phone deletes its own account, and only its own.** Clearing a
+     rotation cannot reach out and tidy up after the phones that were in it:
+     the client SDK deletes `currentUser` and nothing else, and deleting
+     somebody else needs an admin key, which is a server, which would mean
+     Blaze. So a phone lets go of its anonymous account the next time it opens
+     and finds the rotation gone. That bounds the leftovers to one per phone
+     still in use rather than one per rotation ever started. A phone that
+     never opens the app again keeps its account, and those are cleared from
+     the console by hand. Weighed against a Cloud Function on 17 Aug 2026 and
+     the function was turned down: the whole app is meant to cost nothing and
+     have no server.
 
 3. **Works offline.** Opening the app on the kitchen wifi dead-spot must still
    show whose turn it is. Writes queue and sync when back online.
