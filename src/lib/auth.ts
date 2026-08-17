@@ -122,17 +122,23 @@ export function watchAccount(
       return;
     }
 
-    /** Nobody yet. Fetching one is silent, and lands back here as a user. */
+    /**
+     * Nobody yet. Fetching one is silent, and lands back here as a user.
+     *
+     * One request between all the listeners, but each of them waits on it
+     * separately: whichever asked first would otherwise be the only one told
+     * it failed, and the rest would sit there for good with no account and
+     * nothing to show for it - which is how a failure to sign in came out as
+     * a blank screen rather than a sentence.
+     */
     const beAnonymous = () => {
-      if (!anonymous) {
-        anonymous = ready.fns.signInAnonymously(ready.auth).catch((error) => {
-          anonymous = null;
-          reportSignInError('giving this phone an account', error);
-          onChange(null);
-          onProblem?.(signInProblem(error));
-        });
-      }
-      return anonymous;
+      if (!anonymous) anonymous = ready.fns.signInAnonymously(ready.auth);
+      return anonymous.catch((error) => {
+        anonymous = null;
+        reportSignInError('giving this phone an account', error);
+        onChange(null);
+        onProblem?.(signInProblem(error));
+      });
     };
 
     // Not onAuthStateChanged: linking Google onto the anonymous account keeps
