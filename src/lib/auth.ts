@@ -44,6 +44,7 @@ export async function signInWithGoogle(): Promise<Account | 'redirecting'> {
     return asAccount(credential.user);
   } catch (error) {
     const code = (error as { code?: string })?.code ?? '';
+    reportSignInError('signing in with Google', error);
 
     // That Google account is already somebody here. Signing in as them is the
     // right answer - the anonymous account was never anything to lose - but it
@@ -85,7 +86,15 @@ export async function signOut(): Promise<void> {
  * server has somebody to check when this phone says which person it is and
  * what they want on their toast.
  */
-export function watchAccount(onChange: (account: Account | null) => void): () => void {
+export function watchAccount(
+  onChange: (account: Account | null) => void,
+  /**
+   * Why this phone has no account. Being given one is silent when it works,
+   * and used to be silent when it did not: nothing could be read or written,
+   * every button did nothing, and the screen said none of it.
+   */
+  onProblem?: (problem: SignInProblem) => void,
+): () => void {
   let stop: (() => void) | null = null;
   let cancelled = false;
 
@@ -102,7 +111,11 @@ export function watchAccount(onChange: (account: Account | null) => void): () =>
     stop = ready.fns.onIdTokenChanged(ready.auth, (user) => {
       if (user) return onChange(asAccount(user));
       // Nobody yet. Fetching one is silent, and lands back here as a user.
-      void ready.fns.signInAnonymously(ready.auth).catch(() => onChange(null));
+      void ready.fns.signInAnonymously(ready.auth).catch((error) => {
+        reportSignInError('giving this phone an account', error);
+        onChange(null);
+        onProblem?.(signInProblem(error));
+      });
     });
     if (cancelled) stop();
   })();
@@ -113,20 +126,45 @@ export function watchAccount(onChange: (account: Account | null) => void): () =>
   };
 }
 
+export type SignInProblem =
+  /** They shut the Google window themselves. Not worth saying anything about. */
+  | 'cancelled'
+  | 'blocked'
+  | 'domain'
+  | 'offline'
+  | 'setup'
+  | 'other';
+
+/**
+ * The whole error, in the console, every time.
+ *
+ * The screen gets a sentence a person can act on, which means it cannot carry
+ * the code, and the code is the only thing that says which of a dozen setup
+ * switches is off. So it goes here as well, where whoever is fixing it will
+ * look, and stays out of the copy.
+ */
+function reportSignInError(what: string, error: unknown): void {
+  const code = (error as { code?: string })?.code;
+  console.error(`[ToastTurn] ${what} failed${code ? `: ${code}` : ''}`, error);
+}
+
 /**
  * Turns Firebase's error codes into something worth reading. "Not configured"
  * is its own case: without keys there is no sign-in to reach, and saying
  * "you're offline" sends people to check their wifi for nothing.
  */
-export function signInProblem(error: unknown): 'credentials' | 'offline' | 'setup' | 'other' {
+export function signInProblem(error: unknown): SignInProblem {
   const code = (error as { code?: string })?.code ?? '';
   const message = (error as Error)?.message ?? '';
 
   if (message === 'not-configured') return 'setup';
-  // The provider is switched off in the console. Nothing typed will fix it.
-  if (/admin-restricted-operation/.test(code)) return 'setup';
-  if (/invalid-credential|wrong-password|user-not-found|invalid-email/.test(code)) return 'credentials';
-  if (/operation-not-allowed|configuration-not-found|api-key-not-valid/.test(code)) return 'setup';
-  if (/network-request-failed/.test(code)) return 'offline';
+  if (/popup-closed-by-user|cancelled-popup-request|user-cancelled/.test(code)) return 'cancelled';
+  if (/popup-blocked/.test(code)) return 'blocked';
+  if (/unauthorized-domain/.test(code)) return 'domain';
+  // A provider switched off in the console. Nothing typed will fix it.
+  if (/admin-restricted-operation|operation-not-allowed|configuration-not-found|api-key-not-valid/.test(code)) {
+    return 'setup';
+  }
+  if (/network-request-failed|timeout/.test(code)) return 'offline';
   return 'other';
 }

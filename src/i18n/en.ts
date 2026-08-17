@@ -159,11 +159,15 @@ export const en = {
     signedInAs: (email: string) => `Signed in as ${email}.`,
     signOut: 'Sign out',
     problem: {
-      credentials: "That didn't work. Try again.",
+      cancelled: '',
+      blocked: 'Your browser stopped the Google window opening. Allow pop-ups for this site and try again.',
+      domain: 'This address is not one the sign-in will answer to. Add it to the sign-in settings and try again.',
       offline: "Can't reach the sign-in right now. Try when you're back online.",
-      setup: "This copy of the app has no sign-in set up. If you're running it yourself, restart it after adding the keys.",
-      other: 'Something went wrong signing in. Try again.',
+      setup: 'The sign-in is switched off for this app. Turn the provider on in the console, then try again.',
+      other: 'Something went wrong signing in. Try again, and check the console for what.',
     },
+    /** No account at all: nothing can be read or written until there is one. */
+    noAccount: (why: string) => `This phone hasn't got an account yet, so the rotation can't load. ${why}`,
   },
 
   update: {

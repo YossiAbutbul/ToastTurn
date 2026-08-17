@@ -22,7 +22,7 @@ type Pending = 'open' | 'start' | 'join' | null;
  * sign-in, so each action asks for one and then carries on where it left off.
  */
 export function Welcome({ onStart, onOpen, notFound }: WelcomeProps) {
-  const { account } = useAccount();
+  const { account, problem } = useAccount();
   const [signingIn, setSigningIn] = useState(false);
   const [joining, setJoining] = useState(false);
   const [pending, setPending] = useState<Pending>(null);
@@ -63,6 +63,12 @@ export function Welcome({ onStart, onOpen, notFound }: WelcomeProps) {
 
       <div className="welcome-foot">
         {notFound && <p className="problem">{en.join.notFound}</p>}
+
+        {/* No account at all. Every button below would quietly do nothing, so
+            it is said once, here, rather than left to be discovered. */}
+        {problem && (
+          <p className="problem">{en.signIn.noAccount(en.signIn.problem[problem])}</p>
+        )}
         {account && !account.isAnonymous && (
           <p className="empty">
             {en.signIn.signedInAs(account.email ?? '')}{' '}

@@ -34,7 +34,8 @@ export function SignInSheet({ open, account, onClose, onSignedIn }: SignInSheetP
       onClose();
       onSignedIn?.(result);
     } catch (error) {
-      setProblem(en.signIn.problem[signInProblem(error)]);
+      // Shutting the Google window is an answer, not a fault.
+      setProblem(en.signIn.problem[signInProblem(error)] || null);
     } finally {
       setBusy(false);
     }
