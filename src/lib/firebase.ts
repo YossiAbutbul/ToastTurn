@@ -14,6 +14,20 @@ const config = {
 /** No keys, no sync. The app stays exactly as it was: local and offline. */
 export const syncConfigured = Boolean(config.apiKey && config.projectId && config.appId);
 
+/**
+ * App Check, if a site key was given.
+ *
+ * The Firebase keys are in the bundle - they have to be, the browser does the
+ * talking - so anyone can read them off the page and call the project from
+ * anywhere. The rules still hold, and they are what actually protects the
+ * data; what this adds is that the caller has to be this app in a real
+ * browser, which is the difference between a rotation nobody can read and a
+ * script minting accounts all afternoon.
+ *
+ * Left out, everything works exactly as before.
+ */
+const appCheckKey = import.meta.env.VITE_FIREBASE_APPCHECK_KEY;
+
 export type Remote = { db: Firestore; fs: FirestoreModule };
 
 let appPromise: Promise<FirebaseApp> | null = null;
@@ -23,7 +37,30 @@ let authPromise: Promise<{ auth: ReturnType<AuthModule['getAuth']>; fns: AuthMod
 
 function getApp(): Promise<FirebaseApp> {
   if (!appPromise) {
-    appPromise = import('firebase/app').then(({ initializeApp }) => initializeApp(config));
+    appPromise = (async () => {
+      const { initializeApp } = await import('firebase/app');
+      const app = initializeApp(config);
+
+      // Before anything asks for a token or a document: App Check attaches to
+      // the app, and whatever was set up first would otherwise go unattested.
+      if (appCheckKey) {
+        const { initializeAppCheck, ReCaptchaV3Provider } = await import('firebase/app-check');
+
+        // On a dev machine there is no reCAPTCHA to pass, so the SDK prints a
+        // token to register once in the console and localhost is let through.
+        if (import.meta.env.DEV) {
+          (globalThis as { FIREBASE_APPCHECK_DEBUG_TOKEN?: boolean }).FIREBASE_APPCHECK_DEBUG_TOKEN =
+            true;
+        }
+
+        initializeAppCheck(app, {
+          provider: new ReCaptchaV3Provider(appCheckKey),
+          isTokenAutoRefreshEnabled: true,
+        });
+      }
+
+      return app;
+    })();
   }
   return appPromise;
 }
