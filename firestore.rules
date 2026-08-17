@@ -38,10 +38,17 @@ service cloud.firestore {
        * a wiped phone, and an anonymous account does not: it goes with the
        * browser cache, and takes the people and the schedule with it, beyond
        * anyone's reach. So owning a family is for real accounts only.
+       *
+       * Read off the identities rather than sign_in_provider. Signing in here
+       * means linking Google onto the anonymous account the phone already had,
+       * which keeps the same session: sign_in_provider goes on saying
+       * "anonymous" for the rest of it, so asking that question refused the
+       * very people it was meant to let in. What linking does change is the
+       * identities, once the token has been refreshed.
        */
       function realAccount() {
         return request.auth != null
-          && request.auth.token.firebase.sign_in_provider != 'anonymous';
+          && request.auth.token.firebase.identities.keys().size() > 0;
       }
 
       function members() {

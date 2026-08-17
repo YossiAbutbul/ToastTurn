@@ -1,0 +1,5 @@
+# The Google sign-in runs in a popup and has to be able to talk to the page
+# that opened it. The stricter default severs that, and the sign-in hangs
+# with "would block the window.closed call" in the console.
+/*
+  Cross-Origin-Opener-Policy: same-origin-allow-popups

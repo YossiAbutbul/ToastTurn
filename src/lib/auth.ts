@@ -11,6 +11,16 @@ export type Account = {
   isAnonymous: boolean;
 };
 
+/**
+ * The anonymous sign-in, in flight.
+ *
+ * Several parts of the app watch the account, each with its own listener, and
+ * each would otherwise ask for an account of its own the moment it saw none -
+ * minting a fresh one every time, three deep on a first load. They all wait on
+ * the same request instead.
+ */
+let anonymous: Promise<unknown> | null = null;
+
 const asAccount = (user: {
   uid: string;
   email: string | null;
@@ -38,13 +48,17 @@ export async function signInWithGoogle(): Promise<Account | 'redirecting'> {
   try {
     if (current?.isAnonymous) {
       const linked = await ready.fns.linkWithPopup(current, provider);
+      // Linking keeps the session it was linked onto, so the token in hand
+      // still describes an account with no provider on it - and the server
+      // decides who may run a rotation by reading exactly that. Asking for a
+      // fresh one is what makes the sign-in true as far as the rules go.
+      await linked.user.getIdToken(true);
       return asAccount(linked.user);
     }
     const credential = await ready.fns.signInWithPopup(ready.auth, provider);
     return asAccount(credential.user);
   } catch (error) {
     const code = (error as { code?: string })?.code ?? '';
-    reportSignInError('signing in with Google', error);
 
     // That Google account is already somebody here. Signing in as them is the
     // right answer - the anonymous account was never anything to lose - but it
@@ -57,9 +71,12 @@ export async function signInWithGoogle(): Promise<Account | 'redirecting'> {
       );
       if (held) {
         const signedIn = await ready.fns.signInWithCredential(ready.auth, held);
+        await signedIn.user.getIdToken(true);
         return asAccount(signedIn.user);
       }
     }
+
+    reportSignInError('signing in with Google', error);
 
     // Already signed in as this very account: nothing to do but say so.
     if (/provider-already-linked/.test(code) && current) return asAccount(current);
@@ -106,12 +123,17 @@ export function watchAccount(
     }
 
     /** Nobody yet. Fetching one is silent, and lands back here as a user. */
-    const beAnonymous = () =>
-      ready.fns.signInAnonymously(ready.auth).catch((error) => {
-        reportSignInError('giving this phone an account', error);
-        onChange(null);
-        onProblem?.(signInProblem(error));
-      });
+    const beAnonymous = () => {
+      if (!anonymous) {
+        anonymous = ready.fns.signInAnonymously(ready.auth).catch((error) => {
+          anonymous = null;
+          reportSignInError('giving this phone an account', error);
+          onChange(null);
+          onProblem?.(signInProblem(error));
+        });
+      }
+      return anonymous;
+    };
 
     // Not onAuthStateChanged: linking Google onto the anonymous account keeps
     // the same user, so that one never fires and the app would go on believing
@@ -119,7 +141,10 @@ export function watchAccount(
     stop = ready.fns.onIdTokenChanged(
       ready.auth,
       (user) => {
-        if (user) return onChange(asAccount(user));
+        if (user) {
+          anonymous = null;
+          return onChange(asAccount(user));
+        }
         void beAnonymous();
       },
       // The account this phone was holding cannot be refreshed: deleted from
