@@ -1,10 +1,24 @@
+/* The counter is painted by the foot on this screen, not by the device's own
+   split: the foot covers that band, and a line drawn under something that
+   paints over it is no line at all. So the wall is flat here, and the counter
+   brings its own edge - which then sits wherever the counter actually starts,
+   however tall the foot has to be. */
+.device.gate {
+  background: var(--sky);
+}
+
 /* The door: the rotation's name on the wall, the slice on the counter, and
    whatever there is to do about it under that. Nothing of the rotation shows
    here, so this screen is all name and waiting. */
 .gate-body {
   position: relative;
-  z-index: 1;
-  flex: 1 1 auto;
+  /* Above the counter, not under it. The body is its own stacking context, so
+     the slice's own z-index counts for nothing out here: the wall as a whole
+     has to sit over the foot for the overhang to be drawn on the beige. */
+  z-index: 2;
+  /* The wall is 63% of the phone, the same as everywhere else. It gives way
+     if the counter ever needs more room than the 37% left to it. */
+  flex: 0 1 63%;
   min-height: 0;
   display: flex;
   flex-direction: column;
@@ -37,20 +51,31 @@
   overflow-wrap: anywhere;
 }
 
+/* The same note pinned to the wall the front door has, so the two screens
+   read as one app rather than two. */
 .gate-sub {
-  margin-block-start: 10px;
-  font-size: 14px;
-  font-weight: 700;
+  margin-block-start: 14px;
+  font-size: 13.5px;
+  font-weight: 800;
   line-height: 1.35;
-  color: var(--ink-soft);
+  color: var(--ink);
   max-width: 26ch;
+  padding: 9px 16px;
+  background: var(--paper);
+  border: 3px solid var(--ink);
+  border-radius: 22px;
+  box-shadow: 0 2px 0 var(--ink);
+  transform: rotate(-1.4deg);
 }
 
 /* Standing on the counter's edge, the way the welcome's slice does. */
 .gate-art {
   position: relative;
-  width: min(58%, 215px);
-  margin-block: auto -6px;
+  width: min(74%, 272px);
+  /* A third of it stands on the counter, the way the front door's does. */
+  margin-block: auto -27%;
+  position: relative;
+  z-index: 2;
   animation: gate-bob 4.5s ease-in-out infinite;
 }
 
@@ -114,7 +139,21 @@
 .gate-foot {
   position: relative;
   z-index: 1;
-  flex: 0 0 auto;
+  /* The counter starts where it starts everywhere else in the app: on the
+     line the device paints at 63%. The foot covers that line, so it draws it
+     again on its own top edge, in the same ink at the same depth - the seam
+     between wall and counter must not move from screen to screen.
+     What there is to do sits at the bottom of the band, leaving the top of
+     the counter to the slice standing on it. */
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  /* Inset, so the ink sits in the counter's own first three pixels. Cast
+     upwards it landed in the last three of the wall instead, which put this
+     seam three pixels above the one the device paints on every other screen
+     - not much, and enough to see when you go from one to the other. */
+  box-shadow: inset 0 3px 0 var(--ink);
   padding: 14px 20px max(18px, env(safe-area-inset-bottom));
   background: var(--counter);
 }
@@ -126,6 +165,7 @@
 
 .gate-foot .close {
   margin-block-start: 12px;
+  min-height: 54px;
   background: var(--coral);
   border: 3px solid var(--ink);
   box-shadow: 0 3px 0 var(--ink);

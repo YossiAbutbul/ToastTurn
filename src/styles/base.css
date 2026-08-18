@@ -51,11 +51,16 @@ body {
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  /* Wall above, counter below, and the ink line between them that every
+     other edge in the app has. Painted in the gradient rather than drawn on
+     top, so it cannot be scrolled off or covered by a screen's own layout. */
   background: linear-gradient(
     180deg,
     var(--sky) 0%,
     var(--sky) 63%,
-    var(--counter) 63%,
+    var(--ink) 63%,
+    var(--ink) calc(63% + 3px),
+    var(--counter) calc(63% + 3px),
     var(--counter) 100%
   );
 }

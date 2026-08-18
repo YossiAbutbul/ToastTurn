@@ -1,11 +1,22 @@
-/* Wall above, counter below. The counter's edge is a wave rather than the flat
-   line the rest of the app uses, and the slice stands on it. */
-/* Wall above, counter below, the straight split comes from .device, and the
-   foot carries the counter on down. */
+/* The counter is painted by the foot on this screen, not by the device's own
+   split: the foot covers that band, and a line drawn under something that
+   paints over it is no line at all. So the wall is flat here, and the counter
+   brings its own edge - which then sits wherever the counter actually starts,
+   however tall the foot has to be. */
+.device.welcome {
+  background: var(--sky);
+}
+
+/* Wall above, counter below, and the slice standing on the line between. */
 .welcome-body {
   position: relative;
-  z-index: 1;
-  flex: 1 1 auto;
+  /* Above the counter, not under it. The body is its own stacking context, so
+     the slice's own z-index counts for nothing out here: the wall as a whole
+     has to sit over the foot for the overhang to be drawn on the beige. */
+  z-index: 2;
+  /* The wall is 63% of the phone, the same as everywhere else. It gives way
+     if the counter ever needs more room than the 37% left to it. */
+  flex: 0 1 63%;
   min-height: 0;
   display: flex;
   flex-direction: column;
@@ -19,31 +30,60 @@
 /* Two auto margins split the free wall between the name and the slice. */
 .big-mark {
   margin-block-start: auto;
-  font-family: var(--display);
-  font-weight: 800;
-  font-size: clamp(38px, 12.5vw, 52px);
-  letter-spacing: -0.015em;
+}
+.big-mark .mark {
+  font-size: clamp(42px, 14vw, 58px);
+  letter-spacing: -0.02em;
   line-height: 1;
 }
-.big-mark span {
-  color: var(--coral);
-}
 
+/* The question the app answers, said on the wall as a note stuck to it. */
 .welcome-line {
-  font-size: 14.5px;
-  font-weight: 700;
-  color: var(--ink-soft);
-  max-width: 20ch;
-  margin-block-start: 8px;
+  font-size: 13.5px;
+  font-weight: 800;
+  color: var(--ink);
+  max-width: 24ch;
+  margin-block-start: 14px;
+  padding: 9px 16px;
+  background: var(--paper);
+  border: 3px solid var(--ink);
+  border-radius: 999px;
+  box-shadow: 0 2px 0 var(--ink);
+  /* A shade off square, the way a note pinned up by hand never is. */
+  transform: rotate(-1.4deg);
 }
 
 /* Pushed to the foot of the wall, so the slice stands on the counter like the
-   toaster does. It rides a slow bob, so the screen is never quite still. */
+   toaster does. It rides a slow bob, so the screen is never quite still.
+   Pressable, because a slice of toast on a screen wants pressing: it toasts,
+   and nothing anywhere depends on whether it has. */
 .welcome-slice {
-  width: min(78%, 290px);
+  width: min(74%, 272px);
   margin-block-start: auto;
-  margin-block-end: -6px;
+  /* A third of it stands on the counter. The value is a share of the body's
+     width, which the slice's own width follows, so the overhang keeps its
+     proportion on any phone. */
+  margin-block-end: -27%;
+  /* Above the counter rather than behind it: the foot paints after the body,
+     and left underneath it the slice was sliced. */
+  position: relative;
+  z-index: 2;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
   animation: welcome-bob 4.5s ease-in-out infinite;
+}
+.welcome-slice:active {
+  transform: translateY(3px);
+}
+.welcome-slice:focus {
+  outline: none;
+}
+.welcome-slice:focus-visible {
+  outline: 3px solid var(--mint);
+  outline-offset: 6px;
+  border-radius: 20px;
 }
 
 @keyframes welcome-bob {
@@ -59,10 +99,22 @@
 .welcome-foot {
   position: relative;
   z-index: 1;
-  flex: 0 0 auto;
-  padding: 16px 20px max(18px, env(safe-area-inset-bottom));
-  /* no rule above it: the counter runs on from the wall split straight into
-     the foot, so the buttons sit on the same surface */
+  /* The counter starts where it starts everywhere else in the app: on the
+     line the device paints at 63%. The foot covers that line, so it draws it
+     again on its own top edge, in the same ink at the same depth - the seam
+     between wall and counter must not move from screen to screen.
+     What there is to do sits at the bottom of the band, leaving the top of
+     the counter to the slice standing on it. */
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  /* Inset, so the ink sits in the counter's own first three pixels. Cast
+     upwards it landed in the last three of the wall instead, which put this
+     seam three pixels above the one the device paints on every other screen
+     - not much, and enough to see when you go from one to the other. */
+  box-shadow: inset 0 3px 0 var(--ink);
+  padding: 10px 20px max(18px, env(safe-area-inset-bottom));
   background: var(--counter);
 }
 
@@ -72,8 +124,9 @@
   background: var(--coral);
   border: 3px solid var(--ink);
   box-shadow: 0 3px 0 var(--ink);
-  font-size: 14px;
+  font-size: 15px;
   letter-spacing: 0.02em;
+  min-height: 54px;
 }
 .welcome-foot .close:active {
   transform: translateY(3px);
@@ -88,7 +141,7 @@
 .welcome-plain {
   display: block;
   width: 100%;
-  margin-block-start: 14px;
+  margin-block-start: 12px;
   padding: 6px;
   border: none;
   background: none;
@@ -103,5 +156,6 @@
 
 .welcome-note {
   text-align: center;
-  padding-block-start: 10px;
+  padding-block-start: 8px;
+  font-size: 11.5px;
 }

@@ -8,7 +8,12 @@ import './ToastSlice.css';
  * shallow and even, hand-drawn curves came out lopsided, and semicircles came
  * out looking like a crown.
  */
-export function ToastSlice() {
+type ToastSliceProps = {
+  /** Darker crust and crumb, for a slice that has been through the toaster. */
+  toasted?: boolean;
+};
+
+export function ToastSlice({ toasted }: ToastSliceProps = {}) {
   // The corners where the sides meet the dome are quarter-turns, so the side
   // arrives vertical and leaves horizontal, a hump run straight off a straight
   // side leaves a point.
@@ -18,7 +23,12 @@ export function ToastSlice() {
     'C202 284 194 290 183 290 H65 C54 290 46 284 46 274 Z';
 
   return (
-    <svg className="toast-slice" viewBox="28 96 194 216" role="img" aria-label="A slice of toast">
+    <svg
+      className={toasted ? 'toast-slice done' : 'toast-slice'}
+      viewBox="28 96 194 216"
+      role="img"
+      aria-label="A slice of toast"
+    >
       <defs>
         <clipPath id="tsCrust">
           <path d={outline} />
@@ -38,22 +48,29 @@ export function ToastSlice() {
       {/* the crust sits deeper in shade towards the bottom */}
       <rect className="ts-crust-shade" clipPath="url(#tsCrust)" x="28" y="242" width="200" height="64" />
 
-      {/* crumb, following the same silhouette a crust's width in */}
-      <path
-        className="ts-crumb"
-        d="M64 272 V172 A12 12 0 0 1 76 158 A25 25 0 0 1 109 158 A27 27 0 0 1 141 158
-           A25 25 0 0 1 172 158 A12 12 0 0 1 184 172 V272
-           C184 278 180 281 174 281 H74 C68 281 64 278 64 272 Z"
-      />
-      {/* a soft light in the middle of the crumb */}
-      <ellipse className="ts-crumb-light" cx="124" cy="216" rx="46" ry="40" />
+      {/* Crumb, light and speckles together, following the same silhouette a
+          crust's width in. Shortened, not shrunk: the crust was already a
+          good width down the sides and thin at the humps and along the
+          bottom, so only the height comes in, and only the ends of it
+          move. */}
+      <g transform="translate(0 22) scale(1 0.9)">
+        <path
+          className="ts-crumb"
+          d="M64 272 V172 A12 12 0 0 1 76 158 A25 25 0 0 1 109 158 A27 27 0 0 1 141 158
+             A25 25 0 0 1 172 158 A12 12 0 0 1 184 172 V272
+             C184 278 180 281 174 281 H74 C68 281 64 278 64 272 Z"
+        />
+        {/* a soft light in the middle of the crumb */}
+        <ellipse className="ts-crumb-light" cx="124" cy="216" rx="46" ry="40" />
 
-      <g className="ts-speckle">
-        <circle cx="156" cy="188" r="2.4" />
-        <circle cx="163" cy="199" r="1.6" />
-        <circle cx="88" cy="244" r="2.1" />
-        <circle cx="96" cy="253" r="1.4" />
+        <g className="ts-speckle">
+          <circle cx="156" cy="188" r="2.4" />
+          <circle cx="163" cy="199" r="1.6" />
+          <circle cx="88" cy="244" r="2.1" />
+          <circle cx="96" cy="253" r="1.4" />
+        </g>
       </g>
+
     </svg>
   );
 }

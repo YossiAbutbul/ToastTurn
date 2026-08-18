@@ -417,6 +417,17 @@ input:focus-visible {
 
 /* The wordmark, when it leads somewhere. Every bit of the logo is kept: only
    the button's own furniture is taken away. */
+/* The app's name. One face, one weight, wherever it is written: the front
+   door says it big, the top bar says it small, and nothing else changes. */
+.mark {
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 19px;
+}
+.mark span {
+  color: var(--coral);
+}
+
 .markbtn {
   background: none;
   border: none;

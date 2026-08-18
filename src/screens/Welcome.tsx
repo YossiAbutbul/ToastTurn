@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { SignInSheet } from '../components/SignInSheet';
 import { JoinSheet } from '../components/JoinSheet';
 import { ToastSlice } from '../components/ToastSlice';
+import { Wordmark } from '../components/Wordmark';
 import { useAccount } from '../hooks/useAccount';
 import { signOut } from '../lib/auth';
 import { syncConfigured } from '../lib/firebase';
@@ -26,6 +27,8 @@ export function Welcome({ onStart, onOpen, notFound }: WelcomeProps) {
   const [signingIn, setSigningIn] = useState(false);
   const [joining, setJoining] = useState(false);
   const [pending, setPending] = useState<Pending>(null);
+  /** The slice on the front toasts when you press it. It does nothing else. */
+  const [toasted, setToasted] = useState(false);
 
   const run = (what: Exclude<Pending, null>) => {
     if (what === 'open') onOpen?.();
@@ -50,15 +53,22 @@ export function Welcome({ onStart, onOpen, notFound }: WelcomeProps) {
   return (
     <div className="device welcome">
       <div className="welcome-body">
-        <div className="mark big-mark">
-          {en.brand.first}
-          <span>{en.brand.second}</span>
+        {/* The same wordmark the top bar wears, written large: one name, one
+            face, so the front door and the app read as the same thing. */}
+        <div className="big-mark">
+          <Wordmark />
         </div>
         <p className="welcome-line">{en.welcome.tagline}</p>
 
-        <div className="welcome-slice">
-          <ToastSlice />
-        </div>
+        <button
+          className="welcome-slice"
+          type="button"
+          aria-label={toasted ? en.welcome.untoastIt : en.welcome.toastIt}
+          aria-pressed={toasted}
+          onClick={() => setToasted((was) => !was)}
+        >
+          <ToastSlice toasted={toasted} />
+        </button>
       </div>
 
       <div className="welcome-foot">

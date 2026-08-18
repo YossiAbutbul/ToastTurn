@@ -9,6 +9,7 @@
    the shape read as chunky rather than drawn. */
 .ts-crust {
   fill: var(--crust);
+  transition: fill 0.45s ease;
   stroke: var(--ink);
   stroke-width: 8;
   stroke-linejoin: round;
@@ -21,6 +22,19 @@
 
 .ts-crumb {
   fill: var(--butter);
+  transition: fill 0.45s ease;
+}
+
+/* Straight out of the toaster: the crust goes dark and the crumb follows it,
+   which is the same pair of colours the toaster uses when it pops. */
+.toast-slice.done .ts-crust {
+  fill: var(--toasted);
+}
+.toast-slice.done .ts-crumb {
+  fill: var(--toasted-lt);
+}
+.toast-slice.done .ts-steam {
+  opacity: 1;
 }
 
 .ts-crumb-light {

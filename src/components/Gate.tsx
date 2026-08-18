@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { ToastSlice } from './ToastSlice';
-import { en } from '../i18n/en';
+import { Wordmark } from './Wordmark';
 import './Gate.css';
 
 type GateProps = {
@@ -28,10 +28,7 @@ export function Gate({ kicker, title, sub, waiting, children, sheets }: GateProp
   return (
     <div className="device gate">
       <div className="gate-body">
-        <div className="mark">
-          {en.brand.first}
-          <span>{en.brand.second}</span>
-        </div>
+        <Wordmark />
 
         {kicker && <div className="gate-kicker">{kicker}</div>}
         <h1 className="gate-title">{title}</h1>
