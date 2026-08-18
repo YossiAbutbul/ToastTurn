@@ -50,6 +50,8 @@ type HomeSheetsProps = {
   onMovePerson: (personId: string, delta: number) => void;
   /** Owner only: what this rotation is called. */
   onRename: (name: string) => void;
+  /** Taking one order off, with the moment to put it back that goes with it. */
+  onClearOrder: (personId: string) => void;
   onStartOver: () => void;
   /** Every rotation this phone is in, the open one first. */
   families: Family[];
@@ -100,7 +102,7 @@ export function HomeSheets(props: HomeSheetsProps) {
         lines={props.orders.lines}
         me={props.me}
         canOrderFor={props.orders.canOrderFor}
-        onClear={props.orders.clear}
+        onClear={props.onClearOrder}
         canMarkDone={props.canMarkDone}
         onClearBoard={props.orders.clearBoard}
         canClearBoard={isOwner}

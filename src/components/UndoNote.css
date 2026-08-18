@@ -1,0 +1,79 @@
+/* Floats under the top bar rather than sitting in the layout: it comes and
+   goes on a timer, and anything that comes and goes in the flow moves the
+   screen out from under whoever is reading it. */
+.undo {
+  position: absolute;
+  inset-inline: 0;
+  top: calc(max(16px, env(safe-area-inset-top)) + 46px);
+  /* Over the sheets, not under them: the order is taken off from inside the
+     orders sheet, and that sheet stays open. Behind the scrim the one step
+     back was dimmed out and unpressable at exactly the moment it was for. */
+  z-index: 9;
+  width: max-content;
+  max-width: calc(100% - 32px);
+  margin-inline: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 6px 6px 14px;
+  animation: undo-in 0.22s cubic-bezier(0.2, 0.9, 0.25, 1);
+  /* Slide it aside to be rid of it. The browser must not read the same drag
+     as a pan, or the bar stays put while the page moves under it. */
+  touch-action: none;
+  cursor: grab;
+  transition: transform 0.18s ease, opacity 0.18s ease;
+  background: var(--paper);
+  border: 3px solid var(--ink);
+  border-radius: 999px;
+  box-shadow: 0 2px 0 var(--ink);
+}
+
+.undo-what {
+  font-family: var(--ui);
+  font-weight: 800;
+  font-size: 12px;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.undo-do {
+  flex: 0 0 auto;
+  min-height: 34px;
+  padding-inline: 14px;
+  background: var(--ink);
+  color: var(--paper);
+  border: none;
+  border-radius: 999px;
+  font-family: var(--ui);
+  font-weight: 800;
+  font-size: 12px;
+  cursor: pointer;
+}
+.undo-do:active {
+  transform: translateY(2px);
+}
+.undo-do:focus {
+  outline: none;
+}
+.undo-do:focus-visible {
+  outline: 3px solid var(--mint);
+  outline-offset: 2px;
+}
+
+/* While a finger is on it, it follows rather than eases after. */
+.undo.sliding {
+  transition: none;
+  /* The way in animates the transform, which would otherwise win over the
+     one the finger is setting. */
+  animation: none;
+  cursor: grabbing;
+}
+
+@keyframes undo-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}

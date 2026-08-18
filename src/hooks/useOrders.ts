@@ -83,10 +83,20 @@ export function useOrders(family: Family, myPersonId: string | undefined) {
     [family.id, setBoard],
   );
 
+  /**
+   * The last order taken off, kept until another one is.
+   *
+   * Saying an order is made deletes what somebody wrote, and a thumb lands on
+   * the wrong name easily enough. One step back is worth holding on to; more
+   * than one is a history nobody asked for.
+   */
+  const undone = useRef<Order | null>(null);
+
   /** Nothing for them today: the order goes, rather than sitting there empty. */
   const clear = useCallback(
     (personId: string) => {
       if (personId === myPersonId) clearedHere.current = true;
+      undone.current = orderFor(board, personId);
       setBoard((current) => {
         const next = { ...current };
         delete next[personId];
@@ -96,7 +106,7 @@ export function useOrders(family: Family, myPersonId: string | undefined) {
 
       if (syncConfigured) void dropOrder(family.id, personId);
     },
-    [family.id, myPersonId, setBoard],
+    [board, family.id, myPersonId, setBoard],
   );
 
   /**
@@ -110,6 +120,14 @@ export function useOrders(family: Family, myPersonId: string | undefined) {
     for (const personId of Object.keys(board)) clear(personId);
   }, [board, clear]);
 
+  /** Put the last one back, exactly as it was written. */
+  const undoClear = useCallback(() => {
+    const order = undone.current;
+    if (!order) return;
+    undone.current = null;
+    set(order.personId, order.note ? { slices: order.slices, note: order.note } : { slices: order.slices });
+  }, [set]);
+
   const lines = useMemo(() => listForFamily(board, family), [board, family]);
 
   return {
@@ -119,6 +137,7 @@ export function useOrders(family: Family, myPersonId: string | undefined) {
     /** Counts up when someone else makes yours. Zero means nothing yet. */
     ready,
     clear,
+    undoClear,
     clearBoard,
     /**
      * Whose order this phone may write: your own, and nobody else's. Running
