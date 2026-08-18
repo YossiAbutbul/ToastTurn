@@ -221,6 +221,24 @@ export async function pushMember(familyId: string, uid: string, entry: object): 
   );
 }
 
+/**
+ * Take one account's claim off the rotation.
+ *
+ * A phone whose person is gone already reads as unclaimed, so this is not what
+ * keeps them out; it is so the members document does not fill up with claims
+ * on people who left years ago.
+ */
+export async function dropMember(familyId: string, uid: string): Promise<void> {
+  const remote = await firestore();
+  if (!remote) return;
+  const { db, fs } = remote;
+  await fs.setDoc(
+    fs.doc(db, 'families', familyId, 'prefs', 'members'),
+    { [uid]: fs.deleteField() },
+    { merge: true },
+  );
+}
+
 /** What everyone wants, by person. */
 export function subscribeOrders(
   familyId: string,
@@ -256,38 +274,6 @@ export async function pushOrder(
   if (!remote) return;
   const { db, fs } = remote;
   await fs.setDoc(fs.doc(db, 'families', familyId, 'prefs', 'orders'), { [personId]: order }, { merge: true });
-}
-
-/** Which slices have been made, by person. Anybody in the family may tick. */
-export function subscribeMade(
-  familyId: string,
-  onChange: (board: Record<string, unknown>) => void,
-): () => void {
-  let stop: (() => void) | null = null;
-  let cancelled = false;
-
-  void (async () => {
-    const remote = await firestore();
-    if (!remote || cancelled) return;
-    const { db, fs } = remote;
-
-    stop = fs.onSnapshot(fs.doc(db, 'families', familyId, 'prefs', 'made'), (snap) => {
-      onChange(snap.exists() ? (snap.data() as Record<string, unknown>) : {});
-    });
-    if (cancelled) stop();
-  })();
-
-  return () => {
-    cancelled = true;
-    stop?.();
-  };
-}
-
-export async function pushMade(familyId: string, personId: string, made: number[]): Promise<void> {
-  const remote = await firestore();
-  if (!remote) return;
-  const { db, fs } = remote;
-  await fs.setDoc(fs.doc(db, 'families', familyId, 'prefs', 'made'), { [personId]: made }, { merge: true });
 }
 
 /** Somebody wants nothing today: the order comes off the board. */
@@ -338,7 +324,6 @@ export async function deleteFamily(familyId: string): Promise<void> {
   people.forEach((person) => batch.delete(person.ref));
   batch.delete(fs.doc(db, 'families', familyId, 'prefs', 'members'));
   batch.delete(fs.doc(db, 'families', familyId, 'prefs', 'orders'));
-  batch.delete(fs.doc(db, 'families', familyId, 'prefs', 'made'));
   batch.delete(fs.doc(db, 'families', familyId));
   await batch.commit();
 }

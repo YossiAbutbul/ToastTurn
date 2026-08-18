@@ -4,6 +4,11 @@ const FAMILY_KEY = 'toastturn.family.v1';
 const FAMILIES_KEY = 'toastturn.families.v1';
 const INSTALL_HINT_KEY = 'toastturn.installHint.v1';
 const ORDERS_KEY = 'toastturn.orders.v1';
+/**
+ * Which slices had been ticked off, from when an order was made a slice at a
+ * time. Nothing writes it now; it is still cleared, so a phone that has one
+ * from before does not carry it around forever.
+ */
 const MADE_KEY = 'toastturn.made.v1';
 
 /**
@@ -69,21 +74,6 @@ export function loadOrders(familyId: string): Record<string, unknown> {
 export function saveOrders(familyId: string, board: Record<string, unknown>): void {
   const all = (parse(read(ORDERS_KEY)) as Record<string, unknown> | null) ?? {};
   write(ORDERS_KEY, JSON.stringify({ ...all, [familyId]: board }));
-}
-
-/**
- * Which slices have been ticked off, on a phone with no keys. With sync on the
- * board lives beside the family instead and this is never read.
- */
-export function loadMade(familyId: string): Record<string, unknown> {
-  const all = parse(read(MADE_KEY)) as Record<string, unknown> | null;
-  const board = all?.[familyId];
-  return board && typeof board === 'object' ? (board as Record<string, unknown>) : {};
-}
-
-export function saveMade(familyId: string, board: Record<string, unknown>): void {
-  const all = (parse(read(MADE_KEY)) as Record<string, unknown> | null) ?? {};
-  write(MADE_KEY, JSON.stringify({ ...all, [familyId]: board }));
 }
 
 /** The add-to-home-screen hint is offered once and then never again. */

@@ -1,9 +1,9 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { syncConfigured } from '../lib/firebase';
-import { dropOrder, pushMade, pushOrder, subscribeMade, subscribeOrders } from '../lib/remote';
-import { listForFamily, madeFor, orderFor, tally, toggleMade } from '../lib/orders';
-import type { MadeBoard, Order, OrderBoard } from '../lib/orders';
-import { loadMade, loadOrders, saveMade, saveOrders } from '../lib/storage';
+import { dropOrder, pushOrder, subscribeOrders } from '../lib/remote';
+import { listForFamily, orderFor, tally } from '../lib/orders';
+import type { Order, OrderBoard } from '../lib/orders';
+import { loadOrders, saveOrders } from '../lib/storage';
 import { nowISO } from '../lib/clock';
 import type { Family } from '../lib/types';
 
@@ -40,34 +40,33 @@ export function useOrders(family: Family, myPersonId: string | undefined) {
     return subscribeOrders(family.id, (raw) => setHeld({ id: family.id, board: raw as OrderBoard }));
   }, [family.id]);
 
-  // What has been made is a second board, open to whoever is making it.
-  const [ticks, setTicks] = useState<{ id: string; board: MadeBoard }>(() => ({
-    id: family.id,
-    board: syncConfigured ? {} : (loadMade(family.id) as MadeBoard),
-  }));
-  if (ticks.id !== family.id) {
-    setTicks({ id: family.id, board: syncConfigured ? {} : (loadMade(family.id) as MadeBoard) });
-  }
+  /**
+   * Somebody has just made yours.
+   *
+   * Nothing is sent: an order comes off the board the moment it is made, so
+   * a phone watching its own line sees it go and knows the toast is out. The
+   * one exception is the phone that took it off, which knew already.
+   */
+  const [ready, setReady] = useState(0);
+  /** Taken off here, so its going is not news. */
+  const clearedHere = useRef(false);
+  /** Whether this phone has seen this rotation's board at all yet. */
+  const knew = useRef<{ id: string; had: boolean } | null>(null);
 
   useEffect(() => {
-    if (!syncConfigured) return;
-    return subscribeMade(family.id, (raw) => setTicks({ id: family.id, board: raw as MadeBoard }));
-  }, [family.id]);
+    const before = knew.current;
+    const had = Boolean(myPersonId && board[myPersonId]);
+    knew.current = { id: family.id, had };
 
-  const made = ticks.board;
-
-  /** Tick one of somebody's slices off, or put it back. */
-  const setMade = useCallback(
-    (personId: string, index: number) => {
-      setTicks((current) => {
-        const next = { ...current.board, [personId]: toggleMade(current.board, personId, index) };
-        if (!syncConfigured) saveMade(current.id, next);
-        else void pushMade(current.id, personId, next[personId]);
-        return { id: current.id, board: next };
-      });
-    },
-    [],
-  );
+    // Nothing to compare against: the first sight of a rotation's board, or
+    // the first after switching to it. An order made an hour ago is not news.
+    if (!before || before.id !== family.id) return;
+    if (clearedHere.current) {
+      clearedHere.current = false;
+      return;
+    }
+    if (before.had && !had) setReady((n) => n + 1);
+  }, [board, family.id, myPersonId]);
 
   const set = useCallback(
     (personId: string, choice: Omit<Order, 'personId' | 'updatedAt'>) => {
@@ -87,6 +86,7 @@ export function useOrders(family: Family, myPersonId: string | undefined) {
   /** Nothing for them today: the order goes, rather than sitting there empty. */
   const clear = useCallback(
     (personId: string) => {
+      if (personId === myPersonId) clearedHere.current = true;
       setBoard((current) => {
         const next = { ...current };
         delete next[personId];
@@ -94,35 +94,37 @@ export function useOrders(family: Family, myPersonId: string | undefined) {
         return next;
       });
 
-      // The ticks go with it, or a later order would arrive half made.
-      setTicks((current) => {
-        const next = { ...current.board };
-        delete next[personId];
-        if (!syncConfigured) saveMade(current.id, next);
-        else void pushMade(current.id, personId, []);
-        return { id: current.id, board: next };
-      });
-
       if (syncConfigured) void dropOrder(family.id, personId);
     },
-    [family.id, setBoard],
+    [family.id, myPersonId, setBoard],
   );
+
+  /**
+   * Breakfast is over: the whole board comes off at once.
+   *
+   * Orders come off one at a time as they are made, so this is for the ones
+   * nobody got round to - a list left standing is a list that says next week
+   * what was wanted last week.
+   */
+  const clearBoard = useCallback(() => {
+    for (const personId of Object.keys(board)) clear(personId);
+  }, [board, clear]);
 
   const lines = useMemo(() => listForFamily(board, family), [board, family]);
 
   return {
     lines,
-    tally: useMemo(() => tally(lines, made), [lines, made]),
+    tally: useMemo(() => tally(lines), [lines]),
     mine: orderFor(board, myPersonId),
-    /** Which of a person's slices are already made. */
-    madeFor: (personId: string) => madeFor(made, personId),
-    setMade,
+    /** Counts up when someone else makes yours. Zero means nothing yet. */
+    ready,
     clear,
+    clearBoard,
     /**
      * Whose order this phone may write: your own, and nobody else's. Running
-     * the rotation does not extend to deciding what anyone else eats.
-     * Reading everyone's, and ticking them off, is a separate matter, because
-     * whoever is making the toast has to do both.
+     * the rotation does not extend to deciding what anyone else eats. Saying
+     * an order is made is a separate matter, because whoever is making the
+     * toast has to say it about everybody's.
      */
     canOrderFor: (personId: string) => Boolean(myPersonId) && personId === myPersonId,
     set,

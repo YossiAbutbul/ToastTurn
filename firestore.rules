@@ -148,18 +148,6 @@ service cloud.firestore {
         allow delete: if familyOwner();
       }
 
-      // Which slices have been made: { personId: [0, 2] }.
-      //
-      // Whoever is making the toast ticks off everyone's, and the maker is
-      // whoever's turn it is rather than whoever runs the rotation. So this
-      // board is open to the whole family, unlike the orders themselves,
-      // which stay each person's own.
-      match /prefs/made {
-        allow get, list: if request.auth != null;
-        allow create, update: if familyOwner() || claimed();
-        allow delete: if familyOwner();
-      }
-
       // What everyone wants, by person: { personId: { toastiness, butter } }.
       //
       // Keyed by person rather than by account, because half a family has no
@@ -167,6 +155,12 @@ service cloud.firestore {
       // else is held to the one line that belongs to them, which means looking
       // up which person they are before letting the write through.
       match /prefs/orders {
+        /** True when the write only removes keys and adds nothing back. */
+        function onlyRemovals() {
+          return !request.resource.data.keys()
+            .hasAny(request.resource.data.diff(resource.data).affectedKeys());
+        }
+
         // Whoever is making it has to be able to read the lot.
         allow get, list: if request.auth != null;
 
@@ -176,7 +170,13 @@ service cloud.firestore {
         allow update: if familyOwner()
           || (claimed()
               && request.resource.data.diff(resource.data).affectedKeys()
-                   .hasOnly([myPersonId()]));
+                   .hasOnly([myPersonId()]))
+          // Saying an order is made takes it off the board, and whoever is
+          // making the toast is whoever's turn it is, not whoever runs the
+          // rotation. So anyone in the rotation may take a line off - but
+          // only take it off: a key that survives the write is a key being
+          // written, and that is still each person's own.
+          || (claimed() && onlyRemovals());
 
         allow delete: if familyOwner();
       }

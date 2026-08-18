@@ -6,9 +6,6 @@ import { en } from '../i18n/en';
 type WhoseOrderProps = {
   lines: OrderLine[];
   chosenId: string;
-  /** Which of a person's slices are already made, so the count agrees with
-      the one on the queue rather than counting work twice. */
-  madeFor: (personId: string) => number[];
   onPick: (personId: string) => void;
 };
 
@@ -19,11 +16,11 @@ type WhoseOrderProps = {
  * sheet has to ask which of them it is dealing with. Everyone else only ever
  * sees their own name, and never sees this at all.
  */
-export function WhoseOrder({ lines, chosenId, madeFor, onPick }: WhoseOrderProps) {
+export function WhoseOrder({ lines, chosenId, onPick }: WhoseOrderProps) {
   return (
     <div className="whose" role="group" aria-label={en.orders.whose}>
       {lines.map(({ person, order }) => {
-        const left = outstanding(order, madeFor(person.id));
+        const left = outstanding(order);
         return (
           <button
             key={person.id}

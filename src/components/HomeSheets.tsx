@@ -34,16 +34,18 @@ type HomeSheetsProps = {
     tally: OrderTally;
     mine: Order | null;
     canOrderFor: (personId: string) => boolean;
-    madeFor: (personId: string) => number[];
-    setMade: (personId: string, index: number) => void;
     clear: (personId: string) => void;
+    clearBoard: () => void;
     set: (personId: string, choice: Omit<Order, 'personId' | 'updatedAt'>) => void;
   };
   /** Whose order the orders sheet opens on, when the queue named somebody. */
   orderFocus?: string;
   onSchedule: (patch: Partial<Schedule>) => void;
   onToggleHoliday: (personId: string, active: boolean) => void;
-  onEditPeople: () => void;
+  /** Owner only: one more name in the rotation. */
+  onAddPerson: (name: string, color: string) => void;
+  /** Owner only: take someone out of the rotation, claim and all. */
+  onRemovePerson: (personId: string) => void;
   onStartOver: () => void;
   /** Every rotation this phone is in, the open one first. */
   families: Family[];
@@ -54,6 +56,8 @@ type HomeSheetsProps = {
   onSignIn: () => void;
   onSignOut: () => void;
   isOwner: boolean;
+  /** Whether this phone is in the rotation, and so may say an order is made. */
+  canMarkDone: boolean;
 };
 
 /** Everything that isn't the answer, gathered in one place. */
@@ -101,9 +105,10 @@ export function HomeSheets(props: HomeSheetsProps) {
         lines={props.orders.lines}
         me={props.me}
         canOrderFor={props.orders.canOrderFor}
-        madeFor={props.orders.madeFor}
-        onTick={props.orders.setMade}
         onClear={props.orders.clear}
+        canMarkDone={props.canMarkDone}
+        onClearBoard={props.orders.clearBoard}
+        canClearBoard={isOwner}
         onSet={props.orders.set}
         focus={props.orderFocus}
       />
@@ -119,7 +124,8 @@ export function HomeSheets(props: HomeSheetsProps) {
         onSignOut={props.onSignOut}
         onSetColor={props.onSetColor}
         onToggleHoliday={props.onToggleHoliday}
-        onEditPeople={props.onEditPeople}
+        onAddPerson={props.onAddPerson}
+        onRemovePerson={props.onRemovePerson}
         onStartOver={props.onStartOver}
         families={props.families}
         onSwitchFamily={props.onSwitchFamily}

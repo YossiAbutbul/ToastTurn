@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { Sheet } from './Sheet';
+import { Confirm } from './Confirm';
 import { SliceEditor } from './SliceEditor';
 import { WhoseOrder } from './WhoseOrder';
 import { en } from '../i18n/en';
-import { NOTE_MAX, SLICE_MAX, TOPPINGS, cleanNote } from '../lib/orders';
-import type { Order, OrderLine, Slice, Topping } from '../lib/orders';
+import { NOTE_MAX, SLICE_MAX, TOPPINGS, cleanNote, plainSlice } from '../lib/orders';
+import type { Bread, Order, OrderLine, Slice, Topping } from '../lib/orders';
 import type { Person } from '../lib/types';
 import './OrdersSheet.css';
 
@@ -14,9 +15,6 @@ type OrdersSheetProps = {
   open: boolean;
   onClose: () => void;
   lines: OrderLine[];
-  /** Which of a person's slices are already made, and ticking one off. */
-  madeFor: (personId: string) => number[];
-  onTick: (personId: string, index: number) => void;
   /** Which person this phone is, if it is anybody. */
   me: Person | null;
   /** Whose order this phone may write: your own, and everyone's if you run it. */
@@ -24,27 +22,38 @@ type OrdersSheetProps = {
   onSet: (personId: string, choice: Choice) => void;
   /** Take the whole order off: somebody wants nothing today. */
   onClear: (personId: string) => void;
+  /** Whether this phone may say an order is made. Anyone in the rotation can:
+      the maker is whoever's turn it is, not whoever runs it. */
+  canMarkDone: boolean;
+  /** Wipe the board once breakfast is over. Only whoever runs the rotation. */
+  onClearBoard: () => void;
+  canClearBoard: boolean;
   /** Whose order to open on. Unset means yours, which is the usual way in. */
   focus?: string;
   covered?: boolean;
 };
 
-const ONE_PLAIN: Slice[] = [{ toppings: [] }];
+const ONE_PLAIN: Slice[] = [plainSlice()];
 
 /** What everyone wants: yours at the top, the whole list underneath. */
 export function OrdersSheet({
   open,
   onClose,
   lines,
-  madeFor,
-  onTick,
   me,
   canOrderFor,
   onSet,
   onClear,
+  canMarkDone,
+  onClearBoard,
+  canClearBoard,
   focus,
   covered,
 }: OrdersSheetProps) {
+  // Both asked over the sheet: each takes an order off, and an order taken
+  // off by mistake is one nobody gets.
+  const [clearing, setClearing] = useState(false);
+  const [done, setDone] = useState<string | null>(null);
   // Everyone, because whoever is making the toast has to read the lot. What
   // this phone may change is a separate question, asked per person below.
   const first = lines.find((line) => line.person.id === me?.id) ?? lines[0];
@@ -98,6 +107,7 @@ export function OrdersSheet({
         if (i !== index) return slice;
         const on = slice.toppings.includes(topping);
         return {
+          bread: slice.bread,
           toppings: on
             ? slice.toppings.filter((t) => t !== topping)
             : TOPPINGS.filter((t) => t === topping || slice.toppings.includes(t)),
@@ -105,7 +115,12 @@ export function OrdersSheet({
       }),
     );
 
-  const done = chosen?.order ? madeFor(chosen.person.id).includes(active) : false;
+  /** Change what the slice is made on, leaving everything on top of it alone. */
+  const setBread = (index: number, bread: Bread) =>
+    save(slices.map((slice, i) => (i === index ? { ...slice, bread } : slice)));
+
+  /** Anything at all on the board, which is what there is to clear. */
+  const anyOrders = lines.some((line) => line.order);
 
   return (
     <Sheet
@@ -114,18 +129,11 @@ export function OrdersSheet({
       onClose={onClose}
       covered={covered}
       action={
-        chosen?.order && (
-          <button
-            type="button"
-            className={done ? 'sheet-action made' : 'sheet-action'}
-            aria-pressed={done}
-            onClick={() => onTick(chosen.person.id, active)}
-          >
-            {/* The button says where the slice stands, and pressing it moves
-                it: aria-pressed carries the same thing to a screen reader. */}
-            {done
-              ? en.orders.done(en.orders.sliceNo(active + 1))
-              : en.orders.notDoneYet(en.orders.sliceNo(active + 1))}
+        chosen?.order && canMarkDone && (
+          // Made and handed over, all of it. Saying so is what takes the order
+          // off the board, so it is asked about before it happens.
+          <button type="button" className="sheet-action" onClick={() => setDone(chosen.person.id)}>
+            {en.orders.orderDone}
           </button>
         )
       }
@@ -141,7 +149,6 @@ export function OrdersSheet({
             <WhoseOrder
               lines={lines}
               chosenId={chosen.person.id}
-              madeFor={madeFor}
               onPick={(id) => {
                 setWho(id);
                 setTab(0);
@@ -154,7 +161,7 @@ export function OrdersSheet({
               <button
                 type="button"
                 className="ghost primary start-order"
-                onClick={() => save([{ toppings: [] }])}
+                onClick={() => save([plainSlice()])}
               >
                 {chosen.person.id === me?.id
                   ? en.orders.startMine
@@ -214,7 +221,7 @@ export function OrdersSheet({
                 className="tab add"
                 aria-label={en.orders.addSlice}
                 onClick={() => {
-                  save([...slices, { toppings: [] }]);
+                  save([...slices, plainSlice()]);
                   setTab(slices.length);
                 }}
               >
@@ -226,6 +233,7 @@ export function OrdersSheet({
           <SliceEditor
             slice={slices[active]}
             readOnly={!mine}
+            onBread={(bread) => setBread(active, bread)}
             onToggle={(topping) => toggle(active, topping)}
           />
 
@@ -246,6 +254,44 @@ export function OrdersSheet({
         </>
       )}
 
+      {/* The end of breakfast, in one tap, for whoever runs the rotation. */}
+      {anyOrders && canClearBoard && (
+        <>
+          <button type="button" className="ghost spaced" onClick={() => setClearing(true)}>
+            {en.orders.clearBoard}
+          </button>
+        </>
+      )}
+
+      <Confirm
+        open={done !== null}
+        title={en.orders.orderDoneAsk(
+          lines.find((line) => line.person.id === done)?.person.name ?? '',
+        )}
+        note={en.orders.orderDoneNote}
+        confirmLabel={en.orders.orderDoneYes}
+        cancelLabel={en.orders.orderDoneNo}
+        onCancel={() => setDone(null)}
+        onConfirm={() => {
+          if (done) onClear(done);
+          setDone(null);
+          setTab(0);
+        }}
+      />
+
+      <Confirm
+        open={clearing}
+        title={en.orders.clearBoardAsk}
+        note={en.orders.clearBoardNote}
+        confirmLabel={en.orders.clearBoardYes}
+        cancelLabel={en.orders.clearBoardNo}
+        onCancel={() => setClearing(false)}
+        onConfirm={() => {
+          setClearing(false);
+          onClearBoard();
+          setTab(0);
+        }}
+      />
     </Sheet>
   );
 }

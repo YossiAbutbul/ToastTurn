@@ -12,6 +12,7 @@ import { useAccount } from '../hooks/useAccount';
 import { useMembership } from '../hooks/useMembership';
 import { useOrders } from '../hooks/useOrders';
 import { OrdersButton } from '../components/OrdersButton';
+import { Notice } from '../components/Notice';
 import { SignInSheet } from '../components/SignInSheet';
 import { Claim } from './Claim';
 import { signOut } from '../lib/auth';
@@ -76,11 +77,18 @@ export function Home({ onEditPeople, onLeave, onNewFamily, onHome }: HomeProps) 
   const [day, setDay] = useState<Date | null>(null);
   /** Whose order the sheet opens on, when the queue named somebody. */
   const [orderFocus, setOrderFocus] = useState<string | undefined>(undefined);
+  /** How many "yours is made" there have been by the time you waved it away. */
+  const [seenReady, setSeenReady] = useState(0);
   const flashTimer = useRef<number | undefined>(undefined);
 
   const orders = useOrders(family, membership.me?.id);
 
   useEffect(() => () => window.clearTimeout(flashTimer.current), []);
+
+  // Somebody made yours. A card rather than the line along the bottom: the
+  // phone that needs telling is the one face down on the table. Counted
+  // rather than flagged, so it needs no effect to raise it.
+  const toastReady = orders.ready > seenReady;
 
   const current = getCurrentPerson(family);
   const queue = rotationOrder(family);
@@ -171,7 +179,21 @@ export function Home({ onEditPeople, onLeave, onNewFamily, onHome }: HomeProps) 
         }}
         onSchedule={(schedule) => dispatch({ type: 'setSchedule', schedule })}
         onToggleHoliday={(id, active) => dispatch({ type: 'setActive', id, active })}
-        onEditPeople={onEditPeople}
+        onAddPerson={(name, color) =>
+          dispatch({
+            type: 'addPerson',
+            person: { id: newId(), name, color, order: family.people.length, active: true },
+          })
+        }
+        onRemovePerson={(personId) => {
+          // The claim goes with the person. Their phone already reads as
+          // unclaimed once the name is off the list, but the entry saying it
+          // was them has no one left to point at.
+          for (const uid of membership.uidsForPerson(personId)) membership.remove(uid);
+          // What they wanted goes too, along with anything ticked off it.
+          orders.clear(personId);
+          dispatch({ type: 'removePerson', id: personId });
+        }}
         families={allFamilies(state)}
         onSwitchFamily={(id) => {
           dispatch({ type: 'switchFamily', id });
@@ -198,6 +220,7 @@ export function Home({ onEditPeople, onLeave, onNewFamily, onHome }: HomeProps) 
           void signOut().then(onLeave);
         }}
         isOwner={isOwner}
+        canMarkDone={canLog}
       />
       <SignInSheet open={signingIn} account={account} onClose={() => setSigningIn(false)} />
     </>
@@ -290,16 +313,21 @@ export function Home({ onEditPeople, onLeave, onNewFamily, onHome }: HomeProps) 
         </button>
       )}
 
+      <Notice
+        open={toastReady}
+        title={en.orders.readyTitle}
+        note={current && current.id !== me?.id ? en.orders.readyBy(current.name) : undefined}
+        closeLabel={en.orders.readyClose}
+        onClose={() => setSeenReady(orders.ready)}
+      />
+
       <InstallHint />
       <QueueBar
         people={queue}
         slices={Object.fromEntries(
-          // What is still to make, so a badge counts down as the toast comes
-          // out and is gone once that person has theirs.
-          orders.lines.map((line) => [
-            line.person.id,
-            outstanding(line.order, orders.madeFor(line.person.id)),
-          ]),
+          // What each person is waiting on, which goes the moment their
+          // order is made and comes off the board.
+          orders.lines.map((line) => [line.person.id, outstanding(line.order)]),
         )}
         orderLabel={en.orders.wants}
         onPick={openOrder}
