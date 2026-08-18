@@ -54,30 +54,25 @@ export const en = {
     yourNameHint: 'Everyone else opens the link and taps their own name.',
     familyLabel: 'Family name',
     familyPlaceholder: 'The Abutbuls',
-    peopleLabel: 'Who makes toast',
     namePlaceholder: 'Name',
-    add: 'Add',
-    remove: (name: string) => `Remove ${name}`,
     moveUp: (name: string) => `Move ${name} earlier`,
     moveDown: (name: string) => `Move ${name} later`,
     empty: "No one's in the rotation yet. Add the first person.",
     start: 'Start the rotation',
-    save: 'Done',
     cancel: 'Not now',
-    editTitle: 'Who makes toast',
-    dragHint: 'Drag to change the order · tap a toast to recolour it',
     colourLabel: 'Colour',
-    dragLabel: (name: string) => `Reorder ${name}`,
-    recolour: (name: string) => `Change the colour for ${name}`,
   },
 
   welcome: {
+    /** The slice on the front is pressable, and toasts. Nothing depends on it. */
+    toastIt: 'Toast it',
+    untoastIt: 'Let it cool',
     tagline: 'Whose turn is it to make toast this week?',
     start: 'Start a rotation',
     open: 'Open your rotation',
     join: 'Join a rotation',
     signIn: 'Sign in',
-    signInFirst: 'Starting a rotation needs a Google account. Joining one does not.',
+    signInFirst: 'Starting one needs a Google account. Joining does not.',
   },
 
   member: {
@@ -217,6 +212,9 @@ export const en = {
     orderDoneAsk: (name: string) => `${name}'s order is done?`,
     orderDoneNote: 'It comes off the board. They can ask for another whenever they like.',
     orderDoneYes: 'It is done',
+    /** Said after the fact, with the one step back beside it. */
+    orderDoneNote2: (name: string) => `${name}'s order is off the board`,
+    undo: 'Undo',
     orderDoneNo: 'Not yet',
     /** Somebody else took yours off the board: it is out of the toaster. */
     readyTitle: 'Your toast is ready',

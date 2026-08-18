@@ -1,4 +1,7 @@
-.setup {
+/* A form on the wall, its controls on the counter. The counter is the foot
+   and nothing else here, so the device's own split would draw a second seam
+   across the middle of the form. */
+.device.setup {
   background: var(--sky);
 }
 
@@ -15,85 +18,6 @@
   font-size: 28px;
   line-height: 1.1;
   margin-block-end: 16px;
-}
-
-.people {
-  position: relative;
-  list-style: none;
-  margin-block-start: 4px;
-}
-
-.person-row {
-  position: absolute;
-  inset-inline: 0;
-  height: 54px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 0 12px;
-  background: var(--paper);
-  border: 3px solid var(--ink);
-  border-radius: 16px;
-  box-shadow: 0 2px 0 var(--ink);
-  transition: transform 0.16s ease;
-  touch-action: none;
-}
-.person-row.lifted {
-  transition: none;
-  box-shadow: 0 6px 0 var(--ink);
-  z-index: 2;
-}
-.person-row b {
-  font-family: var(--display);
-  font-weight: 800;
-  font-size: 18px;
-}
-
-.grip {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 30px;
-  min-height: 44px;
-  flex: 0 0 auto;
-  cursor: grab;
-  touch-action: none;
-  margin-inline-start: -6px;
-}
-.grip:active {
-  cursor: grabbing;
-}
-.grip svg {
-  width: 18px;
-  height: 18px;
-  stroke: var(--ink-soft);
-  stroke-width: 2;
-  stroke-linecap: round;
-  fill: none;
-}
-
-/* The toast is the colour control: tap it to move through the palette. */
-.recolour {
-  cursor: pointer;
-  padding: 0;
-  color: var(--ink);
-}
-.recolour:active {
-  transform: translateY(2px);
-}
-
-.remove {
-  margin-inline-start: auto;
-  width: 44px;
-  height: 44px;
-  border: none;
-  background: none;
-  color: var(--ink-soft);
-  font-family: var(--display);
-  font-weight: 800;
-  font-size: 26px;
-  line-height: 1;
-  cursor: pointer;
 }
 
 .setup-foot {

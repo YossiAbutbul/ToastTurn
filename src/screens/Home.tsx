@@ -13,6 +13,7 @@ import { useMembership } from '../hooks/useMembership';
 import { useOrders } from '../hooks/useOrders';
 import { OrdersButton } from '../components/OrdersButton';
 import { Notice } from '../components/Notice';
+import { UndoNote } from '../components/UndoNote';
 import { SignInSheet } from '../components/SignInSheet';
 import { Claim } from './Claim';
 import { signOut } from '../lib/auth';
@@ -38,9 +39,10 @@ import type { Family } from '../lib/types';
 import './Home.css';
 
 const FLASH_MS = 2400;
+/** How long an order stays offered back after it is taken off. */
+const UNDO_MS = 7000;
 
 type HomeProps = {
-  onEditPeople: () => void;
   /** Signing out drops back to the welcome, without giving up the rotation. */
   onLeave: () => void;
   /** Settings offers to start a second rotation without leaving this one. */
@@ -49,7 +51,7 @@ type HomeProps = {
   onHome: () => void;
 };
 
-export function Home({ onEditPeople, onLeave, onNewFamily, onHome }: HomeProps) {
+export function Home({ onLeave, onNewFamily, onHome }: HomeProps) {
   const { state, dispatch } = useFamily();
   const stored = state.family as Family;
   const isOwner = useIsOwner(stored);
@@ -77,11 +79,31 @@ export function Home({ onEditPeople, onLeave, onNewFamily, onHome }: HomeProps) 
   const [orderFocus, setOrderFocus] = useState<string | undefined>(undefined);
   /** How many "yours is made" there have been by the time you waved it away. */
   const [seenReady, setSeenReady] = useState(0);
+  /** Whose order just came off, while there is still time to put it back. */
+  const [undoable, setUndoable] = useState<string | null>(null);
+  const undoTimer = useRef<number | undefined>(undefined);
   const flashTimer = useRef<number | undefined>(undefined);
 
   const orders = useOrders(family, membership.me?.id);
 
   useEffect(() => () => window.clearTimeout(flashTimer.current), []);
+  useEffect(() => () => window.clearTimeout(undoTimer.current), []);
+
+  /**
+   * Saying an order is made takes it off the board, so it is offered back for
+   * a moment first. Long enough to notice the wrong name, short enough that
+   * it is gone by the time the next person picks the phone up.
+   */
+  const clearOrder = useCallback(
+    (personId: string) => {
+      const them = family.people.find((person) => person.id === personId);
+      orders.clear(personId);
+      setUndoable(them?.name ?? null);
+      window.clearTimeout(undoTimer.current);
+      undoTimer.current = window.setTimeout(() => setUndoable(null), UNDO_MS);
+    },
+    [family.people, orders],
+  );
 
   // Somebody made yours. A card rather than the line along the bottom: the
   // phone that needs telling is the one face down on the table. Counted
@@ -184,6 +206,7 @@ export function Home({ onEditPeople, onLeave, onNewFamily, onHome }: HomeProps) 
         }
         onMovePerson={(personId, delta) => dispatch({ type: 'movePerson', id: personId, delta })}
         onRename={(name) => dispatch({ type: 'renameFamily', name })}
+        onClearOrder={clearOrder}
         onRemovePerson={(personId) => {
           // The claim goes with the person. Their phone already reads as
           // unclaimed once the name is off the list, but the entry saying it
@@ -241,9 +264,13 @@ export function Home({ onEditPeople, onLeave, onNewFamily, onHome }: HomeProps) 
         {bar}
         <div className="head">
           <p className="sub">{en.home.nobodyYet}</p>
-          <button className="ghost inline" type="button" onClick={onEditPeople}>
-            {en.home.addPeople}
-          </button>
+          {/* The rotation is arranged in its own sheet now, so an empty one
+              opens the same sheet rather than a screen of its own. */}
+          {isOwner && (
+            <button className="ghost inline" type="button" onClick={() => setSheet('rotation')}>
+              {en.home.addPeople}
+            </button>
+          )}
         </div>
         <div className="scene" />
         {sheets}
@@ -317,6 +344,18 @@ export function Home({ onEditPeople, onLeave, onNewFamily, onHome }: HomeProps) 
       />
 
       <InstallHint />
+      <UndoNote
+        what={undoable}
+        onDismiss={() => {
+          setUndoable(null);
+          window.clearTimeout(undoTimer.current);
+        }}
+        onUndo={() => {
+          orders.undoClear();
+          setUndoable(null);
+          window.clearTimeout(undoTimer.current);
+        }}
+      />
       <QueueBar
         people={queue}
         slices={Object.fromEntries(

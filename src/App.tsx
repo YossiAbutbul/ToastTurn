@@ -17,7 +17,7 @@ export function App() {
   const { state } = useFamily();
   const sync = useSync();
   /** 'auto' means: the rotation if there is one, otherwise the welcome. */
-  const [screen, setScreen] = useState<'auto' | 'welcome' | 'setup' | 'new'>('auto');
+  const [screen, setScreen] = useState<'auto' | 'welcome' | 'new'>('auto');
 
   if (!state.ready) return null;
   // Whether anyone is signed in decides which screen this is, so it is worth
@@ -46,12 +46,10 @@ export function App() {
     );
   }
 
-  // 'new' is the same screen with nothing filled in: a second rotation, kept
-  // alongside the ones this phone already has.
-  if (screen === 'setup' || screen === 'new') {
+  // A rotation of its own, kept alongside the ones this phone already has.
+  if (screen === 'new') {
     return (
       <Setup
-        fresh={screen === 'new'}
         onDone={() => setScreen('auto')}
         // Back to the rotation if there is one to go back to, and to the
         // welcome if this phone has nothing yet.
@@ -63,7 +61,6 @@ export function App() {
   if (state.family && screen === 'auto' && !lockedOut) {
     return (
       <Home
-        onEditPeople={() => setScreen('setup')}
         onNewFamily={() => setScreen('new')}
         // The rotation stays open behind it: this is a way to the front door,
         // not a way out of the family.
