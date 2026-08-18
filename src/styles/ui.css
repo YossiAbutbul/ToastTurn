@@ -24,7 +24,56 @@
   letter-spacing: 1px;
 }
 
-.row .row-x {
+/* Where somebody sits in the rotation, changed a place at a time. Arrows
+   rather than dragging: a sheet that scrolls and a list that drags fight each
+   other on a phone, and the arrows say what they do out loud. */
+.row .moves {
+  display: flex;
+  flex: 0 0 auto;
+  margin-inline-start: auto;
+}
+.row .move {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: none;
+  color: var(--ink);
+  cursor: pointer;
+  padding: 0;
+}
+.row .move svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.row .move:disabled {
+  color: var(--dash);
+  cursor: default;
+}
+.row .move:active:not(:disabled) {
+  transform: translateY(2px);
+}
+
+/* With six things in a row, the name is what gives way. */
+.row .moves ~ .tog {
+  margin-inline-start: 0;
+}
+.row b {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Not scoped to .row: the same little icon button ends a rotation row too. */
+.row-x {
   margin-inline-start: -4px;
   width: 44px;
   height: 44px;
@@ -37,7 +86,7 @@
   color: var(--ink-soft);
   cursor: pointer;
 }
-.row .row-x svg {
+.row-x svg {
   width: 20px;
   height: 20px;
   fill: none;
@@ -46,7 +95,7 @@
   stroke-linecap: round;
   stroke-linejoin: round;
 }
-.row .row-x:active {
+.row-x:active {
   transform: translateY(2px);
 }
 
@@ -65,9 +114,15 @@
   cursor: pointer;
   padding: 0;
 }
+/* Same idea as the picker: chosen stands proud, and keeps all its colour. */
 .swatch.on {
-  box-shadow: 0 0 0 3px var(--paper) inset;
+  border-width: 4px;
+  transform: translateY(-4px);
+  box-shadow: 0 5px 0 var(--ink);
+}
+.swatch.on:active {
   transform: translateY(-2px);
+  box-shadow: 0 3px 0 var(--ink);
 }
 
 .addrow {
@@ -83,6 +138,34 @@
   width: auto;
   margin-block-start: 0;
   padding-inline: 18px;
+}
+
+/* One rotation, with the pen beside it rather than inside it: a button in a
+   button is not a thing, so they sit side by side and share the rule under. */
+.pickrow {
+  display: flex;
+  align-items: center;
+  border-bottom: 2px dashed var(--dash);
+}
+.pickrow .pickbtn {
+  /* Only as wide as the name, so the pen sits against it rather than being
+     pushed to the far end of the row. */
+  flex: 0 1 auto;
+  width: auto;
+  border-bottom: none;
+  min-width: 0;
+}
+/* Said about the row, so it keeps to the far end of the row. */
+.pickrow .when {
+  margin-inline-start: auto;
+  padding-inline-start: 10px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+.pickrow .row-x {
+  margin-inline-start: 4px;
 }
 
 .pickbtn {

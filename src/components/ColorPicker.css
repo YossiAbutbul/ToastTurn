@@ -57,15 +57,21 @@
   box-shadow: none;
 }
 
+/* Chosen is said with height and a heavier outline, the way the queue says
+   whose turn it is. A ring cut inside the swatch ate the colour it was
+   there to show. */
 .pick-swatch.on {
   border-width: 4px;
-  outline: 3px solid var(--paper);
-  outline-offset: -9px;
+  transform: translateY(-4px);
+  box-shadow: 0 5px 0 var(--ink);
+}
+.pick-swatch.on:active {
+  transform: translateY(-2px);
+  box-shadow: 0 3px 0 var(--ink);
 }
 
 .pick-swatch:focus {
-  outline: 3px solid var(--paper);
-  outline-offset: -9px;
+  outline: none;
 }
 .pick-swatch:focus-visible {
   outline: 3px solid var(--mint);

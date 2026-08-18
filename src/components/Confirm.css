@@ -67,3 +67,8 @@
     animation: none;
   }
 }
+
+/* The card asks for a name, which is a label rather than a headline. */
+.confirm-card .note-input[type='text'] {
+  margin-block: 12px 4px;
+}

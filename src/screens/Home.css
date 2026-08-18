@@ -40,13 +40,6 @@
   transform: translateY(2px);
   box-shadow: none;
 }
-/* The schedule as a fact rather than a control, on phones that joined. */
-.pill.flat {
-  box-shadow: none;
-  display: inline-flex;
-  align-items: center;
-}
-
 /* A round button, not a slice: the bread shape belongs to the people. */
 .avatar {
   /* The same height as the pills beside it, or it sits proud of the bar. */
@@ -64,6 +57,14 @@
   cursor: pointer;
   padding: 0;
 }
+/* The same round button as the cog, wearing a letter instead of an icon. */
+.avatar.me {
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 14px;
+  line-height: 1;
+}
+
 .avatar svg {
   width: 16px;
   height: 16px;
@@ -119,9 +120,24 @@
      on the HTML box around it, where WebKit honours it. */
   touch-action: none;
   display: flex;
-  align-items: center;
+  /* Down against the deck: centred, the toaster floated a long way above the
+     line that tells you what to do with it. */
+  align-items: flex-end;
   justify-content: center;
   padding: 0 10px;
+}
+
+/* Everything between the toaster and the queue, at one height whatever is in
+   it. The skip comes and goes with the week, and the scene above must not
+   resize when it does. */
+.deck {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  min-height: 106px;
+  padding-block-start: 4px;
 }
 
 .hint {
@@ -150,8 +166,8 @@
   flex: 0 0 auto;
 }
 
-/* The quiet way out, under the lever: nobody made toast this week. It sits
-   between the hint and the queue as a line of text, not a slab. */
+/* The quiet way out, under the orders button: nobody made toast this week.
+   A line of text, not a slab - one button here is enough. */
 .skip-week {
   flex: 0 0 auto;
   align-self: center;
@@ -171,6 +187,13 @@
 }
 .skip-week:active {
   transform: translateY(1px);
+}
+.skip-week:focus {
+  outline: none;
+}
+.skip-week:focus-visible {
+  outline: 3px solid var(--mint);
+  outline-offset: 3px;
 }
 
 .waiting-who {
