@@ -1,6 +1,6 @@
 import { mergeFamily } from '../lib/mergeFamily';
 import { logTurn, removeTurn, skipWeek } from '../lib/rotation';
-import type { Family, Person, Schedule } from '../lib/types';
+import type { Family, Person } from '../lib/types';
 
 export type State = {
   /** The rotation on screen. Everything else acts on this one. */
@@ -21,7 +21,6 @@ export type Action =
   | { type: 'skipWeek'; id: string; madeAt: string }
   | { type: 'rateTurn'; turnId: string; uid: string; rating: number }
   | { type: 'removeTurn'; turnId: string }
-  | { type: 'setSchedule'; schedule: Partial<Schedule> }
   | { type: 'addPerson'; person: Person }
   | { type: 'removePerson'; id: string }
   | { type: 'setActive'; id: string; active: boolean }
@@ -114,9 +113,6 @@ export function familyReducer(state: State, action: Action): State {
 
     case 'removeTurn':
       return { ...state, family: removeTurn(family, action.turnId) };
-
-    case 'setSchedule':
-      return { ...state, family: { ...family, schedule: { ...family.schedule, ...action.schedule } } };
 
     case 'addPerson':
       return {

@@ -27,20 +27,12 @@ export type Turn = {
   skipped: boolean;
 };
 
-export type Schedule = {
-  /** 0 = Sunday. */
-  weekday: number;
-  /** "HH:MM", 24h. */
-  time: string;
-  remind: boolean;
-};
-
 export type Family = {
   /** The code that goes in the share link. */
   id: string;
   /**
    * The device that started the family. It is the only one the server lets
-   * change people, the schedule or the rotation, everyone else can log toast.
+   * change the people or the rotation, everyone else can log toast.
    * Absent on families made before sync, and on local-only phones.
    */
   ownerUid?: string;
@@ -48,7 +40,6 @@ export type Family = {
   ownerPersonId?: string;
   name: string;
   people: Person[];
-  schedule: Schedule;
   /** Newest first, capped at 200 locally. */
   turns: Turn[];
   /**

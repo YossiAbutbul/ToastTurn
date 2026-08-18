@@ -1,14 +1,15 @@
 import { HistorySheet } from './HistorySheet';
 import { OrdersSheet } from './OrdersSheet';
 import { SettingsSheet } from './SettingsSheet';
-import { ScheduleSheet } from './ScheduleSheet';
+import { ProfileSheet } from './ProfileSheet';
+import { RotationSheet } from './RotationSheet';
 import { DaySheet } from './DaySheet';
 import type { Account } from '../lib/auth';
 import type { MembershipState } from '../hooks/useMembership';
 import type { Order, OrderLine, OrderTally } from '../lib/orders';
-import type { Family, Person, Schedule, Turn } from '../lib/types';
+import type { Family, Person, Turn } from '../lib/types';
 
-export type SheetName = 'history' | 'settings' | 'schedule' | 'orders' | null;
+export type SheetName = 'history' | 'settings' | 'profile' | 'orders' | 'rotation' | null;
 
 type HomeSheetsProps = {
   sheet: SheetName;
@@ -40,12 +41,15 @@ type HomeSheetsProps = {
   };
   /** Whose order the orders sheet opens on, when the queue named somebody. */
   orderFocus?: string;
-  onSchedule: (patch: Partial<Schedule>) => void;
   onToggleHoliday: (personId: string, active: boolean) => void;
   /** Owner only: one more name in the rotation. */
   onAddPerson: (name: string, color: string) => void;
   /** Owner only: take someone out of the rotation, claim and all. */
   onRemovePerson: (personId: string) => void;
+  /** Owner only: move somebody up or down the order. */
+  onMovePerson: (personId: string, delta: number) => void;
+  /** Owner only: what this rotation is called. */
+  onRename: (name: string) => void;
   onStartOver: () => void;
   /** Every rotation this phone is in, the open one first. */
   families: Family[];
@@ -90,15 +94,6 @@ export function HomeSheets(props: HomeSheetsProps) {
         today={props.today}
       />
 
-      {isOwner && (
-        <ScheduleSheet
-          open={sheet === 'schedule'}
-          schedule={family.schedule}
-          onClose={onClose}
-          onChange={props.onSchedule}
-        />
-      )}
-
       <OrdersSheet
         open={sheet === 'orders'}
         onClose={onClose}
@@ -113,6 +108,29 @@ export function HomeSheets(props: HomeSheetsProps) {
         focus={props.orderFocus}
       />
 
+      {isOwner && (
+        <RotationSheet
+          open={sheet === 'rotation'}
+          family={family}
+          onClose={onClose}
+          onAddPerson={props.onAddPerson}
+          onRemovePerson={props.onRemovePerson}
+          onMovePerson={props.onMovePerson}
+          onToggleHoliday={props.onToggleHoliday}
+        />
+      )}
+
+      <ProfileSheet
+        open={sheet === 'profile'}
+        onClose={onClose}
+        account={props.account}
+        me={props.me}
+        isOwner={isOwner}
+        onSignIn={props.onSignIn}
+        onSignOut={props.onSignOut}
+        onSetColor={props.onSetColor}
+      />
+
       <SettingsSheet
         open={sheet === 'settings'}
         family={family}
@@ -123,9 +141,7 @@ export function HomeSheets(props: HomeSheetsProps) {
         onSignIn={props.onSignIn}
         onSignOut={props.onSignOut}
         onSetColor={props.onSetColor}
-        onToggleHoliday={props.onToggleHoliday}
-        onAddPerson={props.onAddPerson}
-        onRemovePerson={props.onRemovePerson}
+        onRename={props.onRename}
         onStartOver={props.onStartOver}
         families={props.families}
         onSwitchFamily={props.onSwitchFamily}

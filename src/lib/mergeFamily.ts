@@ -6,7 +6,7 @@ import type { Family, Turn } from './types';
  *
  * Turns are append-only, so the union of both logs is always right, a turn
  * logged offline here survives, and one logged on another phone arrives.
- * Name, people and schedule are single values, so the remote copy wins: every
+ * The name is a single value, so the remote copy wins: every
  * local edit is pushed the moment it happens, which makes the server the one
  * place that settles two phones editing at once.
  */
@@ -51,7 +51,6 @@ export function mergeFamily(local: Family | null, remote: Family): Family {
     ownerPersonId: remote.ownerPersonId ?? local!.ownerPersonId,
     name: remote.name,
     people: remote.people,
-    schedule: remote.schedule,
     turns: sortTurns([...byId.values()]),
   };
 }
@@ -113,15 +112,10 @@ function metaShape(family: Family): string {
     ownerPersonId: family.ownerPersonId ?? null,
     // Publishing these is how a removal reaches the other phones at all.
     removed: [...(family.removed ?? [])].sort(),
-    schedule: {
-      weekday: family.schedule.weekday,
-      time: family.schedule.time,
-      remind: family.schedule.remind,
-    },
   });
 }
 
-/** True when the name, the schedule or the removals differ from what is up. */
+/** True when the name or the removals differ from what is up. */
 export function metaChanged(local: Family, remote: Family | null): boolean {
   if (!remote) return true;
   return metaShape(local) !== metaShape(remote);

@@ -113,49 +113,6 @@
   margin-block-end: 12px;
 }
 
-/* schedule editor */
-/* Seven across, whatever the width: a grid divides the room up rather than
-   letting the last day fall off the edge. */
-.days {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 4px;
-  margin-block-end: 18px;
-}
-.day {
-  aspect-ratio: 1 / 1;
-  min-width: 0;
-  border: 2.5px solid var(--ink);
-  border-radius: 12px;
-  background: var(--paper);
-  font-family: var(--ui);
-  font-weight: 800;
-  font-size: 13px;
-  color: var(--ink);
-  cursor: pointer;
-}
-.day.sel {
-  background: var(--coral);
-  color: var(--paper);
-  box-shadow: 0 3px 0 var(--ink);
-}
-
-.timerow {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  margin-block-end: 6px;
-}
-
-.remind {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 14px 0 2px;
-  font-weight: 700;
-  font-size: 13px;
-}
-
 /* A logged turn: who and when on one line, the stars under it with room to be
    tapped. Squeezing all three onto one line left the stars unreachable. */
 .turn-row {

@@ -15,7 +15,6 @@ const blankFamily = (): Family => ({
   id: newFamilyCode(),
   name: '',
   people: [],
-  schedule: { weekday: 0, time: '20:00', remind: true },
   turns: [],
 });
 

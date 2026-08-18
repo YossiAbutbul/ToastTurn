@@ -20,15 +20,13 @@ import { syncConfigured } from '../lib/firebase';
 import { useFamily } from '../store/useFamily';
 import { allFamilies } from '../store/familyReducer';
 import { en } from '../i18n/en';
-import { formatDayDate, formatShortDate, initialOf, isoForDay } from '../lib/format';
+import { formatShortDate, initialOf, isoForDay } from '../lib/format';
 import {
   getCurrentPerson,
   getUpcoming,
   lastTurnFor,
-  nextDue,
   rotationOrder,
   turnCounts,
-  weekDone,
 } from '../lib/rotation';
 import { now, nowISO } from '../lib/clock';
 import { newId } from '../lib/id';
@@ -123,7 +121,7 @@ export function Home({ onEditPeople, onLeave, onNewFamily, onHome }: HomeProps) 
 
     dispatch({ type: 'logTurn', id: newId(), madeAt: nowISO() });
     setNote((n) => ({ key: n.key + 1, text: en.lever.done(done.name) }));
-    setFlash(next ? en.lever.logged(next.name, en.days[family.schedule.weekday]) : en.lever.loggedAlone);
+    setFlash(next ? en.lever.logged(next.name) : en.lever.loggedAlone);
 
     window.clearTimeout(flashTimer.current);
     flashTimer.current = window.setTimeout(() => setFlash(null), FLASH_MS);
@@ -177,7 +175,6 @@ export function Home({ onEditPeople, onLeave, onNewFamily, onHome }: HomeProps) 
           if (membership.state === 'owner') dispatch({ type: 'setColor', id: mine.id, color });
           else membership.setColor(color);
         }}
-        onSchedule={(schedule) => dispatch({ type: 'setSchedule', schedule })}
         onToggleHoliday={(id, active) => dispatch({ type: 'setActive', id, active })}
         onAddPerson={(name, color) =>
           dispatch({
@@ -185,6 +182,8 @@ export function Home({ onEditPeople, onLeave, onNewFamily, onHome }: HomeProps) 
             person: { id: newId(), name, color, order: family.people.length, active: true },
           })
         }
+        onMovePerson={(personId, delta) => dispatch({ type: 'movePerson', id: personId, delta })}
+        onRename={(name) => dispatch({ type: 'renameFamily', name })}
         onRemovePerson={(personId) => {
           // The claim goes with the person. Their phone already reads as
           // unclaimed once the name is off the list, but the entry saying it
@@ -229,10 +228,10 @@ export function Home({ onEditPeople, onLeave, onNewFamily, onHome }: HomeProps) 
   const bar = (
     <TopBar
       onHome={onHome}
-      schedule={family.schedule}
-      onSchedule={isOwner ? () => setSheet('schedule') : undefined}
       onHistory={() => setSheet('history')}
       onSettings={() => setSheet('settings')}
+      onProfile={() => setSheet('profile')}
+      me={me}
     />
   );
 
@@ -253,9 +252,6 @@ export function Home({ onEditPeople, onLeave, onNewFamily, onHome }: HomeProps) 
   }
 
   const last = lastTurnFor(family, current.id);
-  // Once this week's toast is made the person on screen is next week's, so the
-  // screen says so. The lever stays live: pulling it is half the point.
-  const done = weekDone(family, now());
   const idle = current.id === me?.id ? en.lever.idleYou : en.lever.idle;
   const hint = flash ?? (status === 'idle' || status === 'popped' ? idle : en.lever[status]);
 
@@ -264,16 +260,12 @@ export function Home({ onEditPeople, onLeave, onNewFamily, onHome }: HomeProps) 
       {bar}
 
       <div className="head">
-        <div className="kicker">{done ? en.home.nextUp : en.home.kicker}</div>
+        <div className="kicker">{en.home.kicker}</div>
         <div className="big">{current.name}</div>
         <div className="sub">
-          {done ? (
-            en.home.dueOn(formatDayDate(nextDue(family, now())))
-          ) : last ? (
-            en.home.turnsSoFar(turnCounts(family)[current.id] ?? 0, formatShortDate(last.madeAt))
-          ) : (
-            en.home.firstTurn
-          )}
+          {last
+            ? en.home.turnsSoFar(turnCounts(family)[current.id] ?? 0, formatShortDate(last.madeAt))
+            : en.home.firstTurn}
         </div>
       </div>
 
@@ -287,31 +279,34 @@ export function Home({ onEditPeople, onLeave, onNewFamily, onHome }: HomeProps) 
         />
       </div>
 
-      <div className="hint">{canLog ? hint : en.member.leverLocked}</div>
+      {/* Hint, the orders button, and the quiet way out, at one height
+          whatever is in it: the block must not resize under the toaster. */}
+      <div className="deck">
+        <div className="hint">{canLog ? hint : en.member.leverLocked}</div>
 
-      <OrdersButton
-        slices={orders.tally.slices}
-        making={Boolean(current) && current!.id === membership.me?.id}
-        ordered={orders.mine !== null}
-        onOpen={() => openOrder()}
-      />
+        <OrdersButton
+          slices={orders.tally.slices}
+          making={Boolean(current) && current!.id === membership.me?.id}
+          ordered={orders.mine !== null}
+          onOpen={() => openOrder()}
+        />
 
-      {/* Nothing to skip once someone has made it: the week is settled. */}
-      {canLog && !done && (
-        <button
-          className="skip-week"
-          type="button"
-          onClick={() => {
-            dispatch({ type: 'skipWeek', id: newId(), madeAt: nowISO() });
-            setNote((n) => ({ key: n.key + 1, text: en.history.skipped }));
-            setFlash(en.history.skippedHint);
-            window.clearTimeout(flashTimer.current);
-            flashTimer.current = window.setTimeout(() => setFlash(null), FLASH_MS);
-          }}
-        >
-          {en.history.logSkip}
-        </button>
-      )}
+        {canLog && (
+          <button
+            className="skip-week"
+            type="button"
+            onClick={() => {
+              dispatch({ type: 'skipWeek', id: newId(), madeAt: nowISO() });
+              setNote((n) => ({ key: n.key + 1, text: en.history.skipped }));
+              setFlash(en.history.skippedHint);
+              window.clearTimeout(flashTimer.current);
+              flashTimer.current = window.setTimeout(() => setFlash(null), FLASH_MS);
+            }}
+          >
+            {en.history.logSkip}
+          </button>
+        )}
+      </div>
 
       <Notice
         open={toastReady}
@@ -330,9 +325,11 @@ export function Home({ onEditPeople, onLeave, onNewFamily, onHome }: HomeProps) 
           orders.lines.map((line) => [line.person.id, outstanding(line.order)]),
         )}
         orderLabel={en.orders.wants}
+        onManage={isOwner ? () => setSheet('rotation') : undefined}
+        manageLabel={en.settings.manageRotation}
         onPick={openOrder}
         openLabel={en.orders.openTheirs}
-        nowLabel={done ? en.home.upNext : en.home.upNow}
+        nowLabel={en.home.upNow}
       />
       <Note playKey={note.key} text={note.text} />
 

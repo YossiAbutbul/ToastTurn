@@ -1,32 +1,24 @@
 import { Wordmark } from './Wordmark';
 import { en } from '../i18n/en';
-import { prettyTime } from '../lib/format';
-import type { Schedule } from '../lib/types';
+import { initialOf } from '../lib/format';
+import type { Person } from '../lib/types';
 
 type TopBarProps = {
-  schedule: Schedule;
-  /** Left out on a phone that joined by link: the night is the owner's to set. */
-  onSchedule?: () => void;
   onHistory: () => void;
   onSettings: () => void;
+  /** You, and the colour you go by. Separate from the rotation's own settings. */
+  onProfile: () => void;
+  /** Which person this phone is, if it is anybody yet. */
+  me: Person | null;
   /** The wordmark goes back to the welcome, without giving up the rotation. */
   onHome: () => void;
 };
 
-export function TopBar({ schedule, onSchedule, onHistory, onSettings, onHome }: TopBarProps) {
+export function TopBar({ onHistory, onSettings, onProfile, me, onHome }: TopBarProps) {
   return (
     <div className="bar">
       <Wordmark onClick={onHome} />
       <div className="spacer" />
-      {onSchedule ? (
-        <button className="pill" type="button" onClick={onSchedule}>
-          {en.days[schedule.weekday]} · {prettyTime(schedule.time)}
-        </button>
-      ) : (
-        <span className="pill flat">
-          {en.days[schedule.weekday]} · {prettyTime(schedule.time)}
-        </span>
-      )}
       <button className="pill" type="button" onClick={onHistory}>
         {en.home.history}
       </button>
@@ -39,6 +31,18 @@ export function TopBar({ schedule, onSchedule, onHistory, onSettings, onHome }: 
           <path d="M18.4 12 H21 M16.5 16.5 L18.4 18.4 M12 18.4 V21 M7.5 16.5 L5.6 18.4 M5.6 12 H3 M7.5 7.5 L5.6 5.6 M12 5.6 V3 M16.5 7.5 L18.4 5.6" />
         </svg>
       </button>
+      {/* You: a circle and a letter. The same button as the cog beside it -
+          your colour belongs to your slice in the queue, and wearing it up
+          here made the bar look like it was reporting something. */}
+      <button
+        className="avatar me"
+        type="button"
+        onClick={onProfile}
+        aria-label={en.profile.open}
+      >
+        {me ? initialOf(me.name) : '?'}
+      </button>
+
     </div>
   );
 }

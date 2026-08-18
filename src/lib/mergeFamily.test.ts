@@ -23,7 +23,6 @@ const family = (over: Partial<Family> = {}): Family => ({
   id: 'fam',
   name: 'Test',
   people: [person('a', 0), person('b', 1)],
-  schedule: { weekday: 0, time: '20:00', remind: true },
   turns: [],
   ...over,
 });
@@ -83,14 +82,13 @@ describe('mergeFamily', () => {
     expect(Object.hasOwn(merged.turns[0], 'rating')).toBe(false);
   });
 
-  it('lets the server settle name, people and schedule', () => {
-    const local = family({ name: 'Mine', schedule: { weekday: 3, time: '07:00', remind: false } });
+  it('lets the server settle the name and the people', () => {
+    const local = family({ name: 'Mine' });
     const remote = family({ name: 'Theirs', people: [person('c', 0)] });
 
     const merged = mergeFamily(local, remote);
     expect(merged.name).toBe('Theirs');
     expect(merged.people.map((p) => p.id)).toEqual(['c']);
-    expect(merged.schedule).toEqual(remote.schedule);
   });
 
   it('sorts newest first and caps the local log at 200', () => {
@@ -161,9 +159,8 @@ describe('metaChanged', () => {
     expect(metaChanged(family(), family())).toBe(false);
   });
 
-  it('notices a renamed family and a moved toast night', () => {
+  it('notices a renamed family', () => {
     expect(metaChanged(family({ name: 'New' }), family())).toBe(true);
-    expect(metaChanged(family({ schedule: { weekday: 5, time: '20:00', remind: true } }), family())).toBe(true);
   });
 
   it('ignores turns and people, those go up on their own', () => {
@@ -184,7 +181,6 @@ describe('metaChanged', () => {
   // Nor does the round trip promise to keep the keys in the order they went up.
   it('does not mind the field order coming back rearranged', () => {
     const remote = family();
-    remote.schedule = { time: remote.schedule.time, remind: remote.schedule.remind, weekday: remote.schedule.weekday };
     remote.people = remote.people.map((p) => ({ active: p.active, order: p.order, color: p.color, name: p.name, id: p.id }));
     expect(metaChanged(family(), remote)).toBe(false);
   });

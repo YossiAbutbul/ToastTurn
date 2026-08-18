@@ -27,7 +27,6 @@ const family = (people: Person[]): Family => ({
   id: 'fam',
   name: 'The Abutbuls',
   people,
-  schedule: { weekday: 0, time: '20:00', remind: true },
   turns: [],
 });
 

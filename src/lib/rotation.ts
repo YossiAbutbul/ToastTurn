@@ -1,5 +1,5 @@
 import { REMOVED_CAP, TURN_CAP } from './types';
-import type { Family, Person, Schedule, Turn } from './types';
+import type { Family, Person, Turn } from './types';
 
 /** Everyone still in the rotation, in rotation order. */
 export function activePeople(family: Family): Person[] {
@@ -56,60 +56,9 @@ export function rotationOrder(family: Family): Person[] {
   return roster.map((_, i) => roster[(start + i) % roster.length]);
 }
 
-/** The next time the toast is due, strictly after `from`. */
-export function nextToastDate(schedule: Schedule, from: Date): Date {
-  const [hours, minutes] = schedule.time.split(':').map(Number);
-  const next = new Date(from);
-  next.setHours(hours, minutes, 0, 0);
-
-  let ahead = (schedule.weekday - next.getDay() + 7) % 7;
-  if (ahead === 0 && next.getTime() <= from.getTime()) ahead = 7;
-  next.setDate(next.getDate() + ahead);
-  return next;
-}
-
 /** An ISO date or timestamp as a Date, in local time either way. */
 function at(iso: string): Date {
   return new Date(iso.length <= 10 ? `${iso}T00:00:00` : iso);
-}
-
-/**
- * Midnight on the most recent toast day, today included.
- *
- * The window is the day rather than the hour on it: toast gets made at
- * breakfast, and the time in the schedule is when to be reminded, not a
- * deadline that makes a morning slice count for the week before.
- */
-function lastToastDay(schedule: Schedule, from: Date): Date {
-  const day = new Date(from);
-  day.setHours(0, 0, 0, 0);
-  day.setDate(day.getDate() - ((day.getDay() - schedule.weekday + 7) % 7));
-  return day;
-}
-
-/**
- * Whether this week's toast has already been made.
- *
- * It matters because whose turn it is is derived: the moment a turn is logged
- * the screen names the person after it, and without this the app would go on
- * saying "this week it's" about someone who is not up for another week.
- */
-export function weekDone(family: Family, from: Date): boolean {
-  const since = lastToastDay(family.schedule, from).getTime();
-  return family.turns.some((turn) => !turn.skipped && at(turn.madeAt).getTime() >= since);
-}
-
-/** When the next toast is due: this week's, or next week's once it is made. */
-export function nextDue(family: Family, from: Date): Date {
-  const [hours, minutes] = family.schedule.time.split(':').map(Number);
-  const due = lastToastDay(family.schedule, from);
-  due.setDate(due.getDate() + (weekDone(family, from) ? 7 : 0));
-  due.setHours(hours, minutes, 0, 0);
-
-  // A night that has already been and gone, with nobody making it, is not the
-  // one to wait for: the next one is.
-  if (due.getTime() <= from.getTime()) due.setDate(due.getDate() + 7);
-  return due;
 }
 
 function withTurn(family: Family, turn: Turn): Family {

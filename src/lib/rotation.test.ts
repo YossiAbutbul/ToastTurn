@@ -5,12 +5,9 @@ import {
   getCurrentPerson,
   getUpcoming,
   logTurn,
-  nextDue,
-  nextToastDate,
   removeTurn,
   skipWeek,
   turnCounts,
-  weekDone,
 } from './rotation';
 import type { Family, Person, Turn } from './types';
 
@@ -33,7 +30,6 @@ const family = (people: Person[], turns: Turn[] = []): Family => ({
   id: 'fam',
   name: 'Test',
   people,
-  schedule: { weekday: 0, time: '20:00', remind: true },
   turns,
 });
 
@@ -189,83 +185,6 @@ describe('turnCounts', () => {
       turn('t1', 'a', '2026-07-05'),
     ]);
     expect(turnCounts(counted, { from: '2026-08-01' })).toEqual({ a: 1, b: 0, c: 0, d: 0 });
-  });
-});
-
-describe('nextToastDate', () => {
-  const sunday8pm = { weekday: 0, time: '20:00', remind: true };
-
-  it('finds the coming weekday', () => {
-    // Sat 15 Aug 2026, 10:00 → Sun 16 Aug, 20:00
-    const next = nextToastDate(sunday8pm, new Date(2026, 7, 15, 10, 0));
-    expect(next.getTime()).toBe(new Date(2026, 7, 16, 20, 0).getTime());
-  });
-
-  it('keeps today when the time has not passed yet', () => {
-    const next = nextToastDate(sunday8pm, new Date(2026, 7, 16, 9, 0));
-    expect(next.getTime()).toBe(new Date(2026, 7, 16, 20, 0).getTime());
-  });
-
-  it('jumps a full week once the time has passed', () => {
-    const next = nextToastDate(sunday8pm, new Date(2026, 7, 16, 20, 30));
-    expect(next.getTime()).toBe(new Date(2026, 7, 23, 20, 0).getTime());
-  });
-});
-
-describe('weekDone', () => {
-  // The rotation toasts on Sunday at 20:00. Sun 16 Aug 2026, Mon 17 Aug.
-  const monday = new Date(2026, 7, 17, 9, 0);
-  const sundayMorning = new Date(2026, 7, 16, 9, 0);
-
-  it('is false when nothing has been logged at all', () => {
-    expect(weekDone(family(four()), monday)).toBe(false);
-  });
-
-  it('is true once someone made it on the toast day', () => {
-    const made = family(four(), [turn('t1', 'a', new Date(2026, 7, 16, 20, 30).toISOString())]);
-    expect(weekDone(made, monday)).toBe(true);
-  });
-
-  it('counts breakfast toast, hours before the time in the schedule', () => {
-    const made = family(four(), [turn('t1', 'a', new Date(2026, 7, 16, 8, 0).toISOString())]);
-    expect(weekDone(made, sundayMorning)).toBe(true);
-  });
-
-  it('is false on the toast day itself while it is still owed', () => {
-    const lastWeek = family(four(), [turn('t1', 'a', new Date(2026, 7, 9, 20, 30).toISOString())]);
-    expect(weekDone(lastWeek, sundayMorning)).toBe(false);
-  });
-
-  it('is false again when the only turn is from the week before', () => {
-    const made = family(four(), [turn('t1', 'a', new Date(2026, 7, 12, 19, 0).toISOString())]);
-    expect(weekDone(made, monday)).toBe(false);
-  });
-
-  it('does not count a week nobody made it', () => {
-    const skipped = family(four(), [
-      turn('t1', 'a', new Date(2026, 7, 16, 21, 0).toISOString(), true),
-    ]);
-    expect(weekDone(skipped, monday)).toBe(false);
-  });
-});
-
-describe('nextDue', () => {
-  const monday = new Date(2026, 7, 17, 9, 0);
-
-  it('is this week when the toast is still owed', () => {
-    // Nothing logged, so the coming Sunday night is the one to wait for.
-    expect(nextDue(family(four()), monday).getTime()).toBe(new Date(2026, 7, 23, 20, 0).getTime());
-  });
-
-  it('is next week once this week is made', () => {
-    const made = family(four(), [turn('t1', 'a', new Date(2026, 7, 16, 20, 30).toISOString())]);
-    expect(nextDue(made, monday).getTime()).toBe(new Date(2026, 7, 23, 20, 0).getTime());
-  });
-
-  it('skips a week for toast made early on the day', () => {
-    const morning = new Date(2026, 7, 16, 9, 0);
-    const made = family(four(), [turn('t1', 'a', new Date(2026, 7, 16, 8, 0).toISOString())]);
-    expect(nextDue(made, morning).getTime()).toBe(new Date(2026, 7, 23, 20, 0).getTime());
   });
 });
 

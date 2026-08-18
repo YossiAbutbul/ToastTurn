@@ -15,7 +15,6 @@ const family = (over: Partial<Family> = {}): Family => ({
   id: 'fam',
   name: 'Test',
   people: [person('a', 0), person('b', 1), person('c', 2)],
-  schedule: { weekday: 0, time: '20:00', remind: true },
   turns: [],
   ...over,
 });
@@ -93,8 +92,9 @@ describe('familyReducer', () => {
     expect(familyReducer(gone, { type: 'reset' }).family).toBeNull();
   });
 
-  it('patches the schedule without touching the rest of it', () => {
-    const next = familyReducer(ready(), { type: 'setSchedule', schedule: { weekday: 4 } });
-    expect(next.family?.schedule).toEqual({ weekday: 4, time: '20:00', remind: true });
+  it('renames the family without touching the rest of it', () => {
+    const next = familyReducer(ready(), { type: 'renameFamily', name: 'The Cohens' });
+    expect(next.family?.name).toBe('The Cohens');
+    expect(next.family?.people).toEqual(ready().family?.people);
   });
 });

@@ -1,5 +1,5 @@
 import { firestore } from './firebase';
-import type { Family, Person, Schedule, Turn } from './types';
+import type { Family, Person, Turn } from './types';
 
 /** What the other phones publish. Null means no such family up there yet. */
 export type RemoteFamily = {
@@ -8,7 +8,6 @@ export type RemoteFamily = {
   ownerPersonId?: string;
   name: string;
   people: Person[];
-  schedule: Schedule;
   turns: Turn[];
   removed?: string[];
 } | null;
@@ -20,7 +19,6 @@ type FamilyDoc = {
    * Read as a fallback so a family written by an older phone still opens.
    */
   people?: Person[];
-  schedule?: Schedule;
   ownerUid?: string;
   ownerPersonId?: string;
   /** Turns the owner took off the board, so every phone drops them. */
@@ -84,7 +82,6 @@ export function subscribeFamily(
         // the document look the same from here, so the old field is the
         // fallback rather than the other way round.
         people: people && people.length > 0 ? people : (meta.people ?? []),
-        schedule: meta.schedule ?? { weekday: 0, time: '20:00', remind: true },
         turns,
         removed: meta.removed ?? [],
       }, fromServer);
@@ -129,7 +126,7 @@ export function subscribeFamily(
 }
 
 /**
- * Publish the family itself: name, schedule, who owns it. People and turns go
+ * Publish the family itself: name and who owns it. People and turns go
  * separately, each as documents of their own. Only the owner's account may do
  * this; the server refuses anyone else.
  */
@@ -145,7 +142,6 @@ export async function pushFamily(family: Family, ownerUid?: string): Promise<voi
       ownerUid: family.ownerUid ?? ownerUid,
       ownerPersonId: family.ownerPersonId ?? null,
       name: family.name,
-      schedule: family.schedule,
       // Every phone needs these, or it hands back the turns the owner removed.
       removed: family.removed ?? [],
       updatedAt: fs.serverTimestamp(),

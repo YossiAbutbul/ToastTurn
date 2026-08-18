@@ -10,9 +10,6 @@ export const en = {
 
   home: {
     kicker: "This week it's",
-    /** Once this week's toast is made, the name on the screen is next week's. */
-    nextUp: 'Next up',
-    dueOn: (day: string) => `Toast is on ${day}`,
     history: 'History',
     turnsSoFar: (turns: number, last: string) =>
       `${turns} ${turns === 1 ? 'turn' : 'turns'} so far · last made ${last}`,
@@ -20,8 +17,6 @@ export const en = {
     nobodyYet: "No one's in the rotation yet. Add the first person.",
     addPeople: 'Add people',
     upNow: (name: string) => `${name} is up`,
-    /** Same place in the queue, but nobody is on the hook until the next one. */
-    upNext: (name: string) => `${name} is next`,
   },
 
   lever: {
@@ -31,7 +26,7 @@ export const en = {
     pulling: 'Keep pulling…',
     ready: 'Let go!',
     toasting: 'Toasting…',
-    logged: (next: string, day: string) => `Logged. Next ${day} is on ${next}.`,
+    logged: (next: string) => `Logged. ${next} is up next.`,
     loggedAlone: 'Logged.',
     done: (name: string) => `${name} did it! 🎉`,
   },
@@ -50,20 +45,6 @@ export const en = {
     skippedRow: 'nobody made it',
     skippedHint: "Noted. Nobody's turn moved.",
     logSkip: 'Nobody made it this week',
-  },
-
-  schedule: {
-    title: 'Toast night',
-    day: 'Day',
-    time: 'Time',
-    am: 'AM',
-    pm: 'PM',
-    hourUp: 'An hour later',
-    hourDown: 'An hour earlier',
-    minuteUp: 'Fifteen minutes later',
-    minuteDown: 'Fifteen minutes earlier',
-    flipHalf: 'Morning or evening',
-    remind: 'Remind everyone that morning',
   },
 
   setup: {
@@ -261,8 +242,10 @@ export const en = {
   },
 
   profile: {
+    title: 'You',
+    open: 'You, and your colour',
     signedOut: 'Not signed in. You can still pull the lever.',
-    notOwner: 'The account that started this rotation looks after the people and the schedule.',
+    notOwner: 'The account that started this rotation looks after who is in it.',
     youAre: (name: string) => `You are ${name} in this rotation.`,
   },
 
@@ -277,9 +260,18 @@ export const en = {
     orLink: 'Or send the link, which opens straight into the rotation.',
     copyCode: 'Copy the code',
     codeCopied: 'Code copied',
-    guest: 'The phone that started the rotation looks after the people and the schedule.',
+    guest: 'The phone that started the rotation looks after who is in it.',
     holiday: 'On holiday',
     peopleSection: 'Who makes toast',
+    /** The way in, from the end of the queue along the bottom. */
+    manageRotation: 'Add or arrange who makes toast',
+    rotationTitle: 'Who makes toast',
+    rotationBlurb: 'The order they come round in. Drag nobody, tap the arrows.',
+    renameFamily: 'Change the name',
+    renameTitle: 'What is this rotation called?',
+    renameLabel: 'Name',
+    renameSave: 'Save it',
+    renameCancel: 'Leave it',
     removePerson: (name: string) => `Take ${name} out of the rotation`,
     removeAsk: (name: string) => `Take ${name} out of the rotation?`,
     removeNote:
