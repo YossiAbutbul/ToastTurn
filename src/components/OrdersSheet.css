@@ -165,6 +165,56 @@
   line-height: 1;
 }
 
+/* What the slice is made on. Four choices fit two to a line on a phone, which
+   is why they are a wrapping row of pills rather than the toggle rows below:
+   picking one unpicks the rest, and a row of switches would not say that. */
+.breads {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-block: 2px 4px;
+}
+
+.bread-btn {
+  flex: 1 1 auto;
+  min-width: 120px;
+  min-height: 44px;
+  padding-inline: 14px;
+  font-family: var(--ui);
+  font-weight: 800;
+  font-size: 14px;
+  color: var(--ink);
+  background: var(--paper);
+  border: 2.5px solid var(--ink);
+  border-radius: 999px;
+  box-shadow: 0 2px 0 var(--ink);
+  cursor: pointer;
+}
+
+.bread-btn.on {
+  background: var(--coral);
+  color: var(--paper);
+}
+
+.bread-btn:active {
+  transform: translateY(2px);
+  box-shadow: none;
+}
+
+.bread-btn:focus-visible {
+  outline: 3px solid var(--mint);
+  outline-offset: 2px;
+}
+
+/* Somebody else's order: readable, and plainly not yours to change. */
+.bread-btn:disabled {
+  cursor: default;
+  box-shadow: none;
+}
+.bread-btn:disabled:not(.on) {
+  opacity: 0.4;
+}
+
 /* The colour chip in front of each topping is the rotation's own mini slice,
    at its own size, so this sheet's two columns line up with every other list
    in the app rather than nearly lining up. */

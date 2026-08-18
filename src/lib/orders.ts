@@ -12,35 +12,23 @@ import type { Family, Person } from './types';
 export const TOPPINGS = ['cheese', 'bulgarian', 'tomatoes', 'olives', 'ketchup', 'sriracha'] as const;
 export type Topping = (typeof TOPPINGS)[number];
 
-/** One slice, dressed however its owner wants it. */
-export type Slice = { toppings: Topping[] };
-
 /**
- * Which slices have been made, by person.
- *
- * Kept apart from the orders on purpose. An order belongs to the person who
- * asked for it and nobody else may write it, but whoever is making the toast
- * has to tick off everyone's, and they are not always the one who runs the
- * rotation. So the ticks live on a board of their own that anybody in the
- * family may write.
+ * What it is made on. Sliced bread is what the toaster is for and what an
+ * order that never said anything means, so it leads and it is the default.
+ * The rest go under the grill or in a pan, which the maker can see at a
+ * glance rather than being told.
  */
-export type MadeBoard = Record<string, number[]>;
+export const BREADS = ['sliced', 'challah', 'tortilla', 'bun'] as const;
+export type Bread = (typeof BREADS)[number];
 
-export function madeFor(board: MadeBoard, personId: string): number[] {
-  const made = (board ?? {})[personId];
-  return Array.isArray(made) ? made.filter((n) => Number.isInteger(n) && n >= 0) : [];
-}
+export const BREAD_DEFAULT: Bread = 'sliced';
 
-export function isMade(board: MadeBoard, personId: string, index: number): boolean {
-  return madeFor(board, personId).includes(index);
-}
+/** One slice: what it is, and however its owner wants it dressed. */
+export type Slice = { bread: Bread; toppings: Topping[] };
 
-/** Tick one slice off, or put it back. */
-export function toggleMade(board: MadeBoard, personId: string, index: number): number[] {
-  const made = madeFor(board, personId);
-  return made.includes(index)
-    ? made.filter((n) => n !== index)
-    : [...made, index].sort((a, b) => a - b);
+/** A plain slice of ordinary bread, which is what an empty order means. */
+export function plainSlice(): Slice {
+  return { bread: BREAD_DEFAULT, toppings: [] };
 }
 
 export type Order = {
@@ -76,11 +64,19 @@ function isOrder(value: unknown): value is Order {
  */
 export function cleanSlices(value: unknown): Slice[] {
   const raw = Array.isArray(value) ? value : [];
-  const slices = raw
-    .slice(0, SLICE_MAX)
-    .map((slice) => ({ toppings: cleanToppings((slice as Slice | null)?.toppings) }));
+  const slices = raw.slice(0, SLICE_MAX).map((slice) => ({
+    // An order written before there was anything but sliced bread says
+    // nothing about it, and meant sliced bread.
+    bread: cleanBread((slice as Slice | null)?.bread),
+    toppings: cleanToppings((slice as Slice | null)?.toppings),
+  }));
 
-  return slices.length > 0 ? slices : [{ toppings: [] }];
+  return slices.length > 0 ? slices : [plainSlice()];
+}
+
+/** Only what the kitchen actually has. Anything else is ordinary bread. */
+export function cleanBread(value: unknown): Bread {
+  return BREADS.includes(value as Bread) ? (value as Bread) : BREAD_DEFAULT;
 }
 
 /** Only what is on the list, and each of them once. */
@@ -113,15 +109,22 @@ export function listForFamily(board: OrderBoard, family: Family): OrderLine[] {
     .map((person) => ({ person, order: orderFor(board, person.id) }));
 }
 
-/** What is still to be made, which is all the maker cares about. */
-export function outstanding(order: Order | null, made: number[] = []): number {
-  if (!order) return 0;
-  return order.slices.filter((_, index) => !made.includes(index)).length;
+/**
+ * How many slices this order is asking for.
+ *
+ * An order is on the board until it is made, and comes off the moment it is:
+ * whoever makes it says so once, for the whole order, rather than ticking
+ * each slice as they go. So what is left to make is simply what was asked.
+ */
+export function outstanding(order: Order | null): number {
+  return order ? order.slices.length : 0;
 }
 
 export type OrderTally = {
   /** Slices still to make, which is what decides how many rounds are left. */
   slices: number;
+  /** How much of each bread to get out, so the maker cuts once. */
+  breads: Record<Bread, number>;
   /** How many of each thing to get out of the fridge. */
   toppings: Record<Topping, number>;
   /** How many people have actually said, out of how many could. */
@@ -129,23 +132,20 @@ export type OrderTally = {
   people: number;
 };
 
-export function tally(lines: OrderLine[], board: MadeBoard = {}): OrderTally {
+export function tally(lines: OrderLine[]): OrderTally {
   const toppings = Object.fromEntries(TOPPINGS.map((t) => [t, 0])) as Record<Topping, number>;
-  const counted: OrderTally = { slices: 0, toppings, said: 0, people: lines.length };
+  const breads = Object.fromEntries(BREADS.map((b) => [b, 0])) as Record<Bread, number>;
+  const counted: OrderTally = { slices: 0, breads, toppings, said: 0, people: lines.length };
 
   for (const line of lines) {
     if (!line.order) continue;
     counted.said += 1;
 
-    // Only what is still to come: a slice already made needs nothing more out
-    // of the fridge, and counting it would send the maker back for cheese
-    // they have already used.
-    const made = madeFor(board, line.person.id);
-    line.order.slices.forEach((slice, index) => {
-      if (made.includes(index)) return;
+    for (const slice of line.order.slices) {
       counted.slices += 1;
+      counted.breads[slice.bread] += 1;
       for (const topping of slice.toppings) counted.toppings[topping] += 1;
-    });
+    }
   }
 
   return counted;

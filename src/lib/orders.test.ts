@@ -2,18 +2,17 @@ import { describe, expect, it } from 'vitest';
 import {
   NOTE_MAX,
   SLICE_MAX,
+  cleanBread,
   cleanNote,
   cleanSlices,
   cleanToppings,
   listForFamily,
   orderFor,
-  isMade,
-  madeFor,
   outstanding,
+  plainSlice,
   tally,
-  toggleMade,
 } from './orders';
-import type { Order, OrderBoard } from './orders';
+import type { Order, OrderBoard, Slice, Topping } from './orders';
 import type { Family, Person } from './types';
 
 const person = (id: string, order: number, active = true): Person => ({
@@ -32,9 +31,12 @@ const family = (people: Person[]): Family => ({
   turns: [],
 });
 
+/** A slice on ordinary bread, for the tests that are about what goes on top. */
+const on = (...toppings: Topping[]): Slice => ({ bread: 'sliced', toppings });
+
 const order = (over: Partial<Order> = {}): Order => ({
   personId: 'a',
-  slices: [{ toppings: ['cheese'] }, { toppings: [] }],
+  slices: [on('cheese'), on()],
   updatedAt: '2026-08-16T09:00:00.000Z',
   ...over,
 });
@@ -56,14 +58,46 @@ describe('what everyone wants', () => {
   });
 
   it('keeps slices between one and what the toaster will manage', () => {
-    expect(cleanSlices([])).toEqual([{ toppings: [] }]);
-    expect(cleanSlices(undefined)).toEqual([{ toppings: [] }]);
-    expect(cleanSlices('two')).toEqual([{ toppings: [] }]);
-    expect(cleanSlices(Array.from({ length: 9 }, () => ({ toppings: [] })))).toHaveLength(SLICE_MAX);
+    expect(cleanSlices([])).toEqual([plainSlice()]);
+    expect(cleanSlices(undefined)).toEqual([plainSlice()]);
+    expect(cleanSlices('two')).toEqual([plainSlice()]);
+    expect(cleanSlices(Array.from({ length: 9 }, () => on()))).toHaveLength(SLICE_MAX);
+  });
+
+  it('takes only bread the kitchen has, and reads silence as sliced', () => {
+    expect(cleanBread('challah')).toBe('challah');
+    expect(cleanBread('brioche')).toBe('sliced');
+    expect(cleanBread(undefined)).toBe('sliced');
+    // An order written before there was a choice never said, and meant sliced.
+    expect(cleanSlices([{ toppings: ['cheese'] }])[0].bread).toBe('sliced');
+  });
+
+  it('keeps two slices on two different breads', () => {
+    const two = cleanSlices([
+      { bread: 'challah', toppings: [] },
+      { bread: 'tortilla', toppings: ['cheese'] },
+    ]);
+    expect(two.map((slice) => slice.bread)).toEqual(['challah', 'tortilla']);
+  });
+
+  it('counts the bread to get out, not just the slices', () => {
+    const lines = listForFamily(
+      board(
+        order({
+          personId: 'a',
+          slices: [{ bread: 'challah', toppings: [] }, on('cheese')],
+        }),
+      ),
+      family([person('a', 0)]),
+    );
+    const counted = tally(lines);
+    expect(counted.breads.challah).toBe(1);
+    expect(counted.breads.sliced).toBe(1);
+    expect(counted.breads.bun).toBe(0);
   });
 
   it('lets one person want two different things', () => {
-    const two = cleanSlices([{ toppings: ['cheese'] }, { toppings: ['olives', 'ketchup'] }]);
+    const two = cleanSlices([on('cheese'), on('olives', 'ketchup')]);
     expect(two[0].toppings).toEqual(['cheese']);
     expect(two[1].toppings).toEqual(['olives', 'ketchup']);
   });
@@ -84,8 +118,8 @@ describe('what everyone wants', () => {
   it('counts up what the maker actually has to do', () => {
     const lines = listForFamily(
       board(
-        order({ personId: 'a', slices: [{ toppings: ['cheese', 'olives'] }, { toppings: ['cheese'] }] }),
-        order({ personId: 'b', slices: [{ toppings: [] }] }),
+        order({ personId: 'a', slices: [on('cheese', 'olives'), on('cheese')] }),
+        order({ personId: 'b', slices: [on()] }),
       ),
       family([person('a', 0), person('b', 1), person('c', 2)]),
     );
@@ -109,51 +143,20 @@ describe('what everyone wants', () => {
   // An order from before slices existed still has to read as an order.
   it('reads a bare order as one plain slice', () => {
     const older = { personId: 'a', updatedAt: '2026-08-16T09:00:00.000Z' } as unknown as Order;
-    expect(orderFor({ a: older }, 'a')?.slices).toEqual([{ toppings: [] }]);
+    expect(orderFor({ a: older }, 'a')?.slices).toEqual([plainSlice()]);
   });
 
-  it('counts only the slices still to make', () => {
-    const two = order({ slices: [{ toppings: [] }, { toppings: [] }] });
-    expect(outstanding(two)).toBe(2);
-    expect(outstanding(two, [1])).toBe(1);
-    expect(outstanding(two, [0, 1])).toBe(0);
-    expect(outstanding(null, [])).toBe(0);
+  // An order is on the board until it is made, and comes off when it is, so
+  // what is left to make is simply what was asked for.
+  it('counts what the order asks for', () => {
+    expect(outstanding(order({ slices: [on(), on()] }))).toBe(2);
+    expect(outstanding(order({ slices: [on()] }))).toBe(1);
+    expect(outstanding(null)).toBe(0);
   });
 
-  // Ticking belongs to whoever is making the toast, not to whoever asked, so
-  // it lives on its own board rather than inside somebody else's order.
-  it('ticks a slice off and puts it back', () => {
-    expect(toggleMade({}, 'a', 1)).toEqual([1]);
-    expect(toggleMade({ a: [1] }, 'a', 0)).toEqual([0, 1]);
-    expect(toggleMade({ a: [0, 1] }, 'a', 1)).toEqual([0]);
-  });
-
-  it('reads a board that arrives with rubbish in it', () => {
-    expect(madeFor({ a: [0, 2] }, 'a')).toEqual([0, 2]);
-    expect(madeFor({ a: 'all' as unknown as number[] }, 'a')).toEqual([]);
-    expect(madeFor({}, 'a')).toEqual([]);
-    expect(isMade({ a: [2] }, 'a', 2)).toBe(true);
-    expect(isMade({ a: [2] }, 'a', 0)).toBe(false);
-  });
-
-  // A made slice stays on the order, so the list still shows what was asked
-  // for. It simply stops being work, and stops sending anyone to the fridge.
-  it('leaves a made slice out of the count and out of the fridge', () => {
+  it('counts every slice on the board', () => {
     const lines = listForFamily(
-      board(order({ personId: 'a', slices: [{ toppings: ['cheese'] }, { toppings: ['olives'] }] })),
-      family([person('a', 0)]),
-    );
-    const counted = tally(lines, { a: [1] });
-    expect(counted.slices).toBe(1);
-    expect(counted.said).toBe(1);
-    expect(counted.toppings.cheese).toBe(1);
-    expect(counted.toppings.olives).toBe(0);
-    expect(lines[0].order?.slices).toHaveLength(2);
-  });
-
-  it('counts everything when nothing has been ticked', () => {
-    const lines = listForFamily(
-      board(order({ personId: 'a', slices: [{ toppings: ['cheese'] }, { toppings: ['olives'] }] })),
+      board(order({ personId: 'a', slices: [on('cheese'), on('olives')] })),
       family([person('a', 0)]),
     );
     expect(tally(lines).slices).toBe(2);
