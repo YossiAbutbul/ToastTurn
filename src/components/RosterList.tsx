@@ -8,6 +8,8 @@ import type { Person } from '../lib/types';
 type RosterListProps = {
   /** Everyone in the rotation, in rotation order. */
   people: Person[];
+  /** Move one person up or down the order. Owner only. */
+  onMove: (personId: string, delta: number) => void;
   /** Which of them runs it. They stay: a rotation with no owner is nobody's. */
   ownerPersonId?: string;
   onToggleHoliday: (personId: string, active: boolean) => void;
@@ -15,12 +17,12 @@ type RosterListProps = {
 };
 
 /** The people, each with a holiday switch and a way out of the rotation. */
-export function RosterList({ people, ownerPersonId, onToggleHoliday, onRemove }: RosterListProps) {
+export function RosterList({ people, onMove, ownerPersonId, onToggleHoliday, onRemove }: RosterListProps) {
   const [asking, setAsking] = useState<Person | null>(null);
 
   return (
     <>
-      {people.map((person) => (
+      {people.map((person, index) => (
         <div className="row" key={person.id}>
           <span className="mini" style={{ background: person.color }}>
             {initialOf(person.name)}
@@ -39,6 +41,34 @@ export function RosterList({ people, ownerPersonId, onToggleHoliday, onRemove }:
             >
               <BinIcon />
             </button>
+          )}
+
+          {/* Only worth moving anyone when there is somewhere to move them. */}
+          {people.length > 1 && (
+            <span className="moves">
+              <button
+                type="button"
+                className="move"
+                aria-label={en.setup.moveUp(person.name)}
+                disabled={index === 0}
+                onClick={() => onMove(person.id, -1)}
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M6 15 L12 9 L18 15" />
+                </svg>
+              </button>
+              <button
+                type="button"
+                className="move"
+                aria-label={en.setup.moveDown(person.name)}
+                disabled={index === people.length - 1}
+                onClick={() => onMove(person.id, 1)}
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M6 9 L12 15 L18 9" />
+                </svg>
+              </button>
+            </span>
           )}
 
           <button

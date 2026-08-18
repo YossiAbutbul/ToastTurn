@@ -75,6 +75,19 @@
   justify-content: center;
 }
 
+/* Not a person, so it does not carry a colour or a name: a dashed slot at
+   the end of the line, the same size as everybody else. */
+.qtoast.qadd {
+  background: none;
+  border-style: dashed;
+  box-shadow: none;
+  color: var(--ink-soft);
+  font-size: 22px;
+}
+.qbtn.manage:active .qtoast {
+  transform: translateY(2px);
+}
+
 .qname {
   font-size: 10px;
   font-weight: 800;

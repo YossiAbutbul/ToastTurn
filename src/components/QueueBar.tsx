@@ -12,6 +12,9 @@ type QueueBarProps = {
   /** How many slices each person still has coming, by person id. */
   slices: Record<string, number>;
   orderLabel: (name: string, slices: number) => string;
+  /** Owner only: the way in to who is in the rotation and in what order. */
+  onManage?: () => void;
+  manageLabel: string;
 };
 
 /**
@@ -26,6 +29,8 @@ export function QueueBar({
   nowLabel,
   slices,
   orderLabel,
+  onManage,
+  manageLabel,
 }: QueueBarProps) {
   return (
     <div className="queue">
@@ -69,6 +74,16 @@ export function QueueBar({
           </div>
         );
       })}
+
+      {/* The rotation is what this bar is, so the way to arrange it belongs
+          on the end of it rather than three taps away in the settings. */}
+      {onManage && (
+        <button type="button" className="qbtn manage" onClick={onManage} aria-label={manageLabel}>
+          <span className="qtoast qadd" aria-hidden="true">
+            +
+          </span>
+        </button>
+      )}
     </div>
   );
 }
