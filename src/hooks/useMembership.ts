@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { syncConfigured } from '../lib/firebase';
-import { pushMember, pushPeople, subscribeMembers } from '../lib/remote';
+import { dropMember, pushMember, pushPeople, subscribeMembers } from '../lib/remote';
 import { newId } from '../lib/id';
 import { colorForIndex } from '../lib/palette';
 import type { Account } from '../lib/auth';
@@ -96,6 +96,32 @@ export function useMembership(family: Family, account: Account | null, isOwner: 
     [mine, write],
   );
 
+  /**
+   * Owner only: let go of an account's claim, which is what taking the person
+   * out of the rotation leaves behind. The phone already reads as unclaimed
+   * the moment their person goes, so this is tidying rather than a lock.
+   */
+  const remove = useCallback(
+    (uid: string) => {
+      setMembers((current) => {
+        const next = { ...current };
+        delete next[uid];
+        return next;
+      });
+      void dropMember(family.id, uid);
+    },
+    [family.id],
+  );
+
+  /** Which accounts say they are one person in the rotation. */
+  const uidsForPerson = useCallback(
+    (personId: string) =>
+      Object.entries(members)
+        .filter(([, entry]) => entry?.personId === personId)
+        .map(([uid]) => uid),
+    [members],
+  );
+
   const person = (id: string | undefined) =>
     id ? (family.people.find((p) => p.id === id) ?? null) : null;
 
@@ -134,6 +160,8 @@ export function useMembership(family: Family, account: Account | null, isOwner: 
     me,
     claim,
     joinAs,
+    remove,
+    uidsForPerson,
     setColor,
     colorsByPerson,
     takenPersonIds,

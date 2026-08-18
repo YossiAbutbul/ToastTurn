@@ -96,39 +96,6 @@
   cursor: pointer;
 }
 
-.swatches {
-  display: flex;
-  gap: 8px;
-  margin-block: 18px 10px;
-}
-.swatch {
-  width: 44px;
-  height: 44px;
-  border-radius: 14px;
-  border: 3px solid var(--ink);
-  cursor: pointer;
-  padding: 0;
-}
-.swatch.on {
-  box-shadow: 0 0 0 3px var(--paper) inset;
-  transform: translateY(-2px);
-}
-
-.addrow {
-  display: flex;
-  gap: 8px;
-  align-items: stretch;
-}
-.addrow input[type='text'] {
-  flex: 1;
-  font-size: 18px;
-}
-.ghost.add {
-  width: auto;
-  margin-block-start: 0;
-  padding-inline: 18px;
-}
-
 .setup-foot {
   flex: 0 0 auto;
   padding: 0 20px max(16px, env(safe-area-inset-bottom));

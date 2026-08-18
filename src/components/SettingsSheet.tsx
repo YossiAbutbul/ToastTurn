@@ -2,10 +2,12 @@ import { useState } from 'react';
 import { Sheet } from './Sheet';
 import { SettingsYou } from './SettingsYou';
 import { RotationList } from './RotationList';
+import { RosterList } from './RosterList';
+import { AddPerson } from './AddPerson';
 import { Confirm } from './Confirm';
 import { ShareCode } from './ShareCode';
 import { en } from '../i18n/en';
-import { initialOf } from '../lib/format';
+import { colorForIndex } from '../lib/palette';
 import type { Account } from '../lib/auth';
 import type { MembershipState } from '../hooks/useMembership';
 import type { Family, Person } from '../lib/types';
@@ -21,7 +23,10 @@ type SettingsSheetProps = {
   onSignOut: () => void;
   onSetColor: (color: string) => void;
   onToggleHoliday: (personId: string, active: boolean) => void;
-  onEditPeople: () => void;
+  /** Owner only: one more name in the rotation. */
+  onAddPerson: (name: string, color: string) => void;
+  /** Owner only: take someone out of the rotation, claim and all. */
+  onRemovePerson: (personId: string) => void;
   onStartOver: () => void;
   /** Every rotation this phone is in, the open one first. */
   families: Family[];
@@ -65,29 +70,16 @@ export function SettingsSheet(props: SettingsSheetProps) {
 
       {isOwner && (
         <>
-          <div className="fieldlabel spaced">{en.settings.holiday}</div>
-          {people.map((person) => (
-            <div className="row" key={person.id}>
-              <span className="mini" style={{ background: person.color }}>
-                {initialOf(person.name)}
-              </span>
-              <b>{person.name}</b>
-              <button
-                type="button"
-                className={person.active ? 'tog' : 'tog on'}
-                role="switch"
-                aria-checked={!person.active}
-                aria-label={`${en.settings.holiday}, ${person.name}`}
-                onClick={() => props.onToggleHoliday(person.id, !person.active)}
-              >
-                <i />
-              </button>
-            </div>
-          ))}
+          <div className="fieldlabel spaced">{en.settings.peopleSection}</div>
+          <RosterList
+            people={people}
+            ownerPersonId={family.ownerPersonId}
+            onToggleHoliday={props.onToggleHoliday}
+            onRemove={props.onRemovePerson}
+          />
 
-          <button className="ghost" type="button" onClick={props.onEditPeople}>
-            {en.settings.editPeople}
-          </button>
+          <div className="fieldlabel spaced">{en.settings.addPerson}</div>
+          <AddPerson suggested={colorForIndex(people.length)} onAdd={props.onAddPerson} />
 
 
           <button className="ghost" type="button" onClick={() => setClearing(true)}>

@@ -24,6 +24,67 @@
   letter-spacing: 1px;
 }
 
+.row .row-x {
+  margin-inline-start: -4px;
+  width: 44px;
+  height: 44px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: none;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+.row .row-x svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.row .row-x:active {
+  transform: translateY(2px);
+}
+
+/* Picking a colour and naming somebody: the setup screen asks for both, and
+   so does the settings sheet, so they live with the other shared rows. */
+.swatches {
+  display: flex;
+  gap: 8px;
+  margin-block: 18px 10px;
+}
+.swatch {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  border: 3px solid var(--ink);
+  cursor: pointer;
+  padding: 0;
+}
+.swatch.on {
+  box-shadow: 0 0 0 3px var(--paper) inset;
+  transform: translateY(-2px);
+}
+
+.addrow {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+.addrow input[type='text'] {
+  flex: 1;
+  font-size: 18px;
+}
+.ghost.add {
+  width: auto;
+  margin-block-start: 0;
+  padding-inline: 18px;
+}
+
 .pickbtn {
   width: 100%;
   background: none;
