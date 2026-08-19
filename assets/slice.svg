@@ -1,8 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="90 20 140 115" width="1400" height="1150">
-  <!-- The slice on its own, no background. make-icons.mjs trims this to its ink
-       and centres it, so the paths keep the prototype geometry exactly. -->
-  <path d="M102 120 V72 c0-19 11-31 28-33 4-13 21-17 31-8 10-9 27-5 29 8 19 2 28 14 28 33 v48 z"
-        fill="#C8862F" stroke="#2B2420" stroke-width="5" stroke-linejoin="round"/>
-  <path d="M111 120 V78 c0-15 9-25 23-27 3-10 17-14 26-6 8-7 21-3 26 6 14 2 23 12 23 27 v42 z"
-        fill="#F7C548"/>
-</svg>

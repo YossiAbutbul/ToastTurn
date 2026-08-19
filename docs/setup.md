@@ -22,29 +22,36 @@ works this way, which is the fastest way to develop.
 | `npm test` | Vitest over the rotation, calendar, orders, merge and reducer logic |
 | `npm run test:watch` | The same, watching |
 | `npm run lint` | ESLint |
-| `npm run icons` | Regenerate the app icons from `assets/slice.svg` |
+| `npm run icons` | Regenerate the app icons and favicon from the app's own `<ToastSlice/>` |
 | `npm run og` | Regenerate the social card: `assets/og.svg` plus the app's own `<ToastSlice/>` |
 | `npm run screens` | Redraw the README screenshots from the running app |
 | `npm run emulator` | Firestore emulator, needs JDK 21+ |
 
-### The link preview card
+### Pictures of the slice
 
-`npm run og` builds `public/og.png`. The card's background and type live in
-`assets/og.svg`, but the slice on it does not: the script renders the app's own
-[`ToastSlice`](../src/components/ToastSlice.tsx) with `react-dom/server`, paints
-it by reading `ToastSlice.css` and resolving the tokens it names, and drops the
-result into the `<!--slice-->` marker.
+The link preview card and the app icons both show the slice from the welcome
+screen, and neither keeps a copy of it. [`scripts/slice.mjs`](../scripts/slice.mjs)
+renders the app's own [`ToastSlice`](../src/components/ToastSlice.tsx) with
+`react-dom/server`, paints it by reading `ToastSlice.css` and resolving the
+tokens it names, and hands back markup.
 
-That is deliberate. A copy of the slice used to sit in `assets/og.svg`, and it
-went stale the next time the crumb moved — the card and the front door drew
-different bread for weeks before anyone noticed. Now the geometry and the
-colours have one home.
+That is deliberate, and it is the second attempt. Both pictures used to keep
+their own copy of the drawing, and both drifted: the card kept a crumb that had
+been shortened in the component months earlier, and the icons had wandered so
+far they wore the prototype's in-toaster slice — flat-bottomed, two-humped, a
+different piece of bread. Now the geometry and the colours have one home.
 
 Only single-class rules are read from the stylesheet. The compound ones are the
-toasted state, which the card does not show; anything else compound is reported
-on stdout rather than silently skipped. `assets/og.built.svg` is written beside
-the card each run, so the exact thing that was rasterised can be opened when the
-picture looks wrong. It is not committed.
+toasted state, which neither picture shows; anything else compound is reported
+on stdout rather than silently skipped.
+
+- **`npm run og`** fills the `<!--slice-->` marker in `assets/og.svg`, which
+  holds the card's background and its type. `assets/og.built.svg` is written
+  beside it each run, so the exact thing that was rasterised can be opened when
+  the picture looks wrong. It is not committed.
+- **`npm run icons`** leaves out the steam and the counter shadow — scenery on
+  a kitchen counter, a grey smudge on a coral tile — then trims the slice to
+  its ink and centres it by measurement rather than by arithmetic on the path.
 
 ### Regenerating the screenshots
 

@@ -1,9 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <rect width="512" height="512" fill="#E9553D"/>
-  <g transform="translate(256 256) scale(3.131541210068407) translate(-160 -73.06950582563277)">
-    <path d="M102 120 V72 c0-19 11-31 28-33 4-13 21-17 31-8 10-9 27-5 29 8 19 2 28 14 28 33 v48 z"
-        fill="#C8862F" stroke="#2B2420" stroke-width="5" stroke-linejoin="round"/>
-    <path d="M111 120 V78 c0-15 9-25 23-27 3-10 17-14 26-6 8-7 21-3 26 6 14 2 23 12 23 27 v42 z"
-        fill="#F7C548"/>
+  <g transform="translate(256 256) scale(2.310243902439024) translate(-124 -216.25)">
+    <defs><clipPath id="tsCrust"><path d="M46 274 V166 A16 16 0 0 1 62 150 A32 32 0 0 1 103 150 A34 34 0 0 1 145 150 A32 32 0 0 1 186 150 A16 16 0 0 1 202 166 V274 C202 284 194 290 183 290 H65 C54 290 46 284 46 274 Z"></path></clipPath></defs><path fill="#C8862F" stroke="#2B2420" stroke-width="8" stroke-linejoin="round" d="M46 274 V166 A16 16 0 0 1 62 150 A32 32 0 0 1 103 150 A34 34 0 0 1 145 150 A32 32 0 0 1 186 150 A16 16 0 0 1 202 166 V274 C202 284 194 290 183 290 H65 C54 290 46 284 46 274 Z"></path><rect fill="#8A5322" opacity="0.16" clip-path="url(#tsCrust)" x="28" y="242" width="200" height="64"></rect><g transform="translate(0 22) scale(1 0.9)"><path fill="#F7C548" d="M64 272 V172 A12 12 0 0 1 76 158 A25 25 0 0 1 109 158 A27 27 0 0 1 141 158
+             A25 25 0 0 1 172 158 A12 12 0 0 1 184 172 V272
+             C184 278 180 281 174 281 H74 C68 281 64 278 64 272 Z"></path><ellipse fill="#FFFDF7" opacity="0.2" cx="124" cy="216" rx="46" ry="40"></ellipse><g fill="#C8862F" opacity="0.4"><circle cx="156" cy="188" r="2.4"></circle><circle cx="163" cy="199" r="1.6"></circle><circle cx="88" cy="244" r="2.1"></circle><circle cx="96" cy="253" r="1.4"></circle></g></g>
   </g>
 </svg>
