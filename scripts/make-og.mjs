@@ -4,7 +4,7 @@
 // The type in that file is already outlines, converted from the app's own
 // Baloo 2 and Nunito once, so rendering here needs no fonts installed and
 // comes out identical on any machine.
-import { readFile } from 'node:fs/promises';
+import { readFile, stat } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
@@ -16,5 +16,8 @@ const source = await readFile(resolve(root, 'assets', 'og.svg'));
 const out = resolve(root, 'public', 'og.png');
 await sharp(source, { density: 144 }).resize(1200, 630).png({ quality: 90 }).toFile(out);
 
-const { width, height, size } = await sharp(out).metadata();
+// The size comes off the file rather than the metadata: sharp reports it for
+// a buffer and leaves it undefined for a path, which printed NaN.
+const { width, height } = await sharp(out).metadata();
+const { size } = await stat(out);
 console.log(`og.png ${width}x${height}, ${Math.round(size / 1024)}KB`);
