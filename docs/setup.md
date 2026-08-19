@@ -23,9 +23,28 @@ works this way, which is the fastest way to develop.
 | `npm run test:watch` | The same, watching |
 | `npm run lint` | ESLint |
 | `npm run icons` | Regenerate the app icons from `assets/slice.svg` |
-| `npm run og` | Regenerate the social card from `assets/og.svg` |
+| `npm run og` | Regenerate the social card: `assets/og.svg` plus the app's own `<ToastSlice/>` |
 | `npm run screens` | Redraw the README screenshots from the running app |
 | `npm run emulator` | Firestore emulator, needs JDK 21+ |
+
+### The link preview card
+
+`npm run og` builds `public/og.png`. The card's background and type live in
+`assets/og.svg`, but the slice on it does not: the script renders the app's own
+[`ToastSlice`](../src/components/ToastSlice.tsx) with `react-dom/server`, paints
+it by reading `ToastSlice.css` and resolving the tokens it names, and drops the
+result into the `<!--slice-->` marker.
+
+That is deliberate. A copy of the slice used to sit in `assets/og.svg`, and it
+went stale the next time the crumb moved — the card and the front door drew
+different bread for weeks before anyone noticed. Now the geometry and the
+colours have one home.
+
+Only single-class rules are read from the stylesheet. The compound ones are the
+toasted state, which the card does not show; anything else compound is reported
+on stdout rather than silently skipped. `assets/og.built.svg` is written beside
+the card each run, so the exact thing that was rasterised can be opened when the
+picture looks wrong. It is not committed.
 
 ### Regenerating the screenshots
 

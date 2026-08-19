@@ -30,3 +30,7 @@ dist-ssr
 
 # vite-plugin-pwa dev output
 dev-dist
+
+# The og card, assembled from the template and the component. Regenerate
+# with `npm run og`; only public/og.png is shipped.
+assets/og.built.svg
