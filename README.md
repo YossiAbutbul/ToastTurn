@@ -9,8 +9,8 @@ lever and the rotation moves on.
 Built for one family, used on phones, open for about eight seconds at a time.
 
 <p align="center">
-  <img src="docs/screens/home.png" alt="The home screen: this week it's Maya, with the toaster and the queue" width="260">
-  <img src="docs/screens/logged.png" alt="After the lever: Maya did it, and Alon is up next" width="260">
+  <img src="docs/screens/home.png" alt="The home screen: this week it's Yossi, with the toaster and the queue" width="260">
+  <img src="docs/screens/logged.png" alt="After the lever: Yossi did it, and Alon is up next" width="260">
 </p>
 
 ---

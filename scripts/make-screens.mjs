@@ -41,7 +41,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
  */
 const SEED = `(() => {
   const people = [
-    { id: 'p1', name: 'Maya', color: '#E9553D', order: 0, active: true },
+    { id: 'p1', name: 'Yossi', color: '#E9553D', order: 0, active: true },
     { id: 'p2', name: 'Alon', color: '#F7C548', order: 1, active: true },
     { id: 'p3', name: 'Noa',  color: '#5FB99E', order: 2, active: true },
     { id: 'p4', name: 'Tal',  color: '#C8862F', order: 3, active: true },
@@ -159,13 +159,23 @@ await send('Emulation.setDeviceMetricsOverride', {
   mobile: true,
 });
 
+/**
+ * `readyState === "complete"` only says the document loaded; the app renders
+ * nothing at all until the store has read localStorage and, with keys, until
+ * it knows whether anybody is signed in. Waiting a fixed moment after load
+ * caught that gap on a cold start and photographed an empty background, so
+ * wait for a control to exist instead.
+ */
 async function open() {
   await send('Page.navigate', { url });
-  for (let i = 0; i < 80; i += 1) {
-    await sleep(150);
-    if (await evaluate('document.readyState === "complete"')) break;
+  for (let i = 0; i < 100; i += 1) {
+    await sleep(100);
+    const painted = await evaluate(
+      'document.readyState === "complete" && document.querySelectorAll("button").length > 0',
+    );
+    if (painted) break;
   }
-  await sleep(900); // The fonts, and the toaster's entrance.
+  await sleep(700); // The fonts, and the toaster's entrance.
 }
 
 await mkdir(out, { recursive: true });
