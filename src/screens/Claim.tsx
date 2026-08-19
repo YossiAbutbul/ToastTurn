@@ -11,6 +11,12 @@ type ClaimProps = {
   taken: Set<string>;
   onClaim: (personId: string) => void;
   onJoinAs: (name: string) => void;
+  /**
+   * Back to the front door. Landing on somebody else's rotation used to be a
+   * room with one door, and that door was picking a name in it: a link opened
+   * by mistake had to be answered before the app would do anything else.
+   */
+  onBack: () => void;
 };
 
 /**
@@ -20,7 +26,7 @@ type ClaimProps = {
  * names when they made the rotation, so being in it is a matter of saying
  * which one is you. Anyone the owner did not write down puts themselves in.
  */
-export function Claim({ family, taken, onClaim, onJoinAs }: ClaimProps) {
+export function Claim({ family, taken, onClaim, onJoinAs, onBack }: ClaimProps) {
   const [adding, setAdding] = useState(false);
   const [name, setName] = useState('');
 
@@ -53,9 +59,13 @@ export function Claim({ family, taken, onClaim, onJoinAs }: ClaimProps) {
         <button className="close" type="button" disabled={!name.trim()} onClick={join}>
           {en.claim.newAction}
         </button>
-        {people.length > 0 && (
+        {people.length > 0 ? (
           <button className="gate-plain" type="button" onClick={() => setAdding(false)}>
             {en.claim.backToList}
+          </button>
+        ) : (
+          <button className="gate-plain" type="button" onClick={onBack}>
+            {en.claim.backHome}
           </button>
         )}
       </Gate>
@@ -83,6 +93,10 @@ export function Claim({ family, taken, onClaim, onJoinAs }: ClaimProps) {
 
       <button className="gate-plain" type="button" onClick={() => setAdding(true)}>
         {en.claim.notListed}
+      </button>
+
+      <button className="gate-plain" type="button" onClick={onBack}>
+        {en.claim.backHome}
       </button>
     </Gate>
   );

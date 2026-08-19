@@ -158,6 +158,9 @@ export function Home({ onLeave, onNewFamily, onHome }: HomeProps) {
         taken={membership.takenPersonIds}
         onClaim={membership.claim}
         onJoinAs={(name) => void membership.joinAs(name)}
+        // The wordmark's door, which this screen has not got one of: the
+        // rotation stays open behind it, unanswered, and is a tap away again.
+        onBack={onHome}
       />
     );
   }

@@ -1,4 +1,6 @@
+import { useState } from 'react';
 import { Gate } from '../components/Gate';
+import { JoinSheet } from '../components/JoinSheet';
 import { en } from '../i18n/en';
 
 type JoiningProps = {
@@ -17,17 +19,28 @@ type JoiningProps = {
  * something they had not, and a code with nothing behind it left them looking
  * at the wrong family with no way to say so. There is always a way back, which
  * matters most where there is no address bar to retype.
+ *
+ * And a way sideways. A code that names nothing is usually a code typed or
+ * read out wrong, and the answer to that is the next attempt, not a trip back
+ * to the front door to start again.
  */
 export function Joining({ code, notFound, onBack }: JoiningProps) {
+  const [joining, setJoining] = useState(false);
+
   return (
     <Gate
       waiting={!notFound}
       kicker={en.join.opening}
       title={code}
       sub={notFound ? en.join.notFound : en.join.openingBlurb}
+      sheets={<JoinSheet open={joining} onClose={() => setJoining(false)} />}
     >
       <button className="close" type="button" onClick={onBack}>
         {notFound ? en.join.backHome : en.join.stopWaiting}
+      </button>
+
+      <button className="gate-plain" type="button" onClick={() => setJoining(true)}>
+        {en.join.otherCode}
       </button>
     </Gate>
   );

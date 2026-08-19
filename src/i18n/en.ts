@@ -60,6 +60,8 @@ export const en = {
     empty: "No one's in the rotation yet. Add the first person.",
     start: 'Start the rotation',
     cancel: 'Not now',
+    joinInstead: 'Join a rotation instead',
+    home: 'Back to the start',
     colourLabel: 'Colour',
   },
 
@@ -89,6 +91,7 @@ export const en = {
     newBlurb: 'You go to the end of the rotation, after everyone already in it.',
     newAction: 'Join the rotation',
     backToList: 'Back to the list',
+    backHome: 'Back to the start',
   },
 
   invite: {
@@ -127,6 +130,7 @@ export const en = {
     openingBlurb: 'Fetching the rotation this code belongs to.',
     backHome: 'Back to the start',
     stopWaiting: 'Not now',
+    otherCode: 'Try a different code',
   },
 
   signIn: {

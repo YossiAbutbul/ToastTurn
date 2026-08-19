@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useFamily } from '../store/useFamily';
 import { Wordmark } from '../components/Wordmark';
+import { JoinSheet } from '../components/JoinSheet';
 import { en } from '../i18n/en';
 import { newFamilyCode, newId } from '../lib/id';
 import { colorForIndex } from '../lib/palette';
@@ -28,6 +29,12 @@ export function Setup({ onDone, onBack }: SetupProps) {
 
   const [name, setName] = useState('');
   const [yours, setYours] = useState('');
+  /**
+   * The other door. Whoever meant to join one and pressed start instead had
+   * to guess their way back out to the welcome to find it; the two are the
+   * same decision, so both are offered wherever either is.
+   */
+  const [joining, setJoining] = useState(false);
 
   const save = () => {
     const you = { id: newId(), name: yours.trim(), color: colorForIndex(0), order: 0, active: true };
@@ -83,12 +90,16 @@ export function Setup({ onDone, onBack }: SetupProps) {
         <button className="close" type="button" onClick={save} disabled={yours.trim().length === 0}>
           {en.setup.start}
         </button>
-        {canCancel && (
-          <button className="setup-back" type="button" onClick={onDone}>
-            {en.setup.cancel}
-          </button>
-        )}
+        <button className="setup-back" type="button" onClick={() => setJoining(true)}>
+          {en.setup.joinInstead}
+        </button>
+
+        <button className="setup-back" type="button" onClick={canCancel ? onDone : onBack}>
+          {canCancel ? en.setup.cancel : en.setup.home}
+        </button>
       </div>
+
+      <JoinSheet open={joining} onClose={() => setJoining(false)} />
     </div>
   );
 }
