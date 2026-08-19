@@ -34,3 +34,6 @@ dev-dist
 # The og card, assembled from the template and the component. Regenerate
 # with `npm run og`; only public/og.png is shipped.
 assets/og.built.svg
+
+# Claude Code workspace settings, local to whoever is working here.
+.claude/
