@@ -117,7 +117,7 @@ system reporting status. Every string is in
 [`src/i18n/en.ts`](../src/i18n/en.ts).
 
 - Buttons say what happens: "Pull down", "Order now", "Start the rotation".
-- Confirmations name the person: "Maya did it!" — not "Turn logged successfully".
+- Confirmations name the person: "Yossi did it!" — not "Turn logged successfully".
 - Empty states invite: "No one's in the rotation yet. Add the first person."
 - Errors say what broke and what to do: "Couldn't sync. Your turn is saved on
   this phone and will go up when you're back online." Never apologise, never say
