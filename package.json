@@ -13,7 +13,8 @@
     "test:watch": "vitest",
     "icons": "node scripts/make-icons.mjs",
     "emulator": "firebase emulators:start --only firestore --project toastturn-dev",
-    "og": "node scripts/make-og.mjs"
+    "og": "node scripts/make-og.mjs",
+    "screens": "node scripts/make-screens.mjs"
   },
   "dependencies": {
     "@fontsource/baloo-2": "^5.3.0",
