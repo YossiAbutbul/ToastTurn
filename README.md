@@ -76,6 +76,16 @@ browser chrome, portrait, from an icon. On the kitchen dead-spot it still shows
 whose turn it is, and a turn logged with no signal goes up the moment the phone
 is back.
 
+<p align="center">
+  <img src="public/pwa-512.png" alt="The app icon: a slice of toast on coral" width="112">
+  <img src="public/pwa-maskable-512.png" alt="The maskable icon, the slice kept inside the safe area" width="112">
+</p>
+
+The icon, and the maskable one that has to survive a circular crop — iOS takes
+that padded art too. Both are the slice the app opens with, because they are
+generated from it rather than drawn again: see
+[docs/setup.md](docs/setup.md#pictures-of-the-slice).
+
 ### Small things that matter
 
 - **Holiday mode** — switch someone off and they are skipped until they are back.
