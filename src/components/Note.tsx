@@ -6,7 +6,7 @@ type NoteProps = {
   text: string;
 };
 
-/** The little "Maya did it!" card that flies up after a pop. */
+/** The little "Yossi did it!" card that flies up after a pop. */
 export function Note({ playKey, text }: NoteProps) {
   if (playKey === 0) return null;
   return (
