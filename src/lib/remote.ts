@@ -346,3 +346,30 @@ export async function pushTurns(familyId: string, turns: Turn[]): Promise<void> 
   }
   await batch.commit();
 }
+
+/**
+ * Every rotation this account runs, by id.
+ *
+ * The code is what names a rotation, and the code lives in a link - which is
+ * exactly the thing that does not survive a phone being wiped, reinstalled or
+ * swapped. The account does. So the account has to be able to ask "which ones
+ * are mine", or "an account you can get back" buys nothing: whoever ran the
+ * rotation signs in, is recognised, and is still shown a blank front door and
+ * an offer to start a second one.
+ *
+ * Only ever their own. The rules hold the query to `ownerUid == you`, so this
+ * cannot be turned into a way to find a rotation somebody never shared.
+ */
+export async function ownedFamilies(uid: string): Promise<string[]> {
+  const remote = await firestore();
+  if (!remote) return [];
+  const { db, fs } = remote;
+
+  // From the server, not the cache: a phone that has just been wiped has no
+  // cache, and one that has not would answer with the family it already knows
+  // about - which is the case this is not for.
+  const found = await fs.getDocsFromServer(
+    fs.query(fs.collection(db, 'families'), fs.where('ownerUid', '==', uid)),
+  );
+  return found.docs.map((doc) => doc.id);
+}

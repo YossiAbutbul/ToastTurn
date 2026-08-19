@@ -3,9 +3,11 @@ rules_version = '2';
 // Three ideas, and only three.
 //
 // 1. The family code says which rotation. Signing in says whether you are in
-//    it. Nothing can list families, so a code that is never shared is never
-//    found, and a code on its own is an invitation to ask rather than a window
-//    into the family: reading anything at all needs an account.
+//    it. Nobody can go looking for families that are not theirs, so a code
+//    that is never shared is never found, and a code on its own is an
+//    invitation to ask rather than a window into the family: reading anything
+//    at all needs an account. The one query allowed is an owner asking which
+//    rotations are their own, which is how an account is a way back in.
 // 2. One account runs the family. Only the signed-in owner can change the
 //    people, the schedule or the rotation, or clear the family.
 // 3. Everyone else may only ever act as themselves. Every phone has an account
@@ -96,7 +98,18 @@ service cloud.firestore {
 
       // The people's names are in here, so a link on its own does not open it.
       allow get: if request.auth != null;
-      allow list: if false;
+
+      // Your own rotations, and never anybody else's. Nothing here can be
+      // swept: the rule is checked against every document a query could
+      // return, so a query not held to `ownerUid == you` is refused outright
+      // rather than filtered. A code nobody shared is still findable by
+      // nobody.
+      //
+      // It is here because an account is the half of this that outlives a
+      // wiped phone - the link does not - and without a way to ask "which are
+      // mine" the owner signs back in, is recognised, and is still shown a
+      // blank front door.
+      allow list: if request.auth != null && resource.data.ownerUid == request.auth.uid;
 
       // Publishing a family claims it for the account doing the publishing,
       // which has to be one that will still be there next month.

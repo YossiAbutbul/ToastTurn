@@ -18,6 +18,14 @@ export function App() {
   const sync = useSync();
   /** 'auto' means: the rotation if there is one, otherwise the welcome. */
   const [screen, setScreen] = useState<'auto' | 'welcome' | 'new'>('auto');
+  /**
+   * Whoever signed out landed on the welcome. The welcome says a different
+   * sentence to them than to a phone that never had an account, and it has no
+   * way of knowing which it is holding: an account signed out of is replaced
+   * by an anonymous one within the moment, so by the time the screen renders
+   * the two look alike.
+   */
+  const [signedOut, setSignedOut] = useState(false);
 
   if (!state.ready) return null;
   // Whether anyone is signed in decides which screen this is, so it is worth
@@ -68,6 +76,7 @@ export function App() {
         onLeave={() => {
           // Drop the link from the address bar too, or it would let them back in.
           replacePath('/');
+          setSignedOut(true);
           setScreen('welcome');
         }}
       />
@@ -76,9 +85,13 @@ export function App() {
 
   return (
     <Welcome
-      onStart={() => setScreen('new')}
+      onStart={() => {
+        setSignedOut(false);
+        setScreen('new');
+      }}
       onOpen={state.family ? () => setScreen('auto') : undefined}
       notFound={sync.missing}
+      signedOut={signedOut}
     />
   );
 }

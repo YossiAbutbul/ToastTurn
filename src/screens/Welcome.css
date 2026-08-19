@@ -137,6 +137,83 @@
   margin-block-start: 10px;
 }
 
+/* The way back in, for the one person in the family who ever needs it.
+   A third coral slab would say it was a third thing to do, and an underlined
+   line lost it between the other two - so it is the app's own pressable: the
+   same paper, the same three pixels of ink, the same hard shadow that drops
+   two when you push it. Square to the counter, like every other button in
+   the app: the tilt belongs to the notes stuck on the wall, which are read
+   and not pressed. */
+.welcome-signin {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  /* The same width as the slabs above it, so the counter reads as one stack
+     of things to do rather than a slab, a slab and a tag. */
+  width: 100%;
+  margin-block-start: 10px;
+  padding: 8px 20px;
+  min-height: 48px;
+  background: var(--paper);
+  border: 3px solid var(--ink);
+  border-radius: 16px;
+  box-shadow: 0 3px 0 var(--ink);
+  font-family: var(--ui);
+  font-weight: 800;
+  font-size: 14px;
+  color: var(--ink);
+  cursor: pointer;
+}
+.welcome-signin:active {
+  transform: translateY(3px);
+  box-shadow: none;
+}
+.welcome-signin:focus {
+  outline: none;
+}
+.welcome-signin:focus-visible {
+  outline: 3px solid var(--mint);
+  outline-offset: 3px;
+}
+
+.keyicon {
+  width: 19px;
+  height: 19px;
+  flex: none;
+  fill: none;
+  stroke: var(--coral);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  /* Turned about its own middle, which is where the shaft runs. */
+  transform-origin: 50% 50%;
+  transition: transform 0.18s cubic-bezier(0.2, 0.9, 0.25, 1);
+  /* A half-turn every few seconds, so the tag catches the eye of somebody
+     scanning the counter for a way back into their own rotation. */
+  animation: key-turn 5s ease-in-out infinite;
+}
+
+/* Pressed, the key turns the rest of the way and stays there while held. */
+.welcome-signin:active .keyicon {
+  animation: none;
+  transform: rotate(-90deg);
+}
+
+@keyframes key-turn {
+  0%,
+  76%,
+  100% {
+    transform: rotate(0deg);
+  }
+  84% {
+    transform: rotate(-32deg);
+  }
+  92% {
+    transform: rotate(6deg);
+  }
+}
+
 /* The last option is a quieter one, a line of text, not a third slab. */
 .welcome-plain {
   display: block;

@@ -103,8 +103,11 @@ link.
 
 ### What the rules protect
 
-Nothing can list families, so a code that is never shared is never found, and
-reading anything at all needs an account. The account that started a rotation
+Nobody can go looking for families that are not theirs, so a code that is never
+shared is never found, and reading anything at all needs an account. The one
+query allowed is an owner asking which rotations are their own, which is what
+lets somebody sign in on a wiped phone and get their rotation back without the
+link. The account that started a rotation
 runs it: the people, the rotation, clearing it. Everyone in the rotation can see
 whose turn it is, pull the lever, read the history and rate the toast. Each
 person's own order and colour are theirs.

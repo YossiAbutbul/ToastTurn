@@ -75,6 +75,8 @@ export const en = {
     join: 'Join a rotation',
     signIn: 'Sign in',
     signInFirst: 'Starting one needs a Google account. Joining does not.',
+    /** Said to whoever signed out: their rotation is still theirs to run. */
+    signInBack: 'Signed out. Sign in with the same account to run your rotation again.',
   },
 
   member: {

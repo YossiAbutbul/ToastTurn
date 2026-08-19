@@ -138,7 +138,10 @@ survive the sign-in.
 [`firestore.rules`](../firestore.rules) rests on three ideas:
 
 1. The family code says which rotation; being signed in says whether you are in
-   it. Nothing can list families, so a code that is never shared is never found.
+   it. Nobody can go looking for families that are not theirs, so a code that is
+   never shared is never found. The one query allowed is `ownerUid == you`: the
+   rule is checked against every document a query could return, so a sweep is
+   refused outright rather than filtered.
 2. One account runs the family. Only the signed-in owner changes the people or
    the rotation, or clears it.
 3. Everyone else may only ever act as themselves. The rules look up the phone's
@@ -146,6 +149,12 @@ survive the sign-in.
 
 Logging toast is open to everyone in the rotation, because whoever pulls the
 lever is rarely who gets credited.
+
+An owner signing in on a phone that holds no rotation asks that one query
+(`ownedFamilies` in [`src/lib/remote.ts`](../src/lib/remote.ts)) and puts the
+answer in the address bar, which is the road every share link already takes.
+Without it the account was a way of being recognised and not a way back in: the
+link is the half of this that does not survive a wiped phone.
 
 Each phone deletes only its own account. Clearing a rotation cannot tidy up
 after the phones that were in it — the client SDK deletes `currentUser` and
