@@ -6,7 +6,7 @@
 // goes straight into localStorage rather than through the interface, so the
 // pictures do not drift every time a button moves.
 import { spawn } from 'node:child_process';
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, rm, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
 import sharp from 'sharp';
@@ -92,10 +92,19 @@ const SHEETS = [
 
 // ---------------------------------------------------------------- chrome ---
 
+/**
+ * A profile kept between runs holds on to the dev server's service worker, and
+ * the next run comes back to a version it has not seen: the app says so, with
+ * a banner across the top bar, and every picture is taken with it in the way.
+ * Start from nothing instead.
+ */
+const profile = resolve(root, 'node_modules', '.cache', 'screens-profile');
+await rm(profile, { recursive: true, force: true });
+
 const chrome = spawn(CHROME_CANDIDATES[0], [
   '--headless=new',
   `--remote-debugging-port=${port}`,
-  `--user-data-dir=${resolve(root, 'node_modules', '.cache', 'screens-profile')}`,
+  `--user-data-dir=${profile}`,
   '--no-first-run',
   '--no-default-browser-check',
   '--hide-scrollbars',
