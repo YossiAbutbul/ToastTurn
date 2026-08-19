@@ -92,8 +92,9 @@ for why it is shaped this way.
 Starting a rotation asks for a Google sign-in and your name, and nothing else.
 Everyone else opens the link and taps their own name — no sign-up, no approval,
 nothing typed. Anyone the owner never wrote down can put themselves in. The
-owner can also add people who have no phone at all, from **Settings → Add or
-remove people**.
+owner can also add people who have no phone at all, from the **+** at the end of
+the queue — "Add or arrange who makes toast", which is also where reordering and
+holiday mode live.
 
 Anyone with the code can claim any name. That is the accepted trade: the code is
 the secret.

@@ -70,16 +70,16 @@ one of these, the constraint wins.
 
 | Concern | Choice | Why |
 |---|---|---|
-| Framework | React 18 + TypeScript | Mature PWA tooling; the app is tiny so anything works, but pick one and stay |
+| Framework | React 19 + TypeScript | Mature PWA tooling; the app is tiny so anything works, but pick one and stay |
 | Build | Vite | Fast, and `vite-plugin-pwa` handles the manifest and service worker |
 | Styling | Plain CSS with custom properties, one file per component | The design is bespoke SVG and hand-tuned tokens. A utility framework would fight it |
 | State | React context + `useReducer` in `src/store/` | Five people and a queue. Redux/Zustand is overkill |
 | Persistence (phase 1) | `localStorage`, wrapped in `src/lib/storage.ts` | Never call `localStorage` directly from a component |
-| Persistence (phase 3) | Firebase Firestore (web SDK, no auth) | Free tier, realtime listeners, and its persistent cache queues offline writes for us |
+| Persistence (phase 3) | Firebase Firestore + Auth (web SDK) | Free tier, realtime listeners, and its persistent cache queues offline writes for us. Auth arrived with phase 3: see non-negotiable 2 for how little of it is asked for |
 | Hosting | Netlify or Vercel, static | Push to main, deploy |
-| Tests | Vitest for the rotation logic only | Do not chase coverage on UI |
+| Tests | Vitest over `src/lib/` and the reducer | The rotation, the calendar, the colours, the orders and the merge. Do not chase coverage on UI |
 
-Do **not** add: a router library (there are two screens, use state), a UI
+Do **not** add: a router library (five screens, held in `useState`), a UI
 component library, a date library heavier than `date-fns`, an animation library
 (CSS transitions and `requestAnimationFrame` are enough), or an ORM.
 
@@ -120,6 +120,11 @@ value, ask first.
 }
 ```
 
+Alongside the colours, `tokens.css` carries `--display` and `--ui` for the two
+font stacks, and two incidental shades lifted from the prototype: `--dash` for
+dashed row rules and toggle tracks, `--steam` for the steam. Nothing else has
+been added and nothing else should be, without asking.
+
 **Type.** Baloo 2 (600/700/800) for names, headings and numbers. Nunito
 (600/700/800) for labels, buttons and body. Self-host both with
 `@fontsource/baloo-2` and `@fontsource/nunito` — do not hotlink Google Fonts, it
@@ -134,14 +139,22 @@ only inside the toaster SVG to fake metal and depth.
 
 ## Screens
 
-There are two, plus bottom sheets.
+Five, plus bottom sheets, and no router — `App.tsx` holds which one in
+`useState`.
+
+| Screen | When |
+|---|---|
+| `Welcome` | Nothing open on this phone, or a way back to the front door |
+| `Setup` | Starting a rotation |
+| `Joining` | A share link naming a rotation this phone has not got yet |
+| `Claim` | That link has landed and the rotation is asking which name is you |
+| `Home` | The answer, and everything else behind a control |
 
 ### Home (`src/screens/Home.tsx`)
 
 ```
 ┌──────────────────────────────┐
-│ ToastTurn   [Sun · 8:00 PM]  │  ← schedule pill opens the editor
-│             [History]        │
+│ ToastTurn  [History] (⚙) (M) │  ← settings, and you
 ├──────────────────────────────┤
 │      THIS WEEK IT'S          │
 │           MAYA               │  ← Baloo 2 800, ~56px, --coral
@@ -154,23 +167,37 @@ There are two, plus bottom sheets.
 │        └──────────┘          │
 │                              │
 │  Pull the lever when done    │
+│        [ Order now ]         │
 │                              │
 │   [A] [N] [T] [B]            │  ← queue, next-up in coral
-└──────────────────────────────┘
+└──────────────────────────────┘   tap anyone to see what they want
 ```
+
+The sheets it opens live in `HomeSheets.tsx`: history, one day of it, orders,
+the rotation, you, and settings.
 
 ### Setup (`src/screens/Setup.tsx`)
 
-Shown when there is no family in storage. Family name, then add people one at a
-time with a name and a colour. Reorder by dragging. "Start the rotation" writes
-the family and lands on Home. This screen is reachable later from settings.
+Starting a rotation asks two things: what it is called, and who you are in it.
+That is all, because it is all that cannot be asked anywhere else — the people
+live in a sheet off the queue and the name behind a pen beside it. "Start the
+rotation" writes the family and lands on Home.
+
+Adding, removing, reordering and holiday mode all live in the rotation sheet
+(`RotationSheet` → `RosterList`), reached from the `+` at the end of the queue.
+Reordering there is a pair of buttons per person, not a drag: a 44px target that
+works with a thumb, a keyboard and a screen reader beats a gesture that works
+with one of the three.
 
 ---
 
 ## The toaster component
 
-`src/components/Toaster.tsx` — a single inline SVG, `viewBox="0 -50 340 350"`.
-Port it from `docs/prototype.html` rather than redrawing it.
+One inline SVG, `viewBox="0 -50 340 350"`, ported from `docs/prototype.html`
+rather than redrawn. It is composed from three files, which is what keeps any
+one of them readable: `Toaster.tsx` holds the `<svg>`, the lever and the cycle,
+`ToastSlice.tsx` the bread, `ToasterBody.tsx` everything chrome and coral. They
+are still one element on the page.
 
 Structure, in paint order (later elements cover earlier ones — this is what makes
 the slice look inserted, so do not reorder):
@@ -222,28 +249,42 @@ type Person = {
 type Turn = {
   id: string;
   personId: string;
-  madeAt: string;      // ISO date
-  rating?: number;     // 1-5, added later by anyone
+  madeAt: string;      // ISO timestamp, not just the day: two turns on one
+                       // date still order the same way on every phone
+  ratings?: Record<string, number>;  // 1-5, keyed by account. Everyone votes,
+                                     // the row shows the average
+  rating?: number;     // one rating from before they were per person
   skipped: boolean;    // logged without credit
 };
 
 type Family = {
-  id: string;          // the code that goes in the share link
+  id: string;             // the code that goes in the share link
+  ownerUid?: string;      // the account that runs it
+  ownerPersonId?: string; // which person in the rotation that is
   name: string;
   people: Person[];
-  schedule: { weekday: number; time: string; remind: boolean };  // 0 = Sunday
-  turns: Turn[];       // newest first, cap at 200 locally
+  turns: Turn[];          // newest first, cap at 200 locally
+  removed?: string[];     // turns taken off the board, by id
 };
 ```
+
+There is no schedule. A weekly toast night was built and then taken out on
+17 Aug 2026: the calendar is the record, and a rotation with nothing scheduled
+still answers the only question the app asks. Do not put one back without
+being asked for it.
+
+`removed` is there because two phones' logs merge by union: deleting a turn on
+one phone brings it straight back from the other, and then republishes it. The
+id is remembered instead and every phone drops it.
 
 **Whose turn it is** is derived, never stored. `getCurrentPerson(family)` in
 `src/lib/rotation.ts` walks `people` (active only, sorted by `order`) from the
 person after the most recent non-skipped turn. Storing a `currentIndex` will
 drift the moment two phones write at once — do not do it.
 
-Also in `rotation.ts`, all pure and all unit-tested:
-`getCurrentPerson`, `getUpcoming(n)`, `nextToastDate(schedule, from)`,
-`logTurn`, `skipWeek`, `turnCounts(range)`.
+Also in `rotation.ts`, all pure and all unit-tested: `activePeople`,
+`getPerson`, `getUpcoming`, `rotationOrder`, `logTurn`, `removeTurn`,
+`skipWeek`, `turnCounts`, `monthRange`, `lastTurnFor`.
 
 ---
 
@@ -252,39 +293,48 @@ Also in `rotation.ts`, all pure and all unit-tested:
 Work through these in order. Finish and verify one before starting the next.
 Commit at the end of each.
 
-### Phase 1 — Local app that works
-- [ ] Scaffold Vite + React + TS, tokens, fonts, base layout
-- [ ] `rotation.ts` with tests covering: empty family, one person, everyone
+All four are through, as of 19 Aug 2026. What is left is kept below as the
+record of what was built, what was dropped and why — read it before proposing
+anything it already turned down.
+
+### Phase 1 — Local app that works · **done**
+- [x] Scaffold Vite + React + TS, tokens, fonts, base layout
+- [x] `rotation.ts` with tests covering: empty family, one person, everyone
       inactive, skipped turns not advancing the rotation
-- [ ] `<Toaster />` ported from the prototype, drag + keyboard both firing the cycle
-- [ ] Home screen wired to the store
-- [ ] History sheet, schedule editor sheet
-- [ ] Setup screen, `localStorage` persistence
-- [ ] **Done when:** you can add a family, log four weeks, close the tab, reopen,
+- [x] `<Toaster />` ported from the prototype, drag + keyboard both firing the cycle
+- [x] Home screen wired to the store
+- [x] History sheet — a month calendar and a list of every turn
+- [x] Setup screen, `localStorage` persistence
+- [x] **Done when:** you can add a family, log four weeks, close the tab, reopen,
       and everything is still there.
 
-### Phase 2 — Real PWA
-- [ ] `vite-plugin-pwa`, `registerType: 'autoUpdate'`
-- [ ] Manifest: name, `short_name: "ToastTurn"`, `display: "standalone"`,
+### Phase 2 — Real PWA · **done**
+- [x] `vite-plugin-pwa` — `registerType: 'prompt'`, not `autoUpdate`: a deploy
+      is not swapped in under someone mid-pull, the app says a new one is ready
+      and waits to be told
+- [x] Manifest: name, `short_name: "ToastTurn"`, `display: "standalone"`,
       `theme_color: "#E9553D"`, `background_color: "#DCE7EE"`, portrait lock
-- [ ] Maskable icons at 192/512 — a toast slice on coral, safe area respected
-- [ ] iOS meta tags and an apple-touch-icon (iOS ignores most of the manifest)
-- [ ] `env(safe-area-inset-*)` on the top bar and the bottom queue
-- [ ] An "Add to home screen" hint that appears once and can be dismissed forever
-- [ ] **Done when:** it installs on an iPhone and launches with no browser chrome.
+- [x] Maskable icons at 192/512 — a toast slice on coral, safe area respected
+- [x] iOS meta tags and an apple-touch-icon (iOS ignores most of the manifest)
+- [x] `env(safe-area-inset-*)` on the top bar and the bottom queue
+- [x] An "Add to home screen" hint that appears once and can be dismissed forever
+- [x] **Done when:** it installs on an iPhone and launches with no browser chrome.
 
-### Phase 3 — Sync between phones
-- [ ] Firebase project, `families/{id}` documents with a `turns` subcollection,
-      security rules keyed on the family id (`firestore.rules`)
-- [ ] The family id lives in the URL (`/f/{id}`); opening that link joins
+### Phase 3 — Sync between phones · **done**
+- [x] Firebase project, `families/{id}` documents with `people` and `turns`
+      subcollections and `prefs/{members,orders}`, security rules keyed on the
+      family id (`firestore.rules`). The people are documents of their own
+      because they are the one part of a rotation somebody other than the owner
+      may add to — a list can only be written whole
+- [x] The family id lives in the URL (`/f/{id}`); opening that link joins
 - [x] "Who am I" picker on first visit, stored per device
-- [ ] Realtime subscription so a pop on one phone updates the others
-- [ ] Optimistic writes with an offline queue, replayed on reconnect —
+- [x] Realtime subscription so a pop on one phone updates the others
+- [x] Optimistic writes with an offline queue, replayed on reconnect —
       Firestore's persistent cache does this, so do not hand-roll a queue
-- [ ] **Done when:** two phones show the same person, and pulling the lever on
+- [x] **Done when:** two phones show the same person, and pulling the lever on
       one updates the other within a second.
 
-### Phase 4 — The nice parts
+### Phase 4 — The nice parts · **done**
 - [x] ~~Push notification on toast morning~~ — dropped by the owner on
       17 Aug 2026, after building it and walking through the setup. The caveat
       below turned out to understate it: a reminder needs a Firebase service
@@ -297,14 +347,18 @@ Commit at the end of each.
       safely go to: an account that evaporates with the browser cache cannot
       be handed a family. Worth revisiting if members are ever offered a
       "remember me on this phone" that links a Google account to theirs.
-- [ ] Rate the toast 1–5, shown in history
-- [ ] Fairness stats — turns per person this month
-- [ ] Holiday mode toggle per person
-- [ ] Orders: each person marks what they want, the maker sees one combined list
+- [x] Rate the toast 1–5, shown in history. Everyone with an account gets a
+      vote and the row shows the average
+- [x] Fairness stats — turns per person this month, above the list of turns
+- [x] Holiday mode toggle per person
+- [x] Orders: each person marks what they want, the maker sees one combined
+      list. Up to three slices each, every slice its own bread and toppings,
+      plus a short note. A tap on the queue opens one person's
 - [x] ~~Swapping turns: ask someone to take yours, they accept or decline~~ —
       dropped by the owner on 17 Aug 2026 as redundant. A tap on the queue
       along the bottom now opens what that person wants instead. Reordering
-      the rotation by hand is still there, under "Add or remove people".
+      the rotation by hand is still there, under "Add or arrange who makes
+      toast".
 
 **Push caveat, kept for the record.** On iOS, web push only works if the PWA is
 installed to the home screen, needs iOS 16.4+, and requires a permission prompt
@@ -325,7 +379,9 @@ unproven.
   Every colour is a `var(--token)`.
 - Never touch `localStorage`, `Date.now()`, or `crypto` outside `src/lib/`. Wrap
   them so tests can fake them.
-- Commit messages: `feat:`, `fix:`, `chore:`, one concern each.
+- Commit messages: `feat:`, `fix:`, `refactor:`, `chore:`, `docs:`, one
+  concern each. The subject says what changed for whoever uses the app, not
+  which files moved.
 
 ## Voice
 
@@ -341,6 +397,13 @@ system reporting status.
 - Sentence case everywhere except the family member names on the toast.
 
 ## Reference
+
+`docs/` holds the written-down half: `architecture.md` (the layout, the data
+model, the shape on the server, what the rules hold), `setup.md` (running it,
+the scripts, the keys, deploying) and `design.md` (the tokens, the toaster's
+timings, the voice). They describe what the code does; this file says what it
+must keep doing, and why the things that are gone are gone. When the two
+disagree, the code is what `docs/` got wrong.
 
 `docs/prototype.html` is the approved design. It is a single self-contained file:
 open it in a browser and pull the lever. When something in this document is
