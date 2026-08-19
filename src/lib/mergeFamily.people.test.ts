@@ -30,7 +30,7 @@ describe('unsentPeople', () => {
   });
 
   it('sends only the person who changed', () => {
-    const local = family([person('a', { name: 'Maya' }), person('b')]);
+    const local = family([person('a', { name: 'Yossi' }), person('b')]);
     const remote = family([person('a'), person('b')]);
     expect(unsentPeople(local, remote).map((p) => p.id)).toEqual(['a']);
   });
