@@ -57,6 +57,14 @@ See [`src/lib/palette.ts`](../src/lib/palette.ts).
 Both are self-hosted with `@fontsource/baloo-2` and `@fontsource/nunito`. Do not
 hotlink Google Fonts — it breaks offline.
 
+**Rubik** (600/700/800, Hebrew subset only) sits behind both in the stack. The
+interface is English, but the names in it are whatever a family calls each
+other, and neither Baloo nor Nunito has a Hebrew glyph: a name written in
+Hebrew fell through to `system-ui` and put a thin flat default next to the
+chunky rounded English. Fallback is per character, so nothing English ever
+comes from it. It is not a leftover of the dropped Hebrew translation — that
+was about the app's own copy, and this is about people's names.
+
 ## Layout
 
 Designed at 390×844. Desktop is a centred phone-width column, not a different

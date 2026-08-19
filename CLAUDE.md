@@ -64,6 +64,11 @@ one of these, the constraint wins.
    properties (`margin-inline-start`, not `margin-left`), and every
    user-facing string in `src/i18n/en.ts` rather than loose in JSX.
 
+   The Hebrew font behind both type stacks is a separate thing and stays:
+   the interface is English, but the *names* in it are whatever a family
+   calls each other, and Baloo and Nunito have no Hebrew glyph between them.
+   See `docs/design.md`.
+
 ---
 
 ## Stack

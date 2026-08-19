@@ -1,10 +1,19 @@
-/* Latin only, Hebrew arrives with its own face in phase 4. */
+/* The interface is English and stays that way, but the names in it are
+   whatever a family calls each other, and neither Baloo nor Nunito has a
+   Hebrew glyph in it. A name written in Hebrew fell through to system-ui,
+   which put a thin flat default next to the chunky rounded English - two
+   fonts in one row of the same list. Rubik covers the Hebrew at the same
+   weights and is rounded enough to sit beside both. Fallback is per
+   character, so the English still comes from the faces above. */
 @import '@fontsource/baloo-2/latin-600.css';
 @import '@fontsource/baloo-2/latin-700.css';
 @import '@fontsource/baloo-2/latin-800.css';
 @import '@fontsource/nunito/latin-600.css';
 @import '@fontsource/nunito/latin-700.css';
 @import '@fontsource/nunito/latin-800.css';
+@import '@fontsource/rubik/hebrew-600.css';
+@import '@fontsource/rubik/hebrew-700.css';
+@import '@fontsource/rubik/hebrew-800.css';
 @import './tokens.css';
 @import './ui.css';
 

@@ -24,9 +24,10 @@
   --mint:     #5FB99E;  /* success, toggles, focus rings */
   --coil:     #FF5C22;  /* the heating element glow, nothing else */
 
-  /* type */
-  --display: 'Baloo 2', system-ui, sans-serif;
-  --ui: 'Nunito', system-ui, sans-serif;
+  /* type. Rubik is behind both, and only ever draws what the face in front
+     of it has not got a glyph for, which is the Hebrew in people's names. */
+  --display: 'Baloo 2', 'Rubik', system-ui, sans-serif;
+  --ui: 'Nunito', 'Rubik', system-ui, sans-serif;
 
   /* incidental shades taken from the prototype */
   --dash: #E4DAC8;      /* dashed row rules, toggle track */
