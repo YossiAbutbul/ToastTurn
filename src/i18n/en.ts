@@ -280,6 +280,8 @@ export const en = {
     openRotation: 'Open',
     openNow: 'Open now',
     newRotation: 'Start another rotation',
+    editRotation: 'Arrange the rotation',
+    doneRotation: 'Done arranging',
     addPerson: 'Add someone',
     addPersonName: 'Their name',
     addPersonAction: 'Add',

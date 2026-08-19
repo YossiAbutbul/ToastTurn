@@ -106,11 +106,29 @@
   transition: none;
 }
 
+/* The title, and whatever acts on the whole sheet, on one line. The control
+   sits up here rather than in the body so it stays put while the body
+   scrolls: a pen that rearranges a list must not scroll away with it. */
+.sheet-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-block-end: 12px;
+}
+
 .sheet h2 {
   font-family: var(--display);
   font-weight: 800;
   font-size: 22px;
-  margin-block-end: 12px;
+  min-width: 0;
+}
+
+/* Pushed to the far end, and lit when what it turns on is on. */
+.sheet-head .sheet-edit {
+  margin-inline-start: auto;
+}
+.sheet-head .sheet-edit.on {
+  color: var(--coral);
 }
 
 /* A logged turn: who and when on one line, the stars under it with room to be

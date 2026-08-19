@@ -16,11 +16,27 @@ type SheetProps = {
   covered?: boolean;
   /** One button that stays put at the bottom, above Close. */
   action?: ReactNode;
+  /**
+   * A control beside the title. For what changes the whole sheet rather than
+   * one row in it - a pen that turns a list into a list you can rearrange -
+   * so it does not scroll away with the rows it acts on.
+   */
+  headerAction?: ReactNode;
   children: ReactNode;
 };
 
 /** The bottom sheet everything that isn't the answer lives behind. */
-export function Sheet({ open, title, onClose, fixedHeight, onTop, covered, action, children }: SheetProps) {
+export function Sheet({
+  open,
+  title,
+  onClose,
+  fixedHeight,
+  onTop,
+  covered,
+  action,
+  headerAction,
+  children,
+}: SheetProps) {
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
@@ -63,7 +79,10 @@ export function Sheet({ open, title, onClose, fixedHeight, onTop, covered, actio
       >
         {/* the handle: drag it down to put the sheet away */}
         <span className="sheet-grip" {...drag.handlers} />
-        <h2>{title}</h2>
+        <div className="sheet-head">
+          <h2>{title}</h2>
+          {headerAction}
+        </div>
         <div className="sheet-body">{children}</div>
         {action}
         <button className="close" type="button" onClick={onClose}>

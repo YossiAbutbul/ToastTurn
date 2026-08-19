@@ -8,6 +8,14 @@ import type { Person } from '../lib/types';
 type RosterListProps = {
   /** Everyone in the rotation, in rotation order. */
   people: Person[];
+  /**
+   * Rearranging, rather than reading. Six controls to a row is a row nobody
+   * can read at a glance, so the arrows and the bin wait behind the pen at
+   * the top of the sheet and the holiday switches stand down while they are
+   * out: taking somebody out and sending them on holiday are different
+   * enough answers to not want them a thumb's width apart.
+   */
+  editing?: boolean;
   /** Move one person up or down the order. Owner only. */
   onMove: (personId: string, delta: number) => void;
   /** Which of them runs it. They stay: a rotation with no owner is nobody's. */
@@ -16,8 +24,15 @@ type RosterListProps = {
   onRemove: (personId: string) => void;
 };
 
-/** The people, each with a holiday switch and a way out of the rotation. */
-export function RosterList({ people, onMove, ownerPersonId, onToggleHoliday, onRemove }: RosterListProps) {
+/** The people, each with a holiday switch, or a way out and a place to move. */
+export function RosterList({
+  people,
+  editing,
+  onMove,
+  ownerPersonId,
+  onToggleHoliday,
+  onRemove,
+}: RosterListProps) {
   const [asking, setAsking] = useState<Person | null>(null);
 
   return (
@@ -29,10 +44,15 @@ export function RosterList({ people, onMove, ownerPersonId, onToggleHoliday, onR
           </span>
           <b>{person.name}</b>
 
+          {/* The switch is away while the pen is out, so who is on holiday
+              would go with it. Said in words instead, or rearranging the
+              order means guessing who is even in it this week. */}
+          {editing && !person.active && <span className="when">{en.settings.holiday}</span>}
+
           {/* Beside the name, because it is about the person, not about the
               switch. Taking yourself out would leave the rotation with nobody
               to run it, so the owner's own row has no bin. */}
-          {person.id !== ownerPersonId && (
+          {editing && person.id !== ownerPersonId && (
             <button
               type="button"
               className="row-x"
@@ -44,7 +64,7 @@ export function RosterList({ people, onMove, ownerPersonId, onToggleHoliday, onR
           )}
 
           {/* Only worth moving anyone when there is somewhere to move them. */}
-          {people.length > 1 && (
+          {editing && people.length > 1 && (
             <span className="moves">
               <button
                 type="button"
@@ -71,16 +91,18 @@ export function RosterList({ people, onMove, ownerPersonId, onToggleHoliday, onR
             </span>
           )}
 
-          <button
-            type="button"
-            className={person.active ? 'tog' : 'tog on'}
-            role="switch"
-            aria-checked={!person.active}
-            aria-label={`${en.settings.holiday}, ${person.name}`}
-            onClick={() => onToggleHoliday(person.id, !person.active)}
-          >
-            <i />
-          </button>
+          {!editing && (
+            <button
+              type="button"
+              className={person.active ? 'tog' : 'tog on'}
+              role="switch"
+              aria-checked={!person.active}
+              aria-label={`${en.settings.holiday}, ${person.name}`}
+              onClick={() => onToggleHoliday(person.id, !person.active)}
+            >
+              <i />
+            </button>
+          )}
         </div>
       ))}
 

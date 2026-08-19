@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import { Sheet } from './Sheet';
 import { RosterList } from './RosterList';
 import { AddPerson } from './AddPerson';
+import { PenIcon } from './PenIcon';
 import { en } from '../i18n/en';
 import { colorForIndex } from '../lib/palette';
 import type { Family } from '../lib/types';
@@ -22,6 +24,11 @@ type RotationSheetProps = {
  * which meant adding a name and moving one were two different journeys. This
  * is the one place: who is in it, what order they come round in, who is away,
  * and who is leaving. The owner's, and nobody else sees it.
+ *
+ * The question it answers most often is "who is in it", so that is what it
+ * opens on: the list first, the box for another name under it, and the arrows
+ * and the bins behind the pen at the top. A row carrying all of them at once
+ * was six controls wide and read as a form rather than a list of people.
  */
 export function RotationSheet({
   open,
@@ -33,28 +40,51 @@ export function RotationSheet({
   onToggleHoliday,
 }: RotationSheetProps) {
   const people = [...family.people].sort((a, b) => a.order - b.order);
+  const [editing, setEditing] = useState(false);
+
+  // The pen is a state of this sheet, not of the rotation: closing it and
+  // opening it again asks the usual question, not the last one. Put down as
+  // the sheet goes rather than in an effect afterwards, so it is already
+  // down by the time the sheet is next painted.
+  if (!open && editing) setEditing(false);
 
   return (
     // One height whatever the rotation grows to: without it the sheet climbed
     // the screen with every name added, and the list moved under the finger.
-    <Sheet open={open} title={en.settings.rotationTitle} onClose={onClose} fixedHeight>
-      {/* Above the list rather than below it: at the bottom of a rotation of
-          eight it is a scroll away, and it moves every time somebody joins. */}
-      <div className="fieldlabel">{en.settings.addPerson}</div>
-      <AddPerson suggested={colorForIndex(people.length)} onAdd={onAddPerson} />
-
-      <div className="fieldlabel spaced">{en.settings.rotationTitle}</div>
+    <Sheet
+      open={open}
+      title={en.settings.rotationTitle}
+      onClose={onClose}
+      fixedHeight
+      headerAction={
+        people.length > 0 ? (
+          <button
+            type="button"
+            className={editing ? 'row-x sheet-edit on' : 'row-x sheet-edit'}
+            aria-label={editing ? en.settings.doneRotation : en.settings.editRotation}
+            aria-pressed={editing}
+            onClick={() => setEditing((was) => !was)}
+          >
+            <PenIcon />
+          </button>
+        ) : undefined
+      }
+    >
       {people.length === 0 ? (
         <p className="empty">{en.setup.empty}</p>
       ) : (
         <RosterList
           people={people}
+          editing={editing}
           ownerPersonId={family.ownerPersonId}
           onMove={onMovePerson}
           onToggleHoliday={onToggleHoliday}
           onRemove={onRemovePerson}
         />
       )}
+
+      <div className="fieldlabel spaced">{en.settings.addPerson}</div>
+      <AddPerson suggested={colorForIndex(people.length)} onAdd={onAddPerson} />
     </Sheet>
   );
 }
