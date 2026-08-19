@@ -138,7 +138,12 @@
   font-weight: 800;
   color: var(--ink-soft);
   letter-spacing: 0.04em;
-  padding: 0 20px 2px;
+  /* Up under the toaster's feet, because it is about the toaster: at the
+     deck's own top it read as the first line of the buttons below it rather
+     than as a caption on the thing above. The ten pixels it climbs are given
+     back underneath, so the order button and the queue do not move with it. */
+  margin-block-start: -10px;
+  padding: 0 20px 12px;
   flex: 0 0 auto;
   min-height: 16px;
 }
