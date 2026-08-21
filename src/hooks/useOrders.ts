@@ -16,28 +16,37 @@ import type { Family } from '../lib/types';
  * one tablet on the counter.
  */
 export function useOrders(family: Family, myPersonId: string | undefined) {
-  const [held, setHeld] = useState<{ id: string; board: OrderBoard }>(() => ({
+  const [held, setHeld] = useState<{ id: string; board: OrderBoard; fromServer: boolean }>(() => ({
     id: family.id,
     board: syncConfigured ? {} : (loadOrders(family.id) as OrderBoard),
+    // With no keys there is no server to hear from, and this phone's own copy
+    // is the whole truth.
+    fromServer: !syncConfigured,
   }));
 
   // Switching rotations means a different board. Reading it during the render
   // that noticed, rather than in an effect afterwards, keeps the sheet from
   // showing the last rotation's orders for a frame.
   if (held.id !== family.id) {
-    setHeld({ id: family.id, board: syncConfigured ? {} : (loadOrders(family.id) as OrderBoard) });
+    setHeld({
+      id: family.id,
+      board: syncConfigured ? {} : (loadOrders(family.id) as OrderBoard),
+      fromServer: !syncConfigured,
+    });
   }
 
   const board = held.board;
   const setBoard = useCallback(
     (next: (current: OrderBoard) => OrderBoard) =>
-      setHeld((current) => ({ id: current.id, board: next(current.board) })),
+      setHeld((current) => ({ ...current, board: next(current.board) })),
     [],
   );
 
   useEffect(() => {
     if (!syncConfigured) return;
-    return subscribeOrders(family.id, (raw) => setHeld({ id: family.id, board: raw as OrderBoard }));
+    return subscribeOrders(family.id, (raw, fromServer) =>
+      setHeld({ id: family.id, board: raw as OrderBoard, fromServer }),
+    );
   }, [family.id]);
 
   /**
@@ -50,23 +59,35 @@ export function useOrders(family: Family, myPersonId: string | undefined) {
   const [ready, setReady] = useState(0);
   /** Taken off here, so its going is not news. */
   const clearedHere = useRef(false);
-  /** Whether this phone has seen this rotation's board at all yet. */
-  const knew = useRef<{ id: string; had: boolean } | null>(null);
+  /**
+   * Whether this phone has seen this rotation's board at all yet, and who it
+   * was reading it as. The name matters: an order that is missing because
+   * nobody has said which person this phone is yet is not an order that has
+   * been made.
+   */
+  const knew = useRef<{ id: string; personId: string | undefined; had: boolean } | null>(null);
 
   useEffect(() => {
     const before = knew.current;
     const had = Boolean(myPersonId && board[myPersonId]);
-    knew.current = { id: family.id, had };
+    knew.current = { id: family.id, personId: myPersonId, had };
 
     // Nothing to compare against: the first sight of a rotation's board, or
     // the first after switching to it. An order made an hour ago is not news.
     if (!before || before.id !== family.id) return;
+    // Nor is one seen as somebody else, or as nobody. Signing in again after
+    // an update forgets who this phone is for a moment, and every phone with
+    // an order on the board read that as its toast being made.
+    if (!myPersonId || before.personId !== myPersonId) return;
+    // Nor is a board this phone has only read off its own cache: an order
+    // that has not loaded yet looks exactly like an order that has been made.
+    if (!held.fromServer) return;
     if (clearedHere.current) {
       clearedHere.current = false;
       return;
     }
     if (before.had && !had) setReady((n) => n + 1);
-  }, [board, family.id, myPersonId]);
+  }, [board, held.fromServer, family.id, myPersonId]);
 
   const set = useCallback(
     (personId: string, choice: Omit<Order, 'personId' | 'updatedAt'>) => {

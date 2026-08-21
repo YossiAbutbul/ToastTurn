@@ -238,7 +238,8 @@ export async function dropMember(familyId: string, uid: string): Promise<void> {
 /** What everyone wants, by person. */
 export function subscribeOrders(
   familyId: string,
-  onChange: (board: Record<string, unknown>) => void,
+  /** `fromServer` is false while the board is only what this phone had cached. */
+  onChange: (board: Record<string, unknown>, fromServer: boolean) => void,
 ): () => void {
   let stop: (() => void) | null = null;
   let cancelled = false;
@@ -249,7 +250,7 @@ export function subscribeOrders(
     const { db, fs } = remote;
 
     stop = fs.onSnapshot(fs.doc(db, 'families', familyId, 'prefs', 'orders'), (snap) => {
-      onChange(snap.exists() ? (snap.data() as Record<string, unknown>) : {});
+      onChange(snap.exists() ? (snap.data() as Record<string, unknown>) : {}, !snap.metadata.fromCache);
     });
     if (cancelled) stop();
   })();
