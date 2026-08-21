@@ -10,6 +10,13 @@ import type { RefObject } from 'react';
  * frame so the browser animates it home. Nothing is measured before the render
  * because React has already done it by the time this runs, and nothing is
  * stored but the last set of positions.
+ *
+ * The measurement is `offsetLeft`, which is where a thing sits in the layout,
+ * not `getBoundingClientRect()`, which is where it is on the glass. Anything
+ * else re-renders during the slide - the crumbs alone re-render every frame -
+ * and every one of those would measure a chip mid-flight, take that for its
+ * home, and start it over from there. It also means scrolling the queue
+ * sideways is not mistaken for people moving.
  */
 export function useFlipRow(ref: RefObject<HTMLElement | null>): void {
   const reduced = usePrefersReducedMotion();
@@ -25,7 +32,7 @@ export function useFlipRow(ref: RefObject<HTMLElement | null>): void {
 
     for (const kid of kids) {
       const key = kid.dataset.flip ?? '';
-      const left = kid.getBoundingClientRect().left;
+      const left = kid.offsetLeft;
       now.set(key, left);
 
       const before = was.current.get(key);

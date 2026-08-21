@@ -115,7 +115,15 @@
 
 .qtoast,
 .qname {
-  transition: transform 0.25s cubic-bezier(0.2, 0.9, 0.25, 1);
+  /* Colour as well as height: when the turn moves on, the coral goes over to
+     the next person while they are still walking, rather than snapping the
+     moment the queue re-orders. Nothing here changes the layout - the sizes
+     do, and they must land at once, or the walk would be chasing a row that
+     is still settling. */
+  transition:
+    transform 0.25s cubic-bezier(0.2, 0.9, 0.25, 1),
+    background 0.3s ease,
+    color 0.3s ease;
 }
 
 /* Where a person walks to when the rotation moves on. The transform itself is
