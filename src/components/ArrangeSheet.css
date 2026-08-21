@@ -106,12 +106,12 @@
 /* The rows are the sheet, so they are dealt one at a time like the rows of
    any other sheet rather than arriving as one block. `sheet-deal` is defined
    with the sheet itself. */
-.sheet.show .arrange > * {
+.sheet.dealing .arrange > * {
   animation: sheet-deal 300ms 240ms cubic-bezier(0.2, 1.3, 0.5, 1) backwards;
 }
-.sheet.show .arrange > *:nth-child(2) { animation-delay: 280ms; }
-.sheet.show .arrange > *:nth-child(3) { animation-delay: 320ms; }
-.sheet.show .arrange > *:nth-child(4) { animation-delay: 360ms; }
-.sheet.show .arrange > *:nth-child(5) { animation-delay: 400ms; }
-.sheet.show .arrange > *:nth-child(6) { animation-delay: 440ms; }
-.sheet.show .arrange > *:nth-child(n + 7) { animation-delay: 480ms; }
+.sheet.dealing .arrange > *:nth-child(2) { animation-delay: 280ms; }
+.sheet.dealing .arrange > *:nth-child(3) { animation-delay: 320ms; }
+.sheet.dealing .arrange > *:nth-child(4) { animation-delay: 360ms; }
+.sheet.dealing .arrange > *:nth-child(5) { animation-delay: 400ms; }
+.sheet.dealing .arrange > *:nth-child(6) { animation-delay: 440ms; }
+.sheet.dealing .arrange > *:nth-child(n + 7) { animation-delay: 480ms; }

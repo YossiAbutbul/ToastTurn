@@ -1,8 +1,11 @@
-import { useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useFlipRow } from '../hooks/useFlipRow';
 import { initialOf } from '../lib/format';
 import type { Person } from '../lib/types';
 import './QueueBar.css';
+
+/** Long enough for the last slice to have landed, and then some. */
+const LANDED_MS = 1300;
 
 type QueueBarProps = {
   /** The whole rotation, in order, whoever is up first. */
@@ -39,8 +42,20 @@ export function QueueBar({
   const row = useRef<HTMLDivElement>(null);
   useFlipRow(row);
 
+  // The queue lands a slice at a time as the app opens, and then that is over
+  // with. It cannot be left standing in the CSS: the delay each slice takes is
+  // read off its place in the row, so the moment somebody moves, everyone
+  // after them is handed a different one - which re-times an animation that
+  // had finished and plays part of it again, from nothing, over the walk they
+  // were meant to be taking.
+  const [landing, setLanding] = useState(true);
+  useEffect(() => {
+    const done = window.setTimeout(() => setLanding(false), LANDED_MS);
+    return () => window.clearTimeout(done);
+  }, []);
+
   return (
-    <div className="queue" ref={row}>
+    <div className={landing ? 'queue landing' : 'queue'} ref={row}>
       {people.map((person, index) => {
         const className = index === 0 ? 'qbtn now' : 'qbtn';
         const label = index === 0 ? nowLabel(person.name) : openLabel(person.name);

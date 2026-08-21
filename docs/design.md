@@ -122,10 +122,28 @@ nothing that never stops is worth the battery.
 | Crumbs on the counter | The pop | 1500ms | [`crumbs.ts`](../src/lib/crumbs.ts) stepped by [`useCrumbFly()`](../src/hooks/useCrumbFly.ts) |
 | The sheet deals its rows | Every bottom sheet | 40ms between rows | `.sheet.show .sheet-body > *` |
 
-Two rules hold this together. Entrance keyframes fill `backwards`, never
-`forwards` or `both`: an animation that keeps its end state outranks inline
-styles, which would freeze the queue mid-shuffle the moment the two met. And
-the crumb physics is pure and in the toaster's own SVG units, so it can be
+Three rules hold this together, each of them learned the hard way.
+
+Entrance keyframes fill `backwards`, never `forwards` or `both`: an animation
+that keeps its end state outranks inline styles, which would freeze the queue
+mid-shuffle the moment the two met.
+
+A staggered entrance is a class that comes off — `.queue.landing`,
+`.sheet.dealing` — never a standing rule. The delay each row takes is read off
+its `nth-child`, so as soon as anything is rearranged the moved rows are handed
+a different one, which re-times an animation that had already finished and
+plays part of it again. That is what hid the queue's walk: the person who had
+just made toast was the one row that shrank back to nothing instead of
+walking.
+
+FLIP measures `offsetLeft`, not `getBoundingClientRect()`, and forces the
+inverted row to be laid out before letting go. The layout effect and any
+`requestAnimationFrame` after it both run before the same paint, so inverting
+in one and releasing in the other is a single frame as far as the browser is
+concerned — it never sees a position to move from. Reading the layout in
+between is what makes it real.
+
+The crumb physics is pure and in the toaster's own SVG units, so it can be
 stepped in a test — the hook only runs the clock.
 
 `prefers-reduced-motion` is answered in two places: the blanket rule in

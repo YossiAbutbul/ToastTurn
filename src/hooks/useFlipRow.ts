@@ -49,12 +49,18 @@ export function useFlipRow(ref: RefObject<HTMLElement | null>): void {
       el.style.transform = `translateX(${by}px)`;
     }
 
-    const frame = requestAnimationFrame(() => {
-      for (const { el } of moved) {
-        el.style.transition = '';
-        el.style.transform = '';
-      }
-    });
-    return () => cancelAnimationFrame(frame);
+    // Made to happen, not asked for politely. This effect and a
+    // requestAnimationFrame after it both run before the browser paints, so
+    // putting things back and letting go in those two places is one frame as
+    // far as it is concerned: it sees the finished row, has nothing to move
+    // from, and draws it there. Reading the layout forces the browser to work
+    // out the inverted row first, and letting go after that is a change it
+    // has to animate.
+    void row.offsetHeight;
+
+    for (const { el } of moved) {
+      el.style.transition = '';
+      el.style.transform = '';
+    }
   });
 }

@@ -1,8 +1,11 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useSheetDrag } from '../hooks/useSheetDrag';
 import type { ReactNode } from 'react';
 import { en } from '../i18n/en';
 import './Sheet.css';
+
+/** Long enough for the last row to have been dealt, and then some. */
+const DEAL_MS = 1000;
 
 type SheetProps = {
   open: boolean;
@@ -48,10 +51,36 @@ export function Sheet({
     return () => window.removeEventListener('keydown', onKey);
   }, [open, onClose]);
 
+  // The rows are dealt as the sheet comes up, and then it is over: each row's
+  // delay is read off its place in the list, so a list that can be rearranged
+  // would hand the moved rows a different one and play part of the deal again
+  // under the finger.
+  //
+  // Counted rather than flagged: opening is noticed during the render that
+  // opens, and the count is caught up a second later by the timer, which is
+  // the one place anything is set.
+  const [shown, setShown] = useState(open);
+  const [opens, setOpens] = useState(0);
+  const [dealt, setDealt] = useState(0);
+
+  if (shown !== open) {
+    setShown(open);
+    if (open) setOpens((n) => n + 1);
+  }
+
+  useEffect(() => {
+    if (dealt >= opens) return;
+    const done = window.setTimeout(() => setDealt(opens), DEAL_MS);
+    return () => window.clearTimeout(done);
+  }, [opens, dealt]);
+
+  const dealing = open && dealt < opens;
+
   const drag = useSheetDrag(onClose);
   const className = [
     'sheet',
     open ? 'show' : '',
+    dealing ? 'dealing' : '',
     fixedHeight ? 'tall' : '',
     onTop ? 'over' : '',
     covered ? 'covered' : '',
