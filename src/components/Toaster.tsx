@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { ToasterBody } from './ToasterBody';
+import { Crumbs } from './Crumbs';
 import { useLeverDrag } from '../hooks/useLeverDrag';
 import { useToastCycle } from '../hooks/useToastCycle';
 import './Toaster.css';
@@ -119,6 +120,9 @@ export function Toaster({ initial, locked, onPop, onStatus, leverLabel }: Toaste
         <rect x="287" y="155" width="18" height="3.5" rx="1.75" className="tt-grip" />
         <rect x="287" y="162" width="18" height="3.5" rx="1.75" className="tt-grip" />
       </g>
+
+      {/* Thrown as the slice pops, and swept up on their own. */}
+      <Crumbs trigger={steamKey} />
 
       <g className="tt-crumbs">
         <circle cx="300" cy="270" r="3" />

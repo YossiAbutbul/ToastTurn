@@ -1,3 +1,5 @@
+import { useRef } from 'react';
+import { useFlipRow } from '../hooks/useFlipRow';
 import { initialOf } from '../lib/format';
 import type { Person } from '../lib/types';
 import './QueueBar.css';
@@ -32,8 +34,13 @@ export function QueueBar({
   onManage,
   manageLabel,
 }: QueueBarProps) {
+  // Logging a turn moves whoever made it to the back of the line. They walk
+  // there rather than teleporting.
+  const row = useRef<HTMLDivElement>(null);
+  useFlipRow(row);
+
   return (
-    <div className="queue">
+    <div className="queue" ref={row}>
       {people.map((person, index) => {
         const className = index === 0 ? 'qbtn now' : 'qbtn';
         const label = index === 0 ? nowLabel(person.name) : openLabel(person.name);
@@ -61,6 +68,7 @@ export function QueueBar({
         return onPick ? (
           <button
             key={person.id}
+            data-flip={person.id}
             type="button"
             className={className}
             onClick={() => onPick(person.id)}
@@ -69,7 +77,7 @@ export function QueueBar({
             {inside}
           </button>
         ) : (
-          <div key={person.id} className={className} aria-label={label}>
+          <div key={person.id} data-flip={person.id} className={className} aria-label={label}>
             {inside}
           </div>
         );

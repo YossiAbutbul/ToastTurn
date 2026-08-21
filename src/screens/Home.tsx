@@ -3,6 +3,7 @@ import { Toaster } from '../components/Toaster';
 import type { ToasterStatus } from '../components/Toaster';
 import { TopBar } from '../components/TopBar';
 import { QueueBar } from '../components/QueueBar';
+import { WhoseName } from '../components/WhoseName';
 import { Note } from '../components/Note';
 import { InstallHint } from '../components/InstallHint';
 import { HomeSheets } from '../components/HomeSheets';
@@ -291,7 +292,7 @@ export function Home({ onLeave, onNewFamily, onHome }: HomeProps) {
 
       <div className="head">
         <div className="kicker">{en.home.kicker}</div>
-        <div className="big">{current.name}</div>
+        <WhoseName personId={current.id} name={current.name} />
         <div className="sub">
           {last
             ? en.home.turnsSoFar(turnCounts(family)[current.id] ?? 0, formatShortDate(last.madeAt))

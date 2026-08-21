@@ -252,6 +252,16 @@ rest back at `REST` — the jump does the popping. The slice is a whole piece of
 bread: its bottom is hidden behind the chrome cap rather than cut off at it, so
 every position has to keep that bottom out of sight.
 
+**The rest of the app's movement.** Four animations live outside this
+component, added 21 Aug 2026: the Home screen's entrance ("the kitchen wakes
+up"), the big name changing hands when the turn moves on, the queue along the
+bottom walking to its new order (FLIP, `useFlipRow()`), and the crumbs thrown
+by the pop (`src/lib/crumbs.ts`, pure and tested, stepped by `useCrumbFly()`).
+Sheets deal their rows in 40ms apart. An ambient glow on the idle toaster was
+offered and turned down — nothing that never stops. Entrance keyframes fill
+`backwards`, never `forwards`: an animation holding its end state outranks the
+inline transform FLIP needs. Do not add an animation library for any of this.
+
 **Accessibility.** The lever group needs `role="button"`, `tabIndex={0}`, an
 `aria-label`, and Enter/Space handling that runs the same cycle. Show a
 `--mint` focus ring. Honour `prefers-reduced-motion` by cutting all durations to

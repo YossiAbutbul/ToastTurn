@@ -107,6 +107,34 @@ Slice positions: `REST = 0`, `DEEP = 78`, `HOP = -30`, coming to rest back at
 its bottom is hidden behind the chrome cap rather than cut off at it, so every
 position has to keep that bottom out of sight.
 
+### The rest of the movement
+
+Four animations outside the toaster, added 21 Aug 2026 after the owner picked
+them off a reel of six. A fifth — an ambient glow and drifting steam on the
+idle toaster — was turned down: the screen is open for eight seconds and
+nothing that never stops is worth the battery.
+
+| Name | Where | How long | Built from |
+|---|---|---|---|
+| The kitchen wakes up | Home, once per open | 820ms end to end | Staggered keyframes in `Home.css` and `QueueBar.css` |
+| The name changes hands | The big name, when the turn moves on | 420ms out, 520ms in | [`WhoseName`](../src/components/WhoseName.tsx) |
+| The queue shuffles | The bar along the bottom | 460ms | FLIP in [`useFlipRow()`](../src/hooks/useFlipRow.ts) |
+| Crumbs on the counter | The pop | 1500ms | [`crumbs.ts`](../src/lib/crumbs.ts) stepped by [`useCrumbFly()`](../src/hooks/useCrumbFly.ts) |
+| The sheet deals its rows | Every bottom sheet | 40ms between rows | `.sheet.show .sheet-body > *` |
+
+Two rules hold this together. Entrance keyframes fill `backwards`, never
+`forwards` or `both`: an animation that keeps its end state outranks inline
+styles, which would freeze the queue mid-shuffle the moment the two met. And
+the crumb physics is pure and in the toaster's own SVG units, so it can be
+stepped in a test — the hook only runs the clock.
+
+`prefers-reduced-motion` is answered in two places: the blanket rule in
+`base.css` flattens every CSS animation, and the two JavaScript animations ask
+[`usePrefersReducedMotion()`](../src/hooks/usePrefersReducedMotion.ts) and do
+nothing at all. Crumbs also carry a timer alongside their
+`requestAnimationFrame` loop, because rAF stops when the phone goes in a pocket
+and crumbs left mid-air would still be there on the way out.
+
 ### Accessibility
 
 The lever group carries `role="button"`, `tabIndex={0}`, an `aria-label`, and
