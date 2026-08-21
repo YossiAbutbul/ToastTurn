@@ -3,3 +3,9 @@
 # with "would block the window.closed call" in the console.
 /*
   Cross-Origin-Opener-Policy: same-origin-allow-popups
+
+# The service worker is how a new version is noticed at all, so it is never
+# served from a cache: a stale one would report the build it was cached with
+# and the app would sit on an old version until something else expired.
+/sw.js
+  Cache-Control: no-cache
