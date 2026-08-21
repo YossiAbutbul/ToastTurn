@@ -89,8 +89,13 @@ A stored `currentIndex` would drift the moment two phones wrote at once. That is
 the reason, and it is not negotiable.
 
 `rotation.ts` is pure and unit-tested throughout: `activePeople`,
-`getCurrentPerson`, `getUpcoming`, `rotationOrder`, `logTurn`, `removeTurn`,
-`skipWeek`, `turnCounts`, `monthRange`, `lastTurnFor`.
+`getCurrentPerson`, `getUpcoming`, `rotationOrder`, `arrangeOrder`, `logTurn`,
+`removeTurn`, `skipWeek`, `turnCounts`, `monthRange`, `lastTurnFor`.
+
+`rotationOrder` is the queue along the bottom: the active people, read from
+whoever is up. `arrangeOrder` is the same ring with the people on holiday left
+in their places, which is what the rotation sheet and the arranging sheet show,
+so every list of people in the app starts at the same person.
 
 There is no stored toast night. A weekly schedule was tried and taken out: the
 calendar is the record, and a rotation with nothing scheduled still answers the

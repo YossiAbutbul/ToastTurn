@@ -25,7 +25,7 @@ export type Action =
   | { type: 'removePerson'; id: string }
   | { type: 'setActive'; id: string; active: boolean }
   | { type: 'setColor'; id: string; color: string }
-  | { type: 'movePerson'; id: string; delta: number }
+  | { type: 'reorderPeople'; ids: string[] }
   | { type: 'reset' };
 
 export const initialState: State = { family: null, others: [], ready: false };
@@ -146,16 +146,28 @@ export function familyReducer(state: State, action: Action): State {
         },
       };
 
-    case 'movePerson': {
-      const ordered = renumber(family.people);
-      const from = ordered.findIndex((p) => p.id === action.id);
-      const to = from + action.delta;
-      if (from === -1 || to < 0 || to >= ordered.length) return state;
+    /**
+     * The whole ring, in the sequence the arranging sheet was left in.
+     *
+     * It arrives as ids rather than as a person moved by a place because that
+     * is what a drag hands over: a new sequence. Anybody the list did not
+     * name - somebody added on another phone while the sheet was open - keeps
+     * their place at the end rather than being dropped.
+     */
+    case 'reorderPeople': {
+      const named = action.ids
+        .map((id) => family.people.find((p) => p.id === id))
+        .filter((p): p is Person => p !== undefined);
+      if (named.length === 0) return state;
 
-      const moved = [...ordered];
-      const [person] = moved.splice(from, 1);
-      moved.splice(to, 0, person);
-      return { ...state, family: { ...family, people: renumber(moved.map((p, i) => ({ ...p, order: i }))) } };
+      const rest = family.people
+        .filter((p) => !action.ids.includes(p.id))
+        .sort((a, b) => a.order - b.order);
+
+      return {
+        ...state,
+        family: { ...family, people: renumber([...named, ...rest].map((p, i) => ({ ...p, order: i }))) },
+      };
     }
 
     default:

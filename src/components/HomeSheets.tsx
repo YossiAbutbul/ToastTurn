@@ -46,8 +46,8 @@ type HomeSheetsProps = {
   onAddPerson: (name: string, color: string) => void;
   /** Owner only: take someone out of the rotation, claim and all. */
   onRemovePerson: (personId: string) => void;
-  /** Owner only: move somebody up or down the order. */
-  onMovePerson: (personId: string, delta: number) => void;
+  /** Owner only: the whole rotation, in the sequence it was arranged into. */
+  onReorderPeople: (ids: string[]) => void;
   /** Owner only: what this rotation is called. */
   onRename: (name: string) => void;
   /** Taking one order off, with the moment to put it back that goes with it. */
@@ -117,7 +117,7 @@ export function HomeSheets(props: HomeSheetsProps) {
           onClose={onClose}
           onAddPerson={props.onAddPerson}
           onRemovePerson={props.onRemovePerson}
-          onMovePerson={props.onMovePerson}
+          onReorderPeople={props.onReorderPeople}
           onToggleHoliday={props.onToggleHoliday}
         />
       )}

@@ -156,3 +156,23 @@ export function monthRange(date: Date): { from: string; to: string } {
 export function lastTurnFor(family: Family, personId: string): Turn | undefined {
   return credited(family).find((t) => t.personId === personId);
 }
+
+/**
+ * Everyone, in the order the queue along the bottom shows them: sorted by
+ * `order`, then turned round so whoever is up comes first.
+ *
+ * `people` sorted by `order` starts wherever the numbering happens to start,
+ * which is nowhere in particular — the rotation is a ring, and the bar reads
+ * it from whoever is up. A list that reads it from anywhere else is a list
+ * that disagrees with the screen behind it.
+ *
+ * Anyone on holiday keeps their place in the ring rather than falling to the
+ * end, so the order arranged here is the order that comes back with them.
+ */
+export function arrangeOrder(family: Family): Person[] {
+  const all = [...family.people].sort((a, b) => a.order - b.order);
+  const current = getCurrentPerson(family);
+  const start = current ? all.findIndex((p) => p.id === current.id) : 0;
+  if (start <= 0) return all;
+  return all.map((_, i) => all[(start + i) % all.length]);
+}

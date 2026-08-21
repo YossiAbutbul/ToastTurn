@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { Sheet } from './Sheet';
 import { RosterList } from './RosterList';
+import { ArrangeSheet } from './ArrangeSheet';
 import { AddPerson } from './AddPerson';
 import { PenIcon } from './PenIcon';
 import { en } from '../i18n/en';
 import { colorForIndex } from '../lib/palette';
+import { arrangeOrder, getCurrentPerson } from '../lib/rotation';
 import type { Family } from '../lib/types';
 
 type RotationSheetProps = {
@@ -13,7 +15,7 @@ type RotationSheetProps = {
   onClose: () => void;
   onAddPerson: (name: string, color: string) => void;
   onRemovePerson: (personId: string) => void;
-  onMovePerson: (personId: string, delta: number) => void;
+  onReorderPeople: (ids: string[]) => void;
   onToggleHoliday: (personId: string, active: boolean) => void;
 };
 
@@ -26,9 +28,10 @@ type RotationSheetProps = {
  * and who is leaving. The owner's, and nobody else sees it.
  *
  * The question it answers most often is "who is in it", so that is what it
- * opens on: the list first, the box for another name under it, and the arrows
- * and the bins behind the pen at the top. A row carrying all of them at once
- * was six controls wide and read as a form rather than a list of people.
+ * opens on: the list first, the box for another name under it, and the pen at
+ * the top for the order and the bins. Both lists read the rotation the way
+ * the queue along the bottom of the screen does — from whoever is up — so the
+ * order arranged here is the order seen there.
  */
 export function RotationSheet({
   open,
@@ -36,55 +39,64 @@ export function RotationSheet({
   onClose,
   onAddPerson,
   onRemovePerson,
-  onMovePerson,
+  onReorderPeople,
   onToggleHoliday,
 }: RotationSheetProps) {
-  const people = [...family.people].sort((a, b) => a.order - b.order);
-  const [editing, setEditing] = useState(false);
+  const people = arrangeOrder(family);
+  const current = getCurrentPerson(family);
+  const [arranging, setArranging] = useState(false);
 
   // The pen is a state of this sheet, not of the rotation: closing it and
   // opening it again asks the usual question, not the last one. Put down as
   // the sheet goes rather than in an effect afterwards, so it is already
   // down by the time the sheet is next painted.
-  if (!open && editing) setEditing(false);
+  if (!open && arranging) setArranging(false);
 
   return (
-    // One height whatever the rotation grows to: without it the sheet climbed
-    // the screen with every name added, and the list moved under the finger.
-    <Sheet
-      open={open}
-      title={en.settings.rotationTitle}
-      onClose={onClose}
-      fixedHeight
-      headerAction={
-        people.length > 0 ? (
-          <button
-            type="button"
-            className={editing ? 'row-x sheet-edit on' : 'row-x sheet-edit'}
-            aria-label={editing ? en.settings.doneRotation : en.settings.editRotation}
-            aria-pressed={editing}
-            onClick={() => setEditing((was) => !was)}
-          >
-            <PenIcon />
-          </button>
-        ) : undefined
-      }
-    >
-      {people.length === 0 ? (
-        <p className="empty">{en.setup.empty}</p>
-      ) : (
-        <RosterList
-          people={people}
-          editing={editing}
-          ownerPersonId={family.ownerPersonId}
-          onMove={onMovePerson}
-          onToggleHoliday={onToggleHoliday}
-          onRemove={onRemovePerson}
-        />
-      )}
+    <>
+      {/* One height whatever the rotation grows to: without it the sheet
+          climbed the screen with every name added, and the list moved under
+          the finger. */}
+      <Sheet
+        open={open}
+        title={en.settings.rotationTitle}
+        onClose={onClose}
+        fixedHeight
+        covered={arranging}
+        headerAction={
+          people.length > 0 ? (
+            <button
+              type="button"
+              className="row-x sheet-edit"
+              aria-label={en.settings.editRotation}
+              onClick={() => setArranging(true)}
+            >
+              <PenIcon />
+            </button>
+          ) : undefined
+        }
+      >
+        {people.length === 0 ? (
+          <p className="empty">{en.setup.empty}</p>
+        ) : (
+          <RosterList people={people} currentId={current?.id} onToggleHoliday={onToggleHoliday} />
+        )}
 
-      <div className="fieldlabel spaced">{en.settings.addPerson}</div>
-      <AddPerson suggested={colorForIndex(people.length)} onAdd={onAddPerson} />
-    </Sheet>
+        <div className="fieldlabel spaced">{en.settings.addPerson}</div>
+        <AddPerson suggested={colorForIndex(people.length)} onAdd={onAddPerson} />
+      </Sheet>
+
+      {/* A sheet of its own, over this one rather than inside it: a sheet is
+          fixed to the screen, and one nested in another is fixed to that. */}
+      <ArrangeSheet
+        open={arranging}
+        people={people}
+        currentId={current?.id}
+        ownerPersonId={family.ownerPersonId}
+        onClose={() => setArranging(false)}
+        onReorder={onReorderPeople}
+        onRemove={onRemovePerson}
+      />
+    </>
   );
 }

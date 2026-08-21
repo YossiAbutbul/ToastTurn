@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   monthRange,
   rotationOrder,
+  arrangeOrder,
   getCurrentPerson,
   getUpcoming,
   logTurn,
@@ -239,5 +240,31 @@ describe('rotationOrder', () => {
 
   it('is empty when nobody is in the rotation', () => {
     expect(rotationOrder(family([]))).toEqual([]);
+  });
+});
+
+describe('arrangeOrder', () => {
+  it('reads the ring from whoever is up, the way the queue does', () => {
+    const after = logTurn(family(four()), { id: 't1', madeAt: '2026-08-16' });
+    expect(arrangeOrder(after).map((p) => p.id)).toEqual(['b', 'c', 'd', 'a']);
+  });
+
+  it('keeps anyone on holiday in their place in the ring', () => {
+    const holiday = [person('a', 0), person('b', 1, false), person('c', 2)];
+    const after = logTurn(family(holiday), { id: 't1', madeAt: '2026-08-16' });
+    expect(arrangeOrder(after).map((p) => p.id)).toEqual(['c', 'a', 'b']);
+  });
+
+  it('says the same thing as the queue once the holidays are taken out', () => {
+    const holiday = [person('a', 0), person('b', 1, false), person('c', 2), person('d', 3)];
+    const after = logTurn(family(holiday), { id: 't1', madeAt: '2026-08-16' });
+    expect(arrangeOrder(after).filter((p) => p.active).map((p) => p.id)).toEqual(
+      rotationOrder(after).map((p) => p.id),
+    );
+  });
+
+  it('falls back to plain order when nobody is in the rotation to be up', () => {
+    const away = family([person('a', 1, false), person('b', 0, false)]);
+    expect(arrangeOrder(away).map((p) => p.id)).toEqual(['b', 'a']);
   });
 });

@@ -53,16 +53,20 @@ describe('familyReducer', () => {
     expect(removed.family?.people.map((p) => `${p.id}${p.order}`)).toEqual(['a0', 'c1', 'd2']);
   });
 
-  it('moves a person through the rotation and closes the gap behind them', () => {
-    const moved = familyReducer(ready(), { type: 'movePerson', id: 'a', delta: 2 });
+  it('takes the rotation in the sequence it was arranged into', () => {
+    const moved = familyReducer(ready(), { type: 'reorderPeople', ids: ['b', 'c', 'a'] });
     expect(moved.family?.people.map((p) => p.id)).toEqual(['b', 'c', 'a']);
     expect(moved.family?.people.map((p) => p.order)).toEqual([0, 1, 2]);
   });
 
-  it('refuses to move someone off either end', () => {
+  it('keeps anyone the sequence never named, rather than dropping them', () => {
+    const moved = familyReducer(ready(), { type: 'reorderPeople', ids: ['c', 'a'] });
+    expect(moved.family?.people.map((p) => p.id)).toEqual(['c', 'a', 'b']);
+  });
+
+  it('ignores names that are not in the rotation', () => {
     const state = ready();
-    expect(familyReducer(state, { type: 'movePerson', id: 'a', delta: -1 })).toBe(state);
-    expect(familyReducer(state, { type: 'movePerson', id: 'c', delta: 1 })).toBe(state);
+    expect(familyReducer(state, { type: 'reorderPeople', ids: ['nobody'] })).toBe(state);
   });
 
   it('stands the open rotation behind a new one rather than dropping it', () => {

@@ -207,7 +207,7 @@ export function Home({ onLeave, onNewFamily, onHome }: HomeProps) {
             person: { id: newId(), name, color, order: family.people.length, active: true },
           })
         }
-        onMovePerson={(personId, delta) => dispatch({ type: 'movePerson', id: personId, delta })}
+        onReorderPeople={(ids) => dispatch({ type: 'reorderPeople', ids })}
         onRename={(name) => dispatch({ type: 'renameFamily', name })}
         onClearOrder={clearOrder}
         onRemovePerson={(personId) => {

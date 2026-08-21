@@ -1,0 +1,117 @@
+/* Arranging the rotation: a list you pick rows up out of. */
+
+.arrange-blurb {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink-soft);
+  margin-block-end: 12px;
+}
+
+.arrange {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.arrange-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px 6px 4px;
+  background: var(--paper);
+  border: 2.5px solid var(--ink);
+  border-radius: 14px;
+  box-shadow: 0 2px 0 var(--ink);
+  /* Rows slide into the gap the carried one left; the carried one is placed
+     by the finger, so it must not chase its slot as well. */
+  transition: transform 120ms ease;
+}
+
+.arrange-row b {
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 17px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.arrange-row .when {
+  margin-inline-start: auto;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+
+/* Off the ground: over the rows it passes, and not sliding to a slot. */
+.arrange-row.lifted {
+  position: relative;
+  z-index: 2;
+  box-shadow: 0 6px 0 var(--ink);
+  transition: none;
+}
+
+.grip {
+  width: 44px;
+  height: 44px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: none;
+  color: var(--ink-soft);
+  padding: 0;
+  cursor: grab;
+  /* The handle takes the whole gesture. The rows around it still scroll. */
+  touch-action: none;
+}
+.grip svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+.grip:active {
+  cursor: grabbing;
+}
+.grip:focus-visible {
+  outline: 3px solid var(--mint);
+  outline-offset: -4px;
+  border-radius: 12px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .arrange-row {
+    transition: none;
+  }
+}
+
+/* Where they come in the queue: 1 is whoever is up. Anyone on holiday is
+   skipped when their turn comes round, so they get a dash instead. */
+.arrange-row .place {
+  width: 16px;
+  flex: none;
+  text-align: center;
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 14px;
+  color: var(--ink-soft);
+}
+
+/* The rows are the sheet, so they are dealt one at a time like the rows of
+   any other sheet rather than arriving as one block. `sheet-deal` is defined
+   with the sheet itself. */
+.sheet.show .arrange > * {
+  animation: sheet-deal 300ms 240ms cubic-bezier(0.2, 1.3, 0.5, 1) backwards;
+}
+.sheet.show .arrange > *:nth-child(2) { animation-delay: 280ms; }
+.sheet.show .arrange > *:nth-child(3) { animation-delay: 320ms; }
+.sheet.show .arrange > *:nth-child(4) { animation-delay: 360ms; }
+.sheet.show .arrange > *:nth-child(5) { animation-delay: 400ms; }
+.sheet.show .arrange > *:nth-child(6) { animation-delay: 440ms; }
+.sheet.show .arrange > *:nth-child(n + 7) { animation-delay: 480ms; }

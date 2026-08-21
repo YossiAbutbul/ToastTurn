@@ -24,47 +24,12 @@
   letter-spacing: 1px;
 }
 
-/* Where somebody sits in the rotation, changed a place at a time. Arrows
-   rather than dragging: a sheet that scrolls and a list that drags fight each
-   other on a phone, and the arrows say what they do out loud. */
-.row .moves {
-  display: flex;
-  flex: 0 0 auto;
-  margin-inline-start: auto;
-}
-.row .move {
-  width: 44px;
-  height: 44px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  background: none;
-  color: var(--ink);
-  cursor: pointer;
-  padding: 0;
-}
-.row .move svg {
-  width: 20px;
-  height: 20px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 3;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-.row .move:disabled {
-  color: var(--dash);
-  cursor: default;
-}
-.row .move:active:not(:disabled) {
-  transform: translateY(2px);
+/* When the row says something as well as switching something - who is up,
+   who is away - the words sit with the switch rather than halfway to it. */
+.row .when ~ .tog {
+  margin-inline-start: 8px;
 }
 
-/* With six things in a row, the name is what gives way. */
-.row .moves ~ .tog {
-  margin-inline-start: 0;
-}
 .row b {
   min-width: 0;
   overflow: hidden;

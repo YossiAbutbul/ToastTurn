@@ -1,123 +1,47 @@
-import { useState } from 'react';
-import { BinIcon } from './BinIcon';
-import { Confirm } from './Confirm';
 import { en } from '../i18n/en';
 import { initialOf } from '../lib/format';
 import type { Person } from '../lib/types';
 
 type RosterListProps = {
-  /** Everyone in the rotation, in rotation order. */
+  /** Everyone in the rotation, in the order the queue reads them. */
   people: Person[];
-  /**
-   * Rearranging, rather than reading. Six controls to a row is a row nobody
-   * can read at a glance, so the arrows and the bin wait behind the pen at
-   * the top of the sheet and the holiday switches stand down while they are
-   * out: taking somebody out and sending them on holiday are different
-   * enough answers to not want them a thumb's width apart.
-   */
-  editing?: boolean;
-  /** Move one person up or down the order. Owner only. */
-  onMove: (personId: string, delta: number) => void;
-  /** Which of them runs it. They stay: a rotation with no owner is nobody's. */
-  ownerPersonId?: string;
+  /** Whoever is up, so the list says where it starts. */
+  currentId?: string;
   onToggleHoliday: (personId: string, active: boolean) => void;
-  onRemove: (personId: string) => void;
 };
 
-/** The people, each with a holiday switch, or a way out and a place to move. */
-export function RosterList({
-  people,
-  editing,
-  onMove,
-  ownerPersonId,
-  onToggleHoliday,
-  onRemove,
-}: RosterListProps) {
-  const [asking, setAsking] = useState<Person | null>(null);
-
+/**
+ * The people, each with a holiday switch.
+ *
+ * Reading, not rearranging: who is in it and who is away. Moving them around
+ * and taking them out is the pen at the top of the sheet, which opens a list
+ * of its own — a row carrying all of it at once was six controls wide and
+ * read as a form rather than as a list of people.
+ */
+export function RosterList({ people, currentId, onToggleHoliday }: RosterListProps) {
   return (
     <>
-      {people.map((person, index) => (
+      {people.map((person) => (
         <div className="row" key={person.id}>
           <span className="mini" style={{ background: person.color }}>
             {initialOf(person.name)}
           </span>
           <b>{person.name}</b>
 
-          {/* The switch is away while the pen is out, so who is on holiday
-              would go with it. Said in words instead, or rearranging the
-              order means guessing who is even in it this week. */}
-          {editing && !person.active && <span className="when">{en.settings.holiday}</span>}
+          {person.id === currentId && <span className="when">{en.settings.upFirst}</span>}
 
-          {/* Beside the name, because it is about the person, not about the
-              switch. Taking yourself out would leave the rotation with nobody
-              to run it, so the owner's own row has no bin. */}
-          {editing && person.id !== ownerPersonId && (
-            <button
-              type="button"
-              className="row-x"
-              aria-label={en.settings.removePerson(person.name)}
-              onClick={() => setAsking(person)}
-            >
-              <BinIcon />
-            </button>
-          )}
-
-          {/* Only worth moving anyone when there is somewhere to move them. */}
-          {editing && people.length > 1 && (
-            <span className="moves">
-              <button
-                type="button"
-                className="move"
-                aria-label={en.setup.moveUp(person.name)}
-                disabled={index === 0}
-                onClick={() => onMove(person.id, -1)}
-              >
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M6 15 L12 9 L18 15" />
-                </svg>
-              </button>
-              <button
-                type="button"
-                className="move"
-                aria-label={en.setup.moveDown(person.name)}
-                disabled={index === people.length - 1}
-                onClick={() => onMove(person.id, 1)}
-              >
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M6 9 L12 15 L18 9" />
-                </svg>
-              </button>
-            </span>
-          )}
-
-          {!editing && (
-            <button
-              type="button"
-              className={person.active ? 'tog' : 'tog on'}
-              role="switch"
-              aria-checked={!person.active}
-              aria-label={`${en.settings.holiday}, ${person.name}`}
-              onClick={() => onToggleHoliday(person.id, !person.active)}
-            >
-              <i />
-            </button>
-          )}
+          <button
+            type="button"
+            className={person.active ? 'tog' : 'tog on'}
+            role="switch"
+            aria-checked={!person.active}
+            aria-label={`${en.settings.holiday}, ${person.name}`}
+            onClick={() => onToggleHoliday(person.id, !person.active)}
+          >
+            <i />
+          </button>
         </div>
       ))}
-
-      <Confirm
-        open={asking !== null}
-        title={en.settings.removeAsk(asking?.name ?? '')}
-        note={en.settings.removeNote}
-        confirmLabel={en.settings.removeYes}
-        cancelLabel={en.settings.removeNo}
-        onCancel={() => setAsking(null)}
-        onConfirm={() => {
-          if (asking) onRemove(asking.id);
-          setAsking(null);
-        }}
-      />
     </>
   );
 }

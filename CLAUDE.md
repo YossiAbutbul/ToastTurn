@@ -190,9 +190,32 @@ rotation" writes the family and lands on Home.
 
 Adding, removing, reordering and holiday mode all live in the rotation sheet
 (`RotationSheet` → `RosterList`), reached from the `+` at the end of the queue.
-Reordering there is a pair of buttons per person, not a drag: a 44px target that
-works with a thumb, a keyboard and a screen reader beats a gesture that works
-with one of the three.
+The pen at the top of it opens `ArrangeSheet`, where the order is changed and
+people are taken out.
+
+Reordering there was a pair of buttons per person until 21 Aug 2026, on the
+grounds that a 44px target works with a thumb, a keyboard and a screen reader
+while a gesture works with one of the three. It is a drag now, asked for by the
+owner, and the reasoning is kept rather than lost: the handle is still a 44px
+button, and the up and down arrow keys on it still move a row a place at a
+time, so the keyboard and the screen reader lost nothing. The handle alone
+takes the pointer (`touch-action: none`, pointer captured), so the sheet around
+it still scrolls under a thumb.
+
+**Both lists read the rotation the way the queue along the bottom does** —
+`arrangeOrder()`, which is `people` sorted by `order` and then turned round to
+start at whoever is up. Sorting by `order` alone starts the ring wherever the
+numbering happens to start, which is nowhere in particular, and a list that
+disagrees with the bar behind it is the bug this replaced.
+
+Every row drags, the one who is up along with them. Dragging anyone into or out
+of the last place changes who is up — the row before the top of the ring is
+whoever last made toast, so putting somebody else there hands the turn on, and
+moving the person who is up out of the way is how you say "not me this week".
+That is the rotation changing, not the list lying, and the sheet re-reads from
+the new answer to show it. Carrying the person who is up all the way to the
+bottom is the one move that does nothing: past the last row is where they
+already were.
 
 ---
 
@@ -288,8 +311,8 @@ person after the most recent non-skipped turn. Storing a `currentIndex` will
 drift the moment two phones write at once — do not do it.
 
 Also in `rotation.ts`, all pure and all unit-tested: `activePeople`,
-`getPerson`, `getUpcoming`, `rotationOrder`, `logTurn`, `removeTurn`,
-`skipWeek`, `turnCounts`, `monthRange`, `lastTurnFor`.
+`getPerson`, `getUpcoming`, `rotationOrder`, `arrangeOrder`, `logTurn`,
+`removeTurn`, `skipWeek`, `turnCounts`, `monthRange`, `lastTurnFor`.
 
 ---
 
